@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:11.1
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3307:3306"
+
+  app:
+    build: .
+    depends_on:
+      - mariadb
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
