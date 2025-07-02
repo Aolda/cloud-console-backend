@@ -1,14 +1,15 @@
 spring:
+  jackson:
+    serialization:
+      indent-output: true
   profiles:
     active: db
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${USER_EMAIL}
-    password: ${USER_PW}  # 앱 비밀번호 사용
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+
+openstack:
+  keystone:
+    url: https://keystone.jalju.com
+    username: admin
+    password: Asdf1234!
+
+  glance:
+    url: https://glance.jalju.com

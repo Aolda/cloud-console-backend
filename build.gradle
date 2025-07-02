@@ -46,6 +46,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	//mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	//webclient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
