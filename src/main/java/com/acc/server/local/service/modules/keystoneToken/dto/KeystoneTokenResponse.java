@@ -1,4 +1,4 @@
-package com.acc.server.local.dto.external.response;
+package com.acc.server.local.service.modules.keystoneToken.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

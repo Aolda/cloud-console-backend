@@ -1,4 +1,4 @@
-package com.acc.server.local.dto.external.response;
+package com.acc.server.local.service.modules.keystoneToken.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
