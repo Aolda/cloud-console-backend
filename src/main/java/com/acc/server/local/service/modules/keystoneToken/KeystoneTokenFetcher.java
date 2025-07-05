@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
 @RequiredArgsConstructor
@@ -15,72 +16,51 @@ public class KeystoneTokenFetcher {
 
     private final WebClient keystoneWebClient;
 
-    private static final String TOKEN_URL = "/v3/auth/tokens";
-
-    public KeystoneTokenRequest buildRequestFromScope(
-            String username,
-            String password,
-            String userDomain,
-            ScopeType scopeType,
-            String projectName,
-            String projectDomain,
-            String domainName
-    ) {
-        return switch (scopeType) {
-            case PROJECT -> buildProjectScopeRequest(username, password, userDomain, projectName, projectDomain);
-            case DOMAIN -> buildDomainScopeRequest(username, password, userDomain, domainName);
-            case SYSTEM -> buildSystemScopeRequest(username, password, userDomain);
-            case UNSCOPED -> buildUnscopedRequest(username, password, userDomain);
-        };
-    }
+    private static final String AUTH_URL = "identity/v3/auth/tokens";
 
     public KeystoneToken toEntityFromResponse(KeystoneTokenResponse response) {
-        // 엔티티 변환 처리 (간단히 예시로 작성)
         return KeystoneToken.builder()
-                .id(response.tokenId())
-                .expiresAt(response.body().getToken().getExpiresAt())
-                .issuedAt(response.body().getToken().getIssuedAt())
-                .userName(response.body().getToken().getUser().getName())
+                // 응답 dto -> 엔티티 매핑 로직 필요
                 .build();
     }
 
-    private KeystoneTokenRequest buildProjectScopeRequest(
-            String username, String password,
-            String userDomain, String projectName, String projectDomain
+    public KeystoneTokenRequest buildProjectScopeRequest(
+            String username, String password, String projectName, Long projectId, String domainName, Long domainId
     ) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(username, password, userDomain),
+                        buildIdentity(username, password),
                         new KeystoneTokenRequest.Scope(
                                 new KeystoneTokenRequest.Project(
+                                        new KeystoneTokenRequest.Domain(domainName, domainId),
                                         projectName,
-                                        new KeystoneTokenRequest.Domain(projectDomain)
-                                )
+                                        projectId
+                                ), null, null
                         )
                 )
         );
     }
 
-    private KeystoneTokenRequest buildDomainScopeRequest(
-            String username, String password,
-            String userDomain, String domainName
+    public KeystoneTokenRequest buildDomainScopeRequest(
+            String userId, String password,
+            String domainName, Long domainId
     ) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(username, password, userDomain),
+                        buildIdentity(userId, password),
                         new KeystoneTokenRequest.Scope(
-                                null, // project
-                                new KeystoneTokenRequest.Domain(domainName),
-                                null // system
+                                null,
+                                new KeystoneTokenRequest.Domain(domainName, domainId),
+                                null
                         )
                 )
         );
     }
 
-    private KeystoneTokenRequest buildSystemScopeRequest(String username, String password, String userDomain) {
+    public KeystoneTokenRequest buildSystemScopeRequest(String id, String password) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(username, password, userDomain),
+                       buildIdentity(id, password),
                         new KeystoneTokenRequest.Scope(
                                 null, null,
                                 new KeystoneTokenRequest.SystemScope(true)
@@ -89,22 +69,21 @@ public class KeystoneTokenFetcher {
         );
     }
 
-    private KeystoneTokenRequest buildUnscopedRequest(String username, String password, String userDomain) {
+    public KeystoneTokenRequest buildUnscopedRequest(String userId, String password) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(username, password, userDomain),
+                        buildIdentity(userId, password),
                         null
                 )
         );
     }
 
-    private KeystoneTokenRequest.Identity buildIdentity(String username, String password, String userDomain) {
+    private KeystoneTokenRequest.Identity buildIdentity(String userId, String password) {
         return new KeystoneTokenRequest.Identity(
                 new String[]{"password"},
                 new KeystoneTokenRequest.Password(
                         new KeystoneTokenRequest.User(
-                                username,
-                                new KeystoneTokenRequest.Domain(userDomain),
+                                userId,
                                 password
                         )
                 )
@@ -112,17 +91,25 @@ public class KeystoneTokenFetcher {
     }
 
     public KeystoneTokenResponse sendTokenRequest(KeystoneTokenRequest request) {
-        return keystoneWebClient.post()
-                .uri(TOKEN_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .toEntity(KeystoneTokenResponseBody.class)
-                .map(responseEntity -> new KeystoneTokenResponse(
-                        responseEntity.getHeaders().getFirst("X-Subject-Token"),
-                        responseEntity.getBody()
-                ))
-                .block();
+        try {
+            return keystoneWebClient.post()
+                    .uri(AUTH_URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .toEntity(KeystoneTokenResponseBody.class)
+                    .map(responseEntity -> new KeystoneTokenResponse(
+                            responseEntity.getHeaders().getFirst("X-Subject-Token"),
+                            responseEntity.getBody()
+                    ))
+                    .block();
+        } catch (WebClientResponseException e) {
+            //커스텀 에러 처리 들어갈 부분
+            throw new RuntimeException("Keystone API 응답 에러: " + e.getStatusCode() + " - " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Keystone API 요청 중 예외 발생", e);
+        }
     }
+
 }

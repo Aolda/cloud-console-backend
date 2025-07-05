@@ -12,9 +12,31 @@ public class KeystoneServiceAdapter implements KeystoneServicePort {
     private KeystoneTokenFetcher tokenFetcher;
 
     @Override
-    public KeystoneToken fetchToken(String username, String password, String userDomain, ScopeType scopeType, String projectName, String projectDomain, String domainName) {
-        KeystoneTokenRequest req = tokenFetcher.buildRequestFromScope(username, password, userDomain, scopeType, projectName, projectDomain, domainName);
+    public KeystoneToken fetchSystemScopeToken(String username, String password){
+        KeystoneTokenRequest req = tokenFetcher.buildSystemScopeRequest(username, password);
         KeystoneTokenResponse res = tokenFetcher.sendTokenRequest(req);
         return tokenFetcher.toEntityFromResponse(res);
     }
+
+    @Override
+    public KeystoneToken fetchUnscopedToken(String username, String password){
+        KeystoneTokenRequest req = tokenFetcher.buildUnscopedRequest(username, password);
+        KeystoneTokenResponse res = tokenFetcher.sendTokenRequest(req);
+        return tokenFetcher.toEntityFromResponse(res);
+    }
+
+    @Override
+    public KeystoneToken fetchProjectScopeToken(String username, String password, String projectName, Long projectId, String domainName, Long domainId){
+        KeystoneTokenRequest req = tokenFetcher.buildProjectScopeRequest(username, password, projectName, projectId, domainName, domainId);
+        KeystoneTokenResponse res = tokenFetcher.sendTokenRequest(req);
+        return tokenFetcher.toEntityFromResponse(res);
+    }
+
+    @Override
+    public KeystoneToken fetchDomainScopeToken(String username, String password, String domainName, Long domainId){
+        KeystoneTokenRequest req = tokenFetcher.buildDomainScopeRequest(username, password, domainName, domainId);
+        KeystoneTokenResponse res = tokenFetcher.sendTokenRequest(req);
+        return tokenFetcher.toEntityFromResponse(res);
+    }
+
 }
