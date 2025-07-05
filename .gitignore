@@ -37,3 +37,4 @@ out/
 .vscode/
 
 .env
+src/main/resources/google/aolda-acc-account.json
