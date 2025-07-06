@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 @ConfigurationProperties(prefix = "keystone")
-public class KeystoneProperties {
+public class KeystoneApiProperties {
     private String baseUrl;
     private String tokenUrl;
 }
