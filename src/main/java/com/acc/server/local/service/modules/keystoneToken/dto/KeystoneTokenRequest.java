@@ -49,12 +49,16 @@ public class KeystoneTokenRequest {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class User {
-        @JsonProperty("id")
-        private String id;
+        @JsonProperty("name")
+        private String username;
 
         @JsonProperty("password")
         private String password;
+
+        @JsonProperty("domain")
+        private Domain domain;
     }
 
     @Data

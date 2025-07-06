@@ -1,0 +1,3 @@
+keystone:
+  base-url: https://openstack-api.jalju.com
+  token-url: /identity/v3/auth/tokens

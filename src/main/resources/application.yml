@@ -1,3 +1,6 @@
 spring:
   profiles:
     active: db
+  config:
+    import:
+      - classpath:application-external.yml

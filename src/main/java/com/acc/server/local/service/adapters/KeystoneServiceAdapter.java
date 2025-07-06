@@ -1,7 +1,6 @@
 package com.acc.server.local.service.adapters;
 
 import com.acc.server.local.entity.KeystoneToken;
-import com.acc.server.local.model.enums.ScopeType;
 import com.acc.server.local.service.modules.keystoneToken.KeystoneTokenFetcher;
 import com.acc.server.local.service.modules.keystoneToken.dto.KeystoneTokenRequest;
 import com.acc.server.local.service.modules.keystoneToken.dto.KeystoneTokenResponse;

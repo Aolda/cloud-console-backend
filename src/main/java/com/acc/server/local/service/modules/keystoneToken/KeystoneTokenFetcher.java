@@ -11,12 +11,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
-@RequiredArgsConstructor
 public class KeystoneTokenFetcher {
 
-    private final WebClient keystoneWebClient;
+    private final WebClient webClient;
+    private final KeystoneProperties properties;
 
-    private static final String AUTH_URL = "identity/v3/auth/tokens";
+    public KeystoneTokenFetcher(KeystoneProperties properties) {
+        this.properties = properties;
+        this.webClient = WebClient.builder()
+                .baseUrl(properties.getBaseUrl())
+                .build();
+    }
 
     public KeystoneToken toEntityFromResponse(KeystoneTokenResponse response) {
         return KeystoneToken.builder()
@@ -42,12 +47,12 @@ public class KeystoneTokenFetcher {
     }
 
     public KeystoneTokenRequest buildDomainScopeRequest(
-            String userId, String password,
+            String username, String password,
             String domainName, Long domainId
     ) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(userId, password),
+                        buildIdentity(username, password),
                         new KeystoneTokenRequest.Scope(
                                 null,
                                 new KeystoneTokenRequest.Domain(domainName, domainId),
@@ -57,10 +62,10 @@ public class KeystoneTokenFetcher {
         );
     }
 
-    public KeystoneTokenRequest buildSystemScopeRequest(String id, String password) {
+    public KeystoneTokenRequest buildSystemScopeRequest(String name, String password) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                       buildIdentity(id, password),
+                       buildIdentity(name, password),
                         new KeystoneTokenRequest.Scope(
                                 null, null,
                                 new KeystoneTokenRequest.SystemScope(true)
@@ -69,30 +74,35 @@ public class KeystoneTokenFetcher {
         );
     }
 
-    public KeystoneTokenRequest buildUnscopedRequest(String userId, String password) {
+    public KeystoneTokenRequest buildUnscopedRequest(String username, String password) {
         return new KeystoneTokenRequest(
                 new KeystoneTokenRequest.Auth(
-                        buildIdentity(userId, password),
+                        buildIdentity(username, password),
                         null
                 )
         );
     }
 
-    private KeystoneTokenRequest.Identity buildIdentity(String userId, String password) {
+    private KeystoneTokenRequest.Identity buildIdentity(String username, String password) {
         return new KeystoneTokenRequest.Identity(
                 new String[]{"password"},
                 new KeystoneTokenRequest.Password(
                         new KeystoneTokenRequest.User(
-                                userId,
-                                password
+                                username,
+                                password,
+                                new KeystoneTokenRequest.Domain(
+                                        "default",
+                                        null
+                                )
                         )
                 )
         );
     }
 
     public KeystoneTokenResponse sendTokenRequest(KeystoneTokenRequest request) {
+        String AUTH_URL = properties.getTokenUrl();
         try {
-            return keystoneWebClient.post()
+            return webClient.post()
                     .uri(AUTH_URL)
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
