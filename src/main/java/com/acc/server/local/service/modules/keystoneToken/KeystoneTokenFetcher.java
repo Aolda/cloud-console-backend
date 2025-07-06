@@ -1,10 +1,7 @@
 package com.acc.server.local.service.modules.keystoneToken;
 
 import com.acc.server.local.entity.KeystoneToken;
-import com.acc.server.local.model.enums.ScopeType;
 import com.acc.server.local.service.modules.keystoneToken.dto.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,9 +11,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class KeystoneTokenFetcher {
 
     private final WebClient webClient;
-    private final KeystoneProperties properties;
+    private final KeystoneApiProperties properties;
 
-    public KeystoneTokenFetcher(KeystoneProperties properties) {
+    public KeystoneTokenFetcher(KeystoneApiProperties properties) {
         this.properties = properties;
         this.webClient = WebClient.builder()
                 .baseUrl(properties.getBaseUrl())
