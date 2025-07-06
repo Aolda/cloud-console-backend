@@ -1,3 +1,8 @@
 keystone:
-  base-url: https://openstack-api.jalju.com
-  token-url: /identity/v3/auth/tokens
+  base-url: https://openstack-api.jalju.com/identity
+  token-url: /v3/auth/tokens
+
+cinder:
+  base-url: https://openstack-api.jalju.com/volume
+  volumes-url: /v3/volumes
+  volumes-detail-url: /v3/volumes/detail
