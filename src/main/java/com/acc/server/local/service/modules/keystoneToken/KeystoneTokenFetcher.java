@@ -1,6 +1,5 @@
 package com.acc.server.local.service.modules.keystoneToken;
 
-import com.acc.server.local.entity.KeystoneToken;
 import com.acc.server.local.service.modules.keystoneToken.dto.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,11 +19,11 @@ public class KeystoneTokenFetcher {
                 .build();
     }
 
-    public KeystoneToken toEntityFromResponse(KeystoneTokenResponse response) {
-        return KeystoneToken.builder()
-                // 응답 dto -> 엔티티 매핑 로직 필요
-                .build();
-    }
+//    public KeystoneToken toEntityFromResponse(KeystoneTokenResponse response) {
+//        return KeystoneToken.builder()
+//                // 응답 dto -> 엔티티 매핑 로직 필요
+//                .build();
+//    }
 
     public KeystoneTokenRequest buildProjectScopeRequest(
             String username, String password, String projectName, Long projectId, String domainName, Long domainId
