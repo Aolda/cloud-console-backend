@@ -11,10 +11,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class KeystoneTokenFetcher {
 
     private final WebClient webClient;
-    private final KeystoneApiProperties properties;
+    private final String AUTH_URL;
 
     public KeystoneTokenFetcher(KeystoneApiProperties properties) {
-        this.properties = properties;
+        this.AUTH_URL = properties.getTokenUrl();
         this.webClient = WebClient.builder()
                 .baseUrl(properties.getBaseUrl())
                 .build();
@@ -97,7 +97,6 @@ public class KeystoneTokenFetcher {
     }
 
     public KeystoneTokenResponse sendTokenRequest(KeystoneTokenRequest request) {
-        String AUTH_URL = properties.getTokenUrl();
         try {
             return webClient.post()
                     .uri(AUTH_URL)
