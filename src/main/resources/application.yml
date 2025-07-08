@@ -1,6 +1,7 @@
 spring:
   profiles:
-    active: db
+    active: db, google
   config:
     import:
       - classpath:application-external.yml
+      
