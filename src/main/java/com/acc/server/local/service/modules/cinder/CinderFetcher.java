@@ -1,5 +1,6 @@
 package com.acc.server.local.service.modules.cinder;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.acc.server.local.service.modules.cinder.dto.VolumeDetailResponse;
 import com.acc.server.local.service.modules.cinder.dto.VolumeResponse;
 import org.springframework.stereotype.Component;
@@ -13,11 +14,15 @@ public class CinderFetcher {
     private final String volumesUrl;
     private final String volumesDetailUrl;
 
-    public CinderFetcher(CinderApiProperties props){
-        this.volumesUrl = props.getVolumesUrl();
-        this.volumesDetailUrl = props.getVolumesDetailUrl();
+    public CinderFetcher(
+            @Value("${cinder.base-url}") String baseUrl,
+            @Value("${cinder.volumes-url}") String volumesUrl,
+            @Value("${cinder.volumes-detail-url}") String volumesDetailUrl
+    ) {
+        this.volumesUrl = volumesUrl;
+        this.volumesDetailUrl = volumesDetailUrl;
         this.webClient = WebClient.builder()
-                .baseUrl(props.getBaseUrl())
+                .baseUrl(baseUrl)
                 .build();
     }
 
