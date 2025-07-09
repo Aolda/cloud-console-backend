@@ -1,5 +1,6 @@
 package com.acc.server.local.service.modules.keystoneToken;
 
+import com.acc.server.global.properties.external.KeystoneProperties;
 import org.springframework.beans.factory.annotation.Value;
 import com.acc.server.local.service.modules.keystoneToken.dto.*;
 import org.springframework.http.MediaType;
@@ -13,13 +14,10 @@ public class KeystoneTokenFetcher {
     private final WebClient webClient;
     private final String AUTH_URL;
 
-    public KeystoneTokenFetcher(
-            @Value("${keystone.token-url}") String tokenUrl,
-            @Value("${keystone.base-url}") String baseUrl
-    ) {
-        this.AUTH_URL = tokenUrl;
+    public KeystoneTokenFetcher(KeystoneProperties props) {
+        this.AUTH_URL = props.getTokenUrl();
         this.webClient = WebClient.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(props.getBaseUrl())
                 .build();
     }
 
