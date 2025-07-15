@@ -11,6 +11,9 @@ public class WebClientConfig {
     @Value("${openstack.url}")
     private String openstackUrl;
 
+    @Value("${keycloak.url}")
+    private String keycloakUrl;
+
     @Bean
     public WebClient keystoneWebClient() {
         return WebClient.builder()
@@ -31,6 +34,14 @@ public class WebClientConfig {
     public WebClient computeWebClient() {
         return WebClient.builder()
                 .baseUrl(openstackUrl)
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
+
+    @Bean
+    public WebClient keycloakWebClient() {
+        return WebClient.builder()
+                .baseUrl(keycloakUrl)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
