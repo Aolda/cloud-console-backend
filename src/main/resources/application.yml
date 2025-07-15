@@ -5,3 +5,11 @@ spring:
     import:
       - classpath:application-external.yml
       
+openstack:
+  url: ${OPENSTACK_URL}
+  keystone:
+    username: ${OPENSTACK_USERNAME}
+    password: ${OPENSTACK_PASSWORD}
+    project: ${OPENSTACK_PROJECT}
+
+# 방식 통일 필요
