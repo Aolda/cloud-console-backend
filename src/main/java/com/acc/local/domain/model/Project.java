@@ -1,6 +1,6 @@
-package com.acc.server.local.domain.model;
+package com.acc.local.domain.model;
 
-import com.acc.server.local.domain.enums.ProjectStatus;
+import com.acc.local.domain.enums.ProjectStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
