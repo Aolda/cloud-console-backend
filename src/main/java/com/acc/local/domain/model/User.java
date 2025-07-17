@@ -1,6 +1,6 @@
-package com.acc.server.local.domain.model;
+package com.acc.local.domain.model;
 
-import com.acc.server.local.domain.enums.UserStatus;
+import com.acc.local.domain.enums.UserStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * 사용자 도메인 모델

@@ -1,15 +1,15 @@
-package com.acc.server.local.domain.enums;
+package com.acc.local.domain.enums;
 
-public enum ProjectStatus {
-    PENDING("생성 대기"),      // Keystone 생성 전
+public enum UserStatus {
+    PENDING("생성 대기"),
     ACTIVE("활성"),
-    INACTIVE("비활성"),
     SUSPENDED("정지"),
+    INACTIVE("비활성"),
     DELETED("삭제됨");
 
     private final String description;
 
-    ProjectStatus(String description) {
+    UserStatus(String description) {
         this.description = description;
     }
 
