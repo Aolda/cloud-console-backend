@@ -13,6 +13,8 @@ import java.util.List;
 public class PortAdapter implements PortPort {
 
     private final PortModule portModule;
+    private final NovaModule novaModule;
+    private final RouterModule routerModule;
 
     @Override
     public PortResponse createPort(PortRequest request, String token) {
@@ -21,7 +23,18 @@ public class PortAdapter implements PortPort {
 
     @Override
     public List<PortResponse> listPorts(String token) {
-        return portModule.listPorts(token);
+        List<PortResponse> ports = portModule.listPorts(token);
+        for (PortResponse port : ports) {
+            String owner = port.getDeviceOwner();
+            if (owner != null && owner.startsWith("compute")) {
+                port.setDeviceName(novaModule.getInstanceName(port.getDeviceId(), token));
+            } else if (owner != null && owner.contains("router")) {
+                port.setDeviceName(routerModule.getRouterName(port.getDeviceId(), token));
+            } else {
+                port.setDeviceName("(unknown)");
+            }
+        }
+        return ports;
     }
 
     @Override
@@ -38,6 +51,7 @@ public class PortAdapter implements PortPort {
     public List<PortResponse> searchPorts(String keyword, String token) {
         return portModule.listPorts(token).stream()
                 .filter(port -> port.getName() != null && port.getName().contains(keyword))
-                .toList();
+                .sorted(Comparator.comparing(PortResponse::getName))
+                .collect(Collectors.toList());
     }
 }
