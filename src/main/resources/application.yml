@@ -7,3 +7,14 @@ openstack:
     username: ${OPENSTACK_USERNAME}
     password: ${OPENSTACK_PASSWORD}
     project: ${OPENSTACK_PROJECT}
+
+keycloak:
+  base-url: ${KEYCLOAK_BASE_URL}
+  realm: ${KEYCLOAK_REALM}
+  client-id: ${KEYCLOAK_CLIENT_ID}
+  redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS}
