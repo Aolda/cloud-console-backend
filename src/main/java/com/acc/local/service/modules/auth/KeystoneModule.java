@@ -49,9 +49,18 @@ public class KeystoneModule {
                 .block();
     }
 
-    public String federateAuth(String keycloakToken) {
+    public String login(String keycloakCode) {
         // TODO: 화균님이 구현 예정
-        // Keystone Federate Authentication 로직
+        // Keystone Federate Authentication 로직 (keycloak code로 로그인)
+        return null;
+    }
+
+    public Map<String, Object> getPermission(Object user) {
+        // TODO: 다른 분이 구현 예정 (Phase2에서는 KeycloakModule로 이동)
+        // Keystone API로 사용자 권한 조회 로직
+        // 1. JWT에서 추출한 keystone token 사용
+        // 2. Keystone API 호출하여 프로젝트별 권한 조회  
+        // 3. Map<String, ProjectPermission> 형태로 반환
         return null;
     }
 }

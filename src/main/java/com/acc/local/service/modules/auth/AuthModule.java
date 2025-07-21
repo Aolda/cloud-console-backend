@@ -31,7 +31,7 @@ public class AuthModule {
         userTokenRepositoryPort.deactivateAllByUserId(userId);
         
         // Keystone Federate Authentication으로 사용자 토큰 발급
-        String keystoneToken = keystoneModule.federateAuth(keycloakToken);
+        String keystoneToken = keystoneModule.login(keycloakToken);
         
         // JWT 토큰 생성
         String jwtToken = jwtUtils.generateToken(userId, keystoneToken);

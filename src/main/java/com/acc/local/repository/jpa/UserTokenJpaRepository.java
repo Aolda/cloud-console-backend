@@ -13,20 +13,18 @@ import java.util.Optional;
 @Repository
 public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, Long> {
 
-    // JWT 토큰으로 활성화된 토큰 조회
+    // JWT 토큰으로 활성화된 UserToken Entity 조회
     Optional<UserTokenEntity> findByJwtTokenAndIsActiveTrue(String jwtToken);
 
     // 사용자별 활성화된 토큰 조회 (한 사용자당 하나의 활성 토큰만 유지)
     Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId);
 
     // 특정 사용자의 모든 활성 토큰을 비활성화 (새 로그인 시 기존 토큰 무효화)
-    // @Modifying: UPDATE/DELETE 쿼리 실행 시 필수. 조회가 아닌 데이터 변경 작업임을 Spring Data JPA에게 알림
     @Modifying
     @Query("UPDATE UserTokenEntity ut SET ut.isActive = false, ut.updatedAt = :now WHERE ut.userId = :userId AND ut.isActive = true")
     void deactivateAllByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 
     // 만료된 모든 토큰을 비활성화 (배치 작업용)
-    // @Modifying: 대량 UPDATE 작업이므로 필수
     @Modifying
     @Query("UPDATE UserTokenEntity ut SET ut.isActive = false, ut.updatedAt = :now WHERE ut.expiresAt < :now")
     void deactivateExpiredTokens(@Param("now") LocalDateTime now);
