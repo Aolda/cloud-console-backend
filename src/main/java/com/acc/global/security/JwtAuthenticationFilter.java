@@ -1,5 +1,6 @@
 package com.acc.global.security;
 
+import com.acc.global.exception.auth.JwtAuthenticationException;
 import com.acc.local.service.ports.AuthPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,8 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 log.debug("JWT 인증 성공: userId={}", userId);
             }
-        } catch (Exception ex) {
-            log.error("JWT 인증 중 오류 발생", ex);
+        } catch (JwtAuthenticationException ex) {
             // 인증 실패 시 SecurityContext를 비움
             SecurityContextHolder.clearContext();
         }
@@ -63,10 +63,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         
-        // 인증이 필요 없는 경로들 (SecurityConfig에서 permitAll()로 설정한 경로들)
+        // 인가 체크 + 필터링 조차 필요 없는 패스들 -> 굳이 나중에 필요 없으면 삭제
         return path.startsWith("/api/v1/auth/") ||
                path.startsWith("/api/v1/google/") ||
                path.startsWith("/api/v1/computes/") ||

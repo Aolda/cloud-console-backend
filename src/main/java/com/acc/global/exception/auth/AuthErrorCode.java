@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 public enum AuthErrorCode implements ErrorCode {
 
+    FAILED_TOKEN_AUTHENTICATION(401, "ACC-AUTH-FAILED_TOKEN_AUTHENTICATION", "토큰 인증에 실패했습니다.."),
     INVALID_TOKEN(401, "ACC-AUTH-INVALID-TOKEN", "유효하지 않은 토큰입니다."),
     TOKEN_EXPIRED(401, "ACC-AUTH-TOKEN-EXPIRED", "토큰이 만료되었습니다."),
     SIGNATURE_DOES_NOT_MATCH(403, "ACC-AUTH-SIGNATURE-DOES-NOT-MATCH", "서명이 일치하지 않습니다.");
