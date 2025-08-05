@@ -14,7 +14,6 @@ keycloak:
   client-id: ${KEYCLOAK_CLIENT_ID}
   redirect-uri: ${KEYCLOAK_REDIRECT_URI}
 
-app:
-  jwt:
-    secret: ${JWT_SECRET}
-    expiration-ms: ${JWT_EXPIRATION_MS}
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS}

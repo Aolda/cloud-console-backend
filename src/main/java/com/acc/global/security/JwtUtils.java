@@ -1,34 +1,35 @@
 package com.acc.global.security;
 
+import com.acc.global.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
+
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class JwtUtils {
 
-    private final SecretKey secretKey;
-    private final long jwtExpirationMs;
-
-    public JwtUtils(@Value("${app.jwt.secret:defaultSecretKeyForDevelopmentOnly}") String jwtSecret,
-                    @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationMs) {
-        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        this.jwtExpirationMs = jwtExpirationMs;
-    }
+    private JwtProperties jwtProperties;
 
     public String generateToken(String userId, String keystoneToken) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
+        SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
                 .subject(userId)
                 .claim("keystoneToken", keystoneToken)
@@ -70,6 +71,8 @@ public class JwtUtils {
     }
 
     private Claims getClaimsFromToken(String token) {
+        SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
