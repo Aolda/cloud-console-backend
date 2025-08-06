@@ -33,6 +33,16 @@ public class KeystoneModule {
 
 	private final WebClient keystoneWebClient;
 
+	public Mono<Map<String, ProjectPermission>> getPermission(String keystoneToken) {
+		Mono<Map<String, Map<String, ?>>> openstackPermissionList = getOpenstackAccountPermissionList(keystoneToken);
+		return createUserPermissionMap(openstackPermissionList);
+	}
+
+	public Mono<ProjectPermission> getPermission(String keystoneToken, String projectName) {
+		Mono<Map<String, ProjectPermission>> permission = getPermission(keystoneToken);
+		return permission.map(p -> p.getOrDefault(projectName, ProjectPermission.NONE));
+	}
+
 	public Mono<String> login(String keycloakCode) {
 		Mono<Map<String, Map<String, ?>>> keystoneResponse = requestKeystonePost(
 			KeystoneRoutes.TOKEN_AUTH,
@@ -42,12 +52,60 @@ public class KeystoneModule {
 		return extractKeystoneToken(keystoneResponse);
 	}
 
-	private Mono<String> extractKeystoneToken(Mono<HashMap<String, Object>> keystoneResponse) {
-			return keystoneResponse.map(response -> response.get("X-Subject-Token").toString());
 	/* ==== [Task] Util Methods ==== */
+
+	private static Mono<Map<String, ProjectPermission>> createUserPermissionMap(Mono<Map<String, Map<String, ?>>> monoPermissionData) {
+		return monoPermissionData.map(permissionData -> {
+			List<Map<String, Object>> roles = (List<Map<String, Object>>)permissionData.get("role_assignments");
+			return roles.stream()
+				.map(KeystoneModule::parseAssignedRoles)
+				.filter(Objects::nonNull)
+				.map(roleInfo -> Map.entry(
+					roleInfo.getFirst(),
+					ProjectPermission.findByKeystoneRoleName(roleInfo.getLast())
+				))
+				.collect(Collectors.toMap(
+					Map.Entry::getKey,
+					Map.Entry::getValue
+				));
+		});
 	}
 
-	private Mono<HashMap<String, Object>> requestKeystonePost(String path, Map<String, Object> body, Map<String, String> headers) {
+	private static List<String> parseAssignedRoles(Map<String, Object> assignedRole) {
+		try {
+			String projectId = getObjectValue(assignedRole, "scope.project.id");
+			String keystoneRoleName = getObjectValue(assignedRole, "role.name");
+
+			return Arrays.asList(projectId, keystoneRoleName);
+		} catch (NullPointerException e) {
+			log.warn(e.getMessage());
+		}
+
+		return null;
+	}
+
+	private static <T> T getObjectValue(Object object, String keys) {
+		if (!(object instanceof Map)) return null;
+
+		int splitIndex = keys.indexOf('.');
+		String key = keys.substring(0, splitIndex);
+
+		Map<String, Object> mapObject = (Map<String, Object>) object;
+		if (!mapObject.containsKey(key)) return null;
+		T value = (T) mapObject.get(key);
+
+		if (keys.indexOf('.', splitIndex + 1) == -1) return value;
+		return getObjectValue(value, keys.substring(splitIndex));
+	}
+
+	private Mono<Map<String, Map<String, ?>>> getOpenstackAccountPermissionList(String keystoneToken) {
+		return requestKeystoneGet(
+			KeystoneRoutes.GET_ASSIGNED_PERMISSIONS,
+			new HashMap<>(),
+			createKeystoneAPIRequestHeader(keystoneToken)
+		);
+	}
+
 	private Mono<String> extractKeystoneToken(Mono<Map<String, Map<String, ?>>> keystoneResponse) {
 		return keystoneResponse.map(response -> {
 			Map<String, ?> headers = response.get("headers");
@@ -105,6 +163,13 @@ public class KeystoneModule {
 	private Map<String, String> createKeystoneLoginHeader(String keycloakCode) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put("Authorization", "Bearer " + keycloakCode);
+		headers.put("Content-Type", "application/json");
+		return headers;
+	}
+
+	private Map<String, String> createKeystoneAPIRequestHeader(String keystoneToken) {
+		Map<String, String> headers = new HashMap<>();
+		headers.put("X-Auth-Token", keystoneToken);
 		headers.put("Content-Type", "application/json");
 		return headers;
 	}
