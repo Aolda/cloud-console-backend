@@ -2,18 +2,39 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.properties.OpenStackProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import com.acc.local.domain.enums.ProjectPermission;
+import com.acc.local.service.modules.auth.constant.KeystoneRoutes;
+
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class KeystoneModule {
 
-    private final WebClient keystoneWebClient;
+	@Value("${server.protocol}")
+	private String SERVICE_PROTO;
+	@Value("${server.domain}")
+	private String SERVICE_DOMAIN;
+	@Value("${server.port}")
+	private String SERVICE_PORT;
+
+	private final WebClient keystoneWebClient;
     private final OpenStackProperties openStackProperties;
 
     //  Modified: 어떤 토큰인지 분리하기 위해서 issueToken -> issueKeystoneToken 으로 변경
@@ -22,45 +43,170 @@ public class KeystoneModule {
         String password = openStackProperties.getKeystone().getPassword();
         String projectName = openStackProperties.getKeystone().getProject();
 
-        Map<String, Object> request = Map.of(
-                "auth", Map.of(
-                        "identity", Map.of(
-                                "methods", List.of("password"),
-                                "password", Map.of("user", Map.of(
-                                        "name", username,
-                                        "domain", Map.of("name", "default"),
-                                        "password", password
-                                ))
-                        ),
-                        "scope", Map.of("project", Map.of(
-                                "name", projectName,
-                                "domain", Map.of("name", "default")
-                        ))
-                )
-        );
+		/* ==== [Task] Util Methods ==== */
+		Map<String, Object> request = Map.of(
+				"auth", Map.of(
+						"identity", Map.of(
+								"methods", List.of("password"),
+								"password", Map.of("user", Map.of(
+										"name", username,
+										"domain", Map.of("name", "default"),
+										"password", password
+								))
+						),
+						"scope", Map.of("project", Map.of(
+								"name", projectName,
+								"domain", Map.of("name", "default")
+						))
+				)
+		);
+		return keystoneWebClient.post()
+				.uri("/identity/v3/auth/tokens")
+				.bodyValue(request)
+				.exchangeToMono(resp -> {
+					String token = resp.headers().asHttpHeaders().getFirst("X-Subject-Token");
+					return Mono.justOrEmpty(token);
+				})
+				.block();
+	}
 
-        return keystoneWebClient.post()
-                .uri("/identity/v3/auth/tokens")
-                .bodyValue(request)
-                .exchangeToMono(resp -> {
-                    String token = resp.headers().asHttpHeaders().getFirst("X-Subject-Token");
-                    return Mono.justOrEmpty(token);
-                })
-                .block();
-    }
+	public Mono<Map<String, ProjectPermission>> getPermission(String keystoneToken) {
+		Mono<Map<String, Map<String, ?>>> openstackPermissionList = getOpenstackAccountPermissionList(keystoneToken);
+		return createUserPermissionMap(openstackPermissionList);
+	}
 
-    public String login(String keycloakCode) {
-        // TODO: 화균님이 구현 예정
-        // Keystone Federate Authentication 로직 (keycloak code로 로그인)
-        return null;
-    }
+	public Mono<ProjectPermission> getPermission(String keystoneToken, String projectName) {
+		Mono<Map<String, ProjectPermission>> permission = getPermission(keystoneToken);
+		return permission.map(p -> p.getOrDefault(projectName, ProjectPermission.NONE));
+	}
 
-    public Map<String, Object> getPermission(Object user) {
-        // TODO: 다른 분이 구현 예정 (Phase2에서는 KeycloakModule로 이동)
-        // Keystone API로 사용자 권한 조회 로직
-        // 1. JWT에서 추출한 keystone token 사용
-        // 2. Keystone API 호출하여 프로젝트별 권한 조회  
-        // 3. Map<String, ProjectPermission> 형태로 반환
-        return null;
-    }
+	public Mono<String> login(String keycloakCode) {
+		Mono<Map<String, Map<String, ?>>> keystoneResponse = requestKeystonePost(
+			KeystoneRoutes.TOKEN_AUTH,
+			new HashMap<>(),
+			createKeystoneLoginHeader(keycloakCode)
+		);
+		return extractKeystoneToken(keystoneResponse);
+	}
+
+
+	private static Mono<Map<String, ProjectPermission>> createUserPermissionMap(Mono<Map<String, Map<String, ?>>> monoPermissionData) {
+		return monoPermissionData.map(permissionData -> {
+			List<Map<String, Object>> roles = (List<Map<String, Object>>)permissionData.get("role_assignments");
+			return roles.stream()
+				.map(KeystoneModule::parseAssignedRoles)
+				.filter(Objects::nonNull)
+				.map(roleInfo -> Map.entry(
+					roleInfo.getFirst(),
+					ProjectPermission.findByKeystoneRoleName(roleInfo.getLast())
+				))
+				.collect(Collectors.toMap(
+					Map.Entry::getKey,
+					Map.Entry::getValue
+				));
+		});
+	}
+
+	private static List<String> parseAssignedRoles(Map<String, Object> assignedRole) {
+		try {
+			String projectId = getObjectValue(assignedRole, "scope.project.id");
+			String keystoneRoleName = getObjectValue(assignedRole, "role.name");
+
+			return Arrays.asList(projectId, keystoneRoleName);
+		} catch (NullPointerException e) {
+			log.warn(e.getMessage());
+		}
+		return null;
+	}
+
+	private static <T> T getObjectValue(Object object, String keys) {
+		if (!(object instanceof Map)) return null;
+
+		int splitIndex = keys.indexOf('.');
+		String key = keys.substring(0, splitIndex);
+
+		Map<String, Object> mapObject = (Map<String, Object>) object;
+		if (!mapObject.containsKey(key)) return null;
+		T value = (T) mapObject.get(key);
+
+		if (keys.indexOf('.', splitIndex + 1) == -1) return value;
+		return getObjectValue(value, keys.substring(splitIndex));
+	}
+
+	private Mono<Map<String, Map<String, ?>>> getOpenstackAccountPermissionList(String keystoneToken) {
+		return requestKeystoneGet(
+			KeystoneRoutes.GET_ASSIGNED_PERMISSIONS,
+			new HashMap<>(),
+			createKeystoneAPIRequestHeader(keystoneToken)
+		);
+	}
+
+	private Mono<String> extractKeystoneToken(Mono<Map<String, Map<String, ?>>> keystoneResponse) {
+		return keystoneResponse.map(response -> {
+			Map<String, ?> headers = response.get("headers");
+			return String.valueOf(headers.get("X-Subject-Token")).trim();
+		});
+	}
+
+	/* ==== [WebClient] Request Methods ==== */
+
+	private Mono<Map<String, Map<String, ?>>> requestKeystoneGet(String path, Map<String, Object> queries, Map<String, String> headers) {
+	    return keystoneWebClient.get()
+	        .uri(uriBuilder -> {
+	            uriBuilder.path(path);
+	            if (queries != null) queries.forEach(uriBuilder::queryParam);
+	            return uriBuilder.build();
+	        })
+	        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+			.exchangeToMono(response -> response.bodyToMono(Map.class)
+				.defaultIfEmpty(new HashMap<String, Map<String, ?>>())
+				.map(responsedBody -> collectWebClientResponse(
+						response.headers().asHttpHeaders(),
+						responsedBody
+					)
+				)
+			);
+	}
+
+	private Mono<Map<String, Map<String, ?>>> requestKeystonePost(String path, Map<String, Object> body, Map<String, String> headers) {
+		return keystoneWebClient.post()
+			.uri(path)
+			.bodyValue(body)
+			.headers(httpHeaders -> headers.forEach(httpHeaders::add))
+			.exchangeToMono(response -> response.bodyToMono(Map.class)
+				.defaultIfEmpty(new HashMap<String, Map<String, ?>>())
+				.map(responsedBody -> collectWebClientResponse(
+						response.headers().asHttpHeaders(),
+						responsedBody
+					)
+				)
+			);
+	}
+
+	private static Map<String, Map<String, ?>> collectWebClientResponse(HttpHeaders headers, Map body) {
+		Map<String, Map<String, ?>> returnResponse = new HashMap<>();
+
+		Map<String, String> headerMap = new HashMap<>();
+		headers.forEach((k, v) -> headerMap.put(k, String.join(",", v)));
+		returnResponse.put("headers", headerMap);
+
+		returnResponse.put("body", body);
+
+		return returnResponse;
+	}
+
+	private Map<String, String> createKeystoneLoginHeader(String keycloakCode) {
+		Map<String, String> headers = new HashMap<>();
+		headers.put("Authorization", "Bearer " + keycloakCode);
+		headers.put("Content-Type", "application/json");
+		return headers;
+	}
+
+	private Map<String, String> createKeystoneAPIRequestHeader(String keystoneToken) {
+		Map<String, String> headers = new HashMap<>();
+		headers.put("X-Auth-Token", keystoneToken);
+		headers.put("Content-Type", "application/json");
+		return headers;
+	}
+
 }

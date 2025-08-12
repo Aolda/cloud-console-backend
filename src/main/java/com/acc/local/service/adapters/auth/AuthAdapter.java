@@ -5,6 +5,8 @@ import com.acc.local.service.ports.AuthPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
 
 @Service
 @Primary
@@ -20,7 +22,7 @@ public class AuthAdapter implements AuthPort {
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
-    public String authenticateAndGenerateJwt(String userId, String keycloakToken) {
+    public Mono<String> authenticateAndGenerateJwt(String userId, String keycloakToken) {
         return authModule.generateJwtWithKeystoneToken(userId, keycloakToken);
     }
 

@@ -5,6 +5,7 @@ import com.acc.local.service.ports.AuthPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
@@ -31,6 +32,6 @@ public class AuthController {
 
     @GetMapping("/login/authorize")
     public String authorize(@RequestParam String userId, @RequestParam String keycloakToken) {
-        return authPort.authenticateAndGenerateJwt(userId, keycloakToken);
+        return authPort.authenticateAndGenerateJwt(userId, keycloakToken).block();
     }
 }

@@ -26,24 +26,25 @@ public class AuthModule {
 
 
     @Transactional
-    public String generateJwtWithKeystoneToken(String userId, String keycloakToken) {
+    public Mono<String> generateJwtWithKeystoneToken(String userId, String keycloakToken) {
         // 기존 사용자 토큰 비활성화
         userTokenRepositoryPort.deactivateAllByUserId(userId);
         
-        // Keystone Federate Authentication으로 사용자 토큰 발급
-        String keystoneToken = keystoneModule.login(keycloakToken);
-        
-        // JWT 토큰 생성
-        String jwtToken = jwtUtils.generateToken(userId, keystoneToken);
-        
-        // JWT 만료 시간 계산
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(86400); // 24시간 기본값
-        
-        // DB에 토큰 저장
-        UserTokenEntity tokenEntity = UserTokenEntity.create(userId, jwtToken, keystoneToken, expiresAt);
-        userTokenRepositoryPort.save(tokenEntity);
-        
-        return jwtToken;
+        // Keystone Federate Authentication으로 사용자 토큰 발급 후 JWT 생성
+        return keystoneModule.login(keycloakToken)
+                .map(keystoneToken -> {
+                    // JWT 토큰 생성
+                    String jwtToken = jwtUtils.generateToken(userId, keystoneToken);
+                    
+                    // JWT 만료 시간 계산
+                    LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(86400); // 24시간 기본값
+                    
+                    // DB에 토큰 저장
+                    UserTokenEntity tokenEntity = UserTokenEntity.create(userId, jwtToken, keystoneToken, expiresAt);
+                    userTokenRepositoryPort.save(tokenEntity);
+                    
+                    return jwtToken;
+                });
     }
 
     public boolean validateJwtToken(String jwtToken) {

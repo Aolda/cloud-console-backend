@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "keycloak") // yml 설정과 매핑
+@ConfigurationProperties(prefix = "keycloak-temp") // yml 설정과 매핑
 @Getter
 @Setter
 public class KeycloakProperties {
