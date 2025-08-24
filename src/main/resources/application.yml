@@ -1,3 +1,7 @@
+server:
+  protocol: ${SERVICE_PROTOCOL}
+  domain: ${SERVICE_DOMAIN}
+  port: ${SERVICE_PORT:8080}
 spring:
   profiles:
     active: db, google
@@ -7,3 +11,5 @@ openstack:
     username: ${OPENSTACK_USERNAME}
     password: ${OPENSTACK_PASSWORD}
     project: ${OPENSTACK_PROJECT}
+keycloak:
+  url: ${KEYCLOAK_URL}
