@@ -6,7 +6,7 @@ import com.acc.global.exception.ErrorCode;
 
 public class JwtAuthenticationException extends AccBaseException {
 
-    public JwtAuthenticationException() {
-        super(AuthErrorCode.FAILED_TOKEN_AUTHENTICATION);
+    public JwtAuthenticationException( AuthErrorCode authErrorCode) {
+        super(authErrorCode);
     }
 }

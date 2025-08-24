@@ -27,13 +27,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class KeystoneModule {
 
-	@Value("${server.protocol}")
-	private String SERVICE_PROTO;
-	@Value("${server.domain}")
-	private String SERVICE_DOMAIN;
-	@Value("${server.port}")
-	private String SERVICE_PORT;
-
 	private final WebClient keystoneWebClient;
     private final OpenStackProperties openStackProperties;
 
