@@ -25,13 +25,13 @@ public class JwtUtils {
 
     private JwtProperties jwtProperties;
 
-    public String generateToken(String userId, String keystoneToken) {
+    public String generateToken(Long userIdx, String keystoneToken) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
-                .subject(userId)
+                .subject(userIdx.toString())
                 .claim("keystoneToken", keystoneToken)
                 .issuedAt(now)
                 .expiration(expiryDate)
@@ -39,9 +39,9 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String getUserIdFromToken(String token) {
+    public Long getUserIdxFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims.getSubject();
+        return Long.parseLong(claims.getSubject());
     }
 
     public String getKeystoneTokenFromToken(String token) {

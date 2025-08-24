@@ -17,8 +17,9 @@ public class UserTokenEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(name = "jwt_token", nullable = false, length = 1000)
     private String jwtToken;
@@ -38,9 +39,9 @@ public class UserTokenEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    private UserTokenEntity(String userId, String jwtToken, String keystoneToken, 
+    private UserTokenEntity(UserEntity user, String jwtToken, String keystoneToken, 
                            LocalDateTime expiresAt) {
-        this.userId = userId;
+        this.user = user;
         this.jwtToken = jwtToken;
         this.keystoneToken = keystoneToken;
         this.isActive = true;
@@ -49,9 +50,9 @@ public class UserTokenEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static UserTokenEntity create(String userId, String jwtToken, String keystoneToken,
+    public static UserTokenEntity create(UserEntity user, String jwtToken, String keystoneToken,
                                         LocalDateTime expiresAt) {
-        return new UserTokenEntity(userId, jwtToken, keystoneToken, expiresAt);
+        return new UserTokenEntity(user, jwtToken, keystoneToken, expiresAt);
     }
 
     public void deactivate() {
