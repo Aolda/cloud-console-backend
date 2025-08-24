@@ -36,8 +36,8 @@ public class AuthController {
     }
 
     @GetMapping("/login/authorize")
-    public String authorize(@RequestParam String userId, @RequestParam String keycloakToken) {
-        return authPort.authenticateAndGenerateJwt(userId, keycloakToken).block();
+    public String authorize(@RequestParam String keycloakToken) {
+        return authPort.authenticateAndGenerateJwt(keycloakToken);
     }
 
     @GetMapping("/permission")
@@ -45,14 +45,14 @@ public class AuthController {
             @RequestParam String keystoneProjectId,
             Authentication authentication
             ) {
-        // acc 토큰으로부터 userIdx 추출
-        Long userIdx = Long.parseLong(authentication.getName());
+        // acc 토큰으로부터 userId 추출
+        String userId = authentication.getName();
 
         // permission 추출
-        String permission = authPort.getProjectPermission(keystoneProjectId,userIdx).block().name();
+        ProjectPermission permission = authPort.getProjectPermission(keystoneProjectId, userId);
 
         UserPermissionResponse response = UserPermissionResponse.builder()
-                .projectPermission(permission)
+                .projectPermission(permission.name().toLowerCase())
                 .projectId(keystoneProjectId)
                 .build();
 

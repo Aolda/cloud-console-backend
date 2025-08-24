@@ -25,13 +25,21 @@ public class JwtUtils {
 
     private JwtProperties jwtProperties;
 
-    public String generateToken(Long userIdx, String keystoneToken) {
+    public String extractUserIdFromKeycloakToken(String keycloakToken) {
+        return Jwts.parser()
+                .build()
+                .parseUnsecuredClaims(keycloakToken) // 단순히 sub 값만 추출하는 방식
+                .getPayload()
+                .getSubject();
+    }
+
+    public String generateToken(String userId, String keystoneToken) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
-                .subject(userIdx.toString())
+                .subject(userId)
                 .claim("keystoneToken", keystoneToken)
                 .issuedAt(now)
                 .expiration(expiryDate)
@@ -39,9 +47,9 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Long getUserIdxFromToken(String token) {
+    public String getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
 
     public String getKeystoneTokenFromToken(String token) {

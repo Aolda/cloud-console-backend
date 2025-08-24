@@ -29,13 +29,13 @@ public class UserTokenRepositoryAdapter implements UserTokenRepositoryPort {
     }
 
     @Override
-    public Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(Long userId) {
+    public Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId) {
         return userTokenJpaRepository.findByUserIdAndIsActiveTrue(userId);
     }
 
     @Override
     @Transactional
-    public void deactivateAllByUserId(Long userId) {
+    public void deactivateAllByUserId(String userId) {
         userTokenJpaRepository.deactivateAllByUserId(userId, LocalDateTime.now());
     }
 

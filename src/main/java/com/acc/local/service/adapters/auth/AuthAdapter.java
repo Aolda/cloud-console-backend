@@ -18,13 +18,13 @@ public class AuthAdapter implements AuthPort {
 
     @Override
     public String issueKeystoneToken() {
-        return authModule.issueKeystoneToken();
+        return null; //authModule.issueKeystoneToken();
     }
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
-    public Mono<String> authenticateAndGenerateJwt(String userId, String keycloakToken) {
-        return authModule.generateJwtWithKeystoneToken(userId, keycloakToken);
+    public String authenticateAndGenerateJwt(String keycloakToken) {
+        return authModule.authenticateAndGenerateJwt(keycloakToken);
     }
 
     // 권한 부여 전, 토큰 검증 메서드
@@ -40,7 +40,7 @@ public class AuthAdapter implements AuthPort {
 
 
     @Override
-    public Mono<ProjectPermission> getProjectPermission(String projectId, Long userIdx) {
-        return authModule.getProjectPermission(projectId, userIdx);
+    public ProjectPermission getProjectPermission(String projectId, String userid) {
+        return authModule.getProjectPermission(projectId, userid);
     }
 }

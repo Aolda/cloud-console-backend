@@ -34,17 +34,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
             
             if (StringUtils.hasText(jwt) && authPort.validateJwt(jwt)) {
-                Long userIdx = jwtUtils.getUserIdxFromToken(jwt);
+                String userId = jwtUtils.getUserIdFromToken(jwt);
                 
                 // 사용자 인증 객체 생성 (권한은 빈 리스트로 설정)
                 UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(userIdx.toString(), null, new ArrayList<>());
+                    new UsernamePasswordAuthenticationToken(userId, null, new ArrayList<>());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 // Security Context에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 
-                log.debug("JWT 인증 성공: userIdx={}", userIdx);
+                log.debug("JWT 인증 성공: userId={}", userId);
             }
         } catch (JwtAuthenticationException ex) {
             // 인증 실패 시 SecurityContext를 비움

@@ -82,7 +82,7 @@ class KeystoneModuleTest {
 			.thenReturn(Mono.just(mockResponse));
 
 		// B. when
-		String generatedKeystoneToken = keystoneModule.login(keycloakToken).block();
+		String generatedKeystoneToken = keystoneModule.login(keycloakToken);
 		log.info("[Login] Token generated: {}", generatedKeystoneToken);
 
 		// C. then
