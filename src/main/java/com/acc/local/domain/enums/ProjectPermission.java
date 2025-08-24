@@ -1,7 +1,6 @@
 package com.acc.local.domain.enums;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -15,7 +14,7 @@ public enum ProjectPermission {
 	VIEW("guest"),
 	NONE();
 
-	private Set<String> keystoneRoleName = new HashSet<>();
+	private Set<String> keystoneRoleName;
 
 	ProjectPermission() {}
 
