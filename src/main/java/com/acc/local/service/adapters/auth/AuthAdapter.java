@@ -18,7 +18,7 @@ public class AuthAdapter implements AuthPort {
 
     @Override
     public String issueKeystoneToken() {
-        return null; //authModule.issueKeystoneToken();
+        return authModule.issueKeystoneToken();
     }
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
