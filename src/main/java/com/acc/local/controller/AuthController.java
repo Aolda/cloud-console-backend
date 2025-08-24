@@ -1,6 +1,7 @@
 package com.acc.local.controller;
 
 import com.acc.global.properties.KeycloakProperties;
+import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.dto.auth.UserPermissionResponse;
 import com.acc.local.service.ports.AuthPort;
@@ -36,7 +37,8 @@ public class AuthController {
     }
 
     @GetMapping("/login/authorize")
-    public String authorize(@RequestParam String keycloakToken) {
+    public String authorize(@RequestHeader("Authorization") String authorization) {
+        String keycloakToken = JwtUtils.extractTokenFromHeader(authorization);
         return authPort.authenticateAndGenerateJwt(keycloakToken);
     }
 

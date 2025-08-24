@@ -33,6 +33,15 @@ public class JwtUtils {
                 .getSubject();
     }
 
+    public static String extractTokenFromHeader(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
+    }
+
+
+
     public String generateToken(String userId, String keystoneToken) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
