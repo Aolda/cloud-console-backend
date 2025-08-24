@@ -11,9 +11,9 @@ public interface UserTokenRepositoryPort {
     
     Optional<UserTokenEntity> findByJwtTokenAndIsActiveTrue(String jwtToken);
     
-    Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId);
+    Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(Long userId);
     
-    void deactivateAllByUserId(String userId);
+    void deactivateAllByUserId(Long userId);
     
     void deactivateExpiredTokens();
     

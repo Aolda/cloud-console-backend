@@ -17,12 +17,12 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
     Optional<UserTokenEntity> findByJwtTokenAndIsActiveTrue(String jwtToken);
 
     // 사용자별 활성화된 토큰 조회 (한 사용자당 하나의 활성 토큰만 유지)
-    Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId);
+    Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(Long userId);
 
     // 특정 사용자의 모든 활성 토큰을 비활성화 (새 로그인 시 기존 토큰 무효화)
     @Modifying
-    @Query("UPDATE UserTokenEntity ut SET ut.isActive = false, ut.updatedAt = :now WHERE ut.userId = :userId AND ut.isActive = true")
-    void deactivateAllByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
+    @Query("UPDATE UserTokenEntity ut SET ut.isActive = false, ut.updatedAt = :now WHERE ut.user.id = :userId AND ut.isActive = true")
+    void deactivateAllByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
     // 만료된 모든 토큰을 비활성화 (배치 작업용)
     @Modifying

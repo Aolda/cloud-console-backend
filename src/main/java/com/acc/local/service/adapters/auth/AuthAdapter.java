@@ -1,4 +1,5 @@
 package com.acc.local.service.adapters.auth;
+import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.KeystoneModule;
 import com.acc.local.service.ports.AuthPort;
@@ -13,11 +14,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthAdapter implements AuthPort {
     private final AuthModule authModule;
-    private final KeystoneModule keystoneModule;
+
 
     @Override
     public String issueKeystoneToken() {
-        return keystoneModule.issueKeystoneToken();
+        return authModule.issueKeystoneToken();
     }
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
@@ -35,5 +36,11 @@ public class AuthAdapter implements AuthPort {
     @Override
     public void invalidateUserTokens(String userId) {
         authModule.invalidateUserTokens(userId);
+    }
+
+
+    @Override
+    public Mono<ProjectPermission> getProjectPermission(String projectId, Long userIdx) {
+        return authModule.getProjectPermission(projectId, userIdx);
     }
 }
