@@ -13,3 +13,13 @@ openstack:
     project: ${OPENSTACK_PROJECT}
 keycloak:
   url: ${KEYCLOAK_URL}
+
+keycloak-temp:
+  base-url: ${KEYCLOAK_BASE_URL}
+  realm: ${KEYCLOAK_REALM}
+  client-id: ${KEYCLOAK_CLIENT_ID}
+  redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS}
