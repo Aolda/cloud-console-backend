@@ -4,7 +4,19 @@ server:
   port: ${SERVICE_PORT:8080}
 spring:
   profiles:
-    active: db, google
+    active: db, google, discord, mail
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 openstack:
   url: ${OPENSTACK_URL}
   keystone:

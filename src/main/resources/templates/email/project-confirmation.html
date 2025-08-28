@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 신청 확인</title>
+</head>
+<body>
+<h1>프로젝트 신청이 접수되었습니다</h1>
+
+<h2>신청자 정보</h2>
+<p>이름: <span th:text="${name}"></span></p>
+<p>이메일: <span th:text="${email}"></span></p>
+<p>학과: <span th:text="${department}"></span></p>
+<p>학번: <span th:text="${studentId}"></span></p>
+
+<h2>프로젝트 정보</h2>
+<p>프로젝트명: <span th:text="${projectName}"></span></p>
+<p>프로젝트 ID: <span th:text="${projectId}"></span></p>
+<p>프로젝트 목적: <span th:text="${projectPurpose}"></span></p>
+
+<h2>요청 리소스</h2>
+<p>CPU 코어: <span th:text="${cpuCores}"></span></p>
+<p>메모리: <span th:text="${memorySize}"></span> GB</p>
+<p>볼륨: <span th:text="${volumeSize}"></span> GB</p>
+
+<p>신청일시: <span th:text="${timestamp}"></span></p>
+</body>
+</html>

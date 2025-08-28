@@ -1,0 +1,5 @@
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL}
+  admin:
+    mentions: ${DISCORD_ADMIN_MENTIONS}

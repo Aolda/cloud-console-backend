@@ -1,0 +1,3 @@
+mail:
+  from: ${MAIL_FROM}
+  subject: ${MAIL_SUBJECT}
