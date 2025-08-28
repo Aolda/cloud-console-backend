@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface GoogleServicePort {
 
-    List<List<Object>> readSheetData();
+    List<GoogleFormRequest> readSheetData();
     void receiveFormSubmission(GoogleFormRequest request);
 }

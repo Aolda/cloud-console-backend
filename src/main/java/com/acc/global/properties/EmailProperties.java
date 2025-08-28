@@ -6,9 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "google")
+@ConfigurationProperties(prefix = "mail")
 @Getter @Setter
-public class GoogleCredentialsProperties {
-
-    private String credentialsPath;
+public class EmailProperties {
+    private String from;
+    private String subject;
 }
+
