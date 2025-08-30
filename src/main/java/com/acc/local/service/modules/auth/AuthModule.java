@@ -4,6 +4,8 @@ import com.acc.global.exception.auth.JwtAuthenticationException;
 import com.acc.global.properties.OpenStackProperties;
 import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
+import com.acc.local.domain.model.User;
+import com.acc.local.dto.auth.CreateUserResponse;
 import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -105,5 +107,13 @@ public class AuthModule {
     @Transactional
     public void invalidateUserTokens(String userId) {
         userTokenRepositoryPort.deactivateAllByUserId(userId);
+    }
+
+    public CreateUserResponse createUser(User user, String userId) {
+        UserTokenEntity userToken = userTokenRepositoryPort.findByUserIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN));
+        String keystoneToken = userToken.getKeystoneToken();
+        
+        return keystoneModule.createUser(user, keystoneToken);
     }
 }

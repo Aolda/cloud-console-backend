@@ -3,12 +3,16 @@ package com.acc.local.controller;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
+import com.acc.local.dto.auth.CreateUserRequest;
+import com.acc.local.dto.auth.CreateUserResponse;
 import com.acc.local.dto.auth.UserPermissionResponse;
 import com.acc.local.service.ports.AuthPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.keycloak.representations.idm.UserRepresentation;
 
 import java.net.URI;
 
@@ -57,4 +61,17 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/user")
+    public ResponseEntity<CreateUserResponse> createKeystoneUser(
+            @ModelAttribute @Validated CreateUserRequest request,
+            Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        CreateUserResponse response = authPort.createUser(request, userId);
+        
+        return ResponseEntity.status(201).body(response);
+    }
+
+
 }

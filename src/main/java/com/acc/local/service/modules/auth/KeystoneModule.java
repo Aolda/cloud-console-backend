@@ -1,5 +1,10 @@
 package com.acc.local.service.modules.auth;
 
+import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.auth.JwtAuthenticationException;
+import com.acc.global.exception.auth.KeystoneManagementException;
+import com.acc.local.domain.model.User;
+import com.acc.local.dto.auth.CreateUserResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -161,6 +166,62 @@ public class KeystoneModule {
 		headers.put("X-Auth-Token", keystoneToken);
 		headers.put("Content-Type", "application/json");
 		return headers;
+	}
+
+	public CreateUserResponse createUser(User user, String keystoneToken) {
+		Map<String, Object> userRequest = createKeystoneUserRequest(user);
+		
+		try {
+			Map<String, Map<String, ?>> response = requestKeystonePost(
+				KeystoneRoutes.CREATE_USER,
+				userRequest,
+				createKeystoneAPIRequestHeader(keystoneToken)
+			).block();
+			
+			log.info("User created successfully in Keystone: {}", user.getUserName());
+			
+			return parseKeystoneUserResponse(response);
+			
+		} catch (Exception e) {
+			log.error("Failed to create user in Keystone: {}, Error: {}", user.getUserName(), e.getMessage());
+			throw new KeystoneManagementException(
+				AuthErrorCode.KEYSTONE_USER_CREATION_FAILED,
+				"Keystone 사용자 생성 실패: " + user.getUserName(),
+				e
+			);
+		}
+	}
+
+	private CreateUserResponse parseKeystoneUserResponse(Map<String, Map<String, ?>> response) {
+		Map<String, ?> body = response.get("body");
+		if (body != null && body.containsKey("user")) {
+			Map<String, Object> userObject = (Map<String, Object>) body.get("user");
+			
+			return CreateUserResponse.builder()
+					.userId((String) userObject.get("id"))
+					.defaultProjectId((String) userObject.get("default_project_id"))
+					.domainId((String) userObject.get("domain_id"))
+					.email((String) userObject.get("email"))
+					.enabled((Boolean) userObject.getOrDefault("enabled", false))
+					.build();
+		}
+		
+		return CreateUserResponse.builder()
+				.enabled(false)
+				.build();
+	}
+
+	private Map<String, Object> createKeystoneUserRequest(User user) {
+		Map<String, Object> userObject = new HashMap<>();
+		userObject.put("name", user.getUserName());
+		userObject.put("password", user.getUserPassword());
+		userObject.put("enabled", user.isEnabled());
+		userObject.put("email", user.getEmail());
+		
+		Map<String, Object> request = new HashMap<>();
+		request.put("user", userObject);
+		
+		return request;
 	}
 
 }
