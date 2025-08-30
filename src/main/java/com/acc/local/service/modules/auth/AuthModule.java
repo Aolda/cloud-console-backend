@@ -6,6 +6,7 @@ import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.domain.model.User;
 import com.acc.local.dto.auth.CreateUserResponse;
+import com.acc.local.dto.auth.GetUserResponse;
 import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -115,5 +116,13 @@ public class AuthModule {
         String keystoneToken = userToken.getKeystoneToken();
         
         return keystoneModule.createUser(user, keystoneToken);
+    }
+
+    public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
+        UserTokenEntity userToken = userTokenRepositoryPort.findByUserIdAndIsActiveTrue(requesterId)
+                .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN));
+        String keystoneToken = userToken.getKeystoneToken();
+        
+        return keystoneModule.getUserDetail(targetUserId, keystoneToken);
     }
 }

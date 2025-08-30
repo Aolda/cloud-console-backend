@@ -3,6 +3,7 @@ package com.acc.local.service.ports;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.CreateUserResponse;
+import com.acc.local.dto.auth.GetUserResponse;
 
 public interface AuthPort {
     String issueKeystoneToken();
@@ -11,4 +12,5 @@ public interface AuthPort {
     boolean validateJwt(String jwtToken);
     void invalidateUserTokens(String userId);
     CreateUserResponse createUser(CreateUserRequest createUserRequest ,String userId);
+    GetUserResponse getUserDetail(String targetUserId, String requesterId);
 }

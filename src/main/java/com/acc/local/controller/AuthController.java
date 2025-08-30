@@ -5,6 +5,7 @@ import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.CreateUserResponse;
+import com.acc.local.dto.auth.GetUserResponse;
 import com.acc.local.dto.auth.UserPermissionResponse;
 import com.acc.local.service.ports.AuthPort;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +74,15 @@ public class AuthController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @GetMapping("/user/{keystoneUserId}")
+    public ResponseEntity<GetUserResponse> getUserDetailByKeystoneUserid(
+            @PathVariable String keystoneUserId,
+            Authentication authentication
+    ) {
+        String requesterId = authentication.getName();
+        GetUserResponse response = authPort.getUserDetail(keystoneUserId, requesterId);
+        
+        return ResponseEntity.ok(response);
+    }
 
 }

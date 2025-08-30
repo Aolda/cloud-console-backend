@@ -3,6 +3,7 @@ import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.domain.model.User;
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.CreateUserResponse;
+import com.acc.local.dto.auth.GetUserResponse;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.ports.AuthPort;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,10 @@ public class AuthAdapter implements AuthPort {
         return authModule.createUser(user, userId);
     }
 
+    @Override
+    public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
+        return authModule.getUserDetail(targetUserId, requesterId);
+    }
 
     @Override
     public ProjectPermission getProjectPermission(String projectId, String userid) {
