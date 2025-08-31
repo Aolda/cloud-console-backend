@@ -1,13 +1,14 @@
 package com.acc.local.service.modules.auth;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.acc.local.domain.enums.ProjectPermission;
+import com.acc.local.dto.auth.KeystoneTokenInfo;
 import com.acc.local.service.modules.auth.constant.KeystoneRoutes;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +28,10 @@ public class KeystoneModule {
 	private final WebClient keystoneWebClient;
 
 	public Map<String, ProjectPermission> getPermission(String keystoneToken) {
-		Map<String, Map<String, ?>> openstackPermissionList = getOpenstackAccountPermissionList(keystoneToken);
+		Map<String, Map<String, ?>> openstackPermissionList = requestOpenstackAccountPermissionList(
+			getTokenInfo(keystoneToken).userId(),
+			keystoneToken
+		);
 		return createUserPermissionMap(openstackPermissionList);
 	}
 
@@ -36,12 +40,13 @@ public class KeystoneModule {
 		return permission.getOrDefault(projectName, ProjectPermission.NONE);
 	}
 
+	public KeystoneTokenInfo getTokenInfo(String keystoneToken) {
+		Map<String, Map<String, ?>> openstackTokenInfo = requestOpenstackTokenInfo(keystoneToken);
+		return extractKeystoneTokenInfo(openstackTokenInfo);
+	}
+
 	public String login(String keycloakCode) {
-		Map<String, Map<String, ?>> keystoneResponse = requestKeystonePost(
-			KeystoneRoutes.TOKEN_AUTH,
-			new HashMap<>(),
-			createKeystoneLoginHeader(keycloakCode)
-		).block();
+		Map<String, Map<String, ?>> keystoneResponse = requestFederateLogin(keycloakCode);
 		return extractKeystoneToken(keystoneResponse);
 	}
 
@@ -89,17 +94,44 @@ public class KeystoneModule {
 		return getObjectValue(value, keys.substring(splitIndex));
 	}
 
-	private Map<String, Map<String, ?>> getOpenstackAccountPermissionList(String keystoneToken) {
+	private Map<String, Map<String, ?>> requestOpenstackTokenInfo(String keystoneToken) {
 		return requestKeystoneGet(
-			KeystoneRoutes.GET_ASSIGNED_PERMISSIONS,
+			String.format(KeystoneRoutes.TOKEN_AUTH_DEFAULT),
 			new HashMap<>(),
 			createKeystoneAPIRequestHeader(keystoneToken)
+		).block();
+	}
+
+	private Map<String, Map<String, ?>> requestOpenstackAccountPermissionList(String keystoneUserId, String keystoneToken) {
+		return requestKeystoneGet(
+			String.format(KeystoneRoutes.GET_ASSIGNED_PERMISSIONS, keystoneUserId),
+			new HashMap<>(),
+			createKeystoneAPIRequestHeader(keystoneToken)
+		).block();
+	}
+
+	private Map<String, Map<String, ?>> requestFederateLogin(String keycloakCode) {
+		return requestKeystonePost(
+			KeystoneRoutes.TOKEN_AUTH_FEDERATE,
+			new HashMap<>(),
+			createKeystoneLoginHeader(keycloakCode)
 		).block();
 	}
 
 	private String extractKeystoneToken(Map<String, Map<String, ?>> keystoneResponse) {
 		Map<String, ?> headers = keystoneResponse.get("headers");
 		return String.valueOf(headers.get("X-Subject-Token")).trim();
+	}
+
+	private KeystoneTokenInfo extractKeystoneTokenInfo(Map<String, Map<String, ?>> openstackTokenInfo) {
+		Map<String, ?> body = openstackTokenInfo.get("body");
+		return new KeystoneTokenInfo(
+			getObjectValue(body, "token.audit_ids"),
+			LocalDateTime.parse(String.valueOf(getObjectValue(body, "token.expires_at")).split("\\.")[0]),
+			LocalDateTime.parse(String.valueOf(getObjectValue(body, "token.issued_at")).split("\\.")[0]),
+			getObjectValue(body, "token.user.id"),
+			getObjectValue(body, "token.user.name")
+		);
 	}
 
 	/* ==== [WebClient] Request Methods ==== */

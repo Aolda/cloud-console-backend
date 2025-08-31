@@ -25,6 +25,7 @@ public class AuthModule {
     private final UserTokenRepositoryPort userTokenRepositoryPort;
     private final KeystoneModule keystoneModule;
 
+    @Deprecated // TODO: AuthController 측 의존성문제 해결 시 삭제예정
     public String issueKeystoneToken() {
         String username = openStackProperties.getKeystone().getUsername();
         String password = openStackProperties.getKeystone().getPassword();
