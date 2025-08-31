@@ -1,7 +1,7 @@
 package com.acc.local.service.adapters.auth;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.service.modules.auth.AuthModule;
-import com.acc.local.service.ports.AuthPort;
+import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Primary
 @RequiredArgsConstructor
-public class AuthAdapter implements AuthPort {
+public class AuthServiceAdapter implements AuthServicePort {
     private final AuthModule authModule;
 
     @Override

@@ -4,7 +4,7 @@ import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.dto.auth.UserPermissionResponse;
-import com.acc.local.service.ports.AuthPort;
+import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,11 +18,11 @@ import java.net.URI;
 public class AuthController {
 
     private final KeycloakProperties keycloakProperties;
-    private final AuthPort authPort;
+    private final AuthServicePort authServicePort;
 
     @GetMapping("/token")
     public String issueToken() {
-        return authPort.issueKeystoneToken();
+        return authServicePort.issueKeystoneToken();
     }
 
     @GetMapping("/login")
@@ -36,7 +36,7 @@ public class AuthController {
     @GetMapping("/login/authorize")
     public String authorize(@RequestHeader("Authorization") String authorization) {
         String keycloakToken = JwtUtils.extractTokenFromHeader(authorization);
-        return authPort.authenticateAndGenerateJwt(keycloakToken);
+        return authServicePort.authenticateAndGenerateJwt(keycloakToken);
     }
 
     @GetMapping("/permission")
@@ -48,7 +48,7 @@ public class AuthController {
         String userId = authentication.getName();
 
         // permission 추출
-        ProjectPermission permission = authPort.getProjectPermission(keystoneProjectId, userId);
+        ProjectPermission permission = authServicePort.getProjectPermission(keystoneProjectId, userId);
 
         UserPermissionResponse response = UserPermissionResponse.builder()
                 .projectPermission(permission.name().toLowerCase())

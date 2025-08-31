@@ -34,7 +34,7 @@ class AuthModuleTest {
 
     @Test
     @DisplayName("Keycloak 토큰으로 인증하고 JWT 토큰을 생성할 수 있다")
-    void authenticateAndGenerateJwtTest() {
+    void givenKeycloakToken_whenJWTGenerateMethodIsCalled_thenReturnAoldaJWT() {
         // Given
         String keycloakToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1MGIwM2U0Ny14eHh4LXh4eHgteHh4eC14eHh4eHh4eCJ9";
         String userId = "50b03e47-xxxx-xxxx-xxxx-xxxxxxxx";
@@ -60,7 +60,7 @@ class AuthModuleTest {
 
     @Test
     @DisplayName("사용자 ID와 프로젝트 ID로 프로젝트 권한을 조회할 수 있다")
-    void getProjectPermissionTest() {
+    void givenProjectIdAndUserId_whenGetProjectPermissionMethodIsCalled_thenReturnAoldaProjectPermission() {
         // Given
         String projectId = "project-123";
         String userId = "50b03e47-xxxx-xxxx-xxxx-xxxxxxxx";

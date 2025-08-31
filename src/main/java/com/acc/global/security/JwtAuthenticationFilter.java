@@ -1,7 +1,7 @@
 package com.acc.global.security;
 
 import com.acc.global.exception.auth.JwtAuthenticationException;
-import com.acc.local.service.ports.AuthPort;
+import com.acc.local.service.ports.AuthServicePort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final AuthPort authPort;
+    private final AuthServicePort authServicePort;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
             
-            if (StringUtils.hasText(jwt) && authPort.validateJwt(jwt)) {
+            if (StringUtils.hasText(jwt) && authServicePort.validateJwt(jwt)) {
                 String userId = jwtUtils.getUserIdFromToken(jwt);
                 
                 // 사용자 인증 객체 생성 (권한은 빈 리스트로 설정)
