@@ -16,15 +16,22 @@ public class VolumeServiceAdaptor implements VolumeServicePort {
     private final CinderFetcher cinderFetcher;
     private final CinderMapper cinderMapper;
 
-    public VolumeResponse readVolume(){
-        String token = "getToken";
-        CinderVolumeResponse cinderVolumeResponse = cinderFetcher.fetchVolumes(token);
+    public VolumeResponse readVolume(String keystoneToken){
+        String validKeystoneToken = validateToken(keystoneToken);
+        CinderVolumeResponse cinderVolumeResponse = cinderFetcher.fetchVolumes(validKeystoneToken);
         return cinderMapper.toVolumeResponse(cinderVolumeResponse);
     }
 
-    public VolumeDetailResponse readVolumeDetail(){
-        String token = "getToken";
-        CinderVolumeDetailResponse cinderVolumeDetailResponse = cinderFetcher.fetchVolumesDetail(token);
+    public VolumeDetailResponse readVolumeDetail(String keystoneToken){
+        String validKeystoneToken = validateToken(keystoneToken);
+        CinderVolumeDetailResponse cinderVolumeDetailResponse = cinderFetcher.fetchVolumesDetail(validKeystoneToken);
         return cinderMapper.toVolumeDetailResponse(cinderVolumeDetailResponse);
+    }
+
+    private String validateToken(String keystoneToken) {
+        //예외 발생 메서드
+        if(keystoneToken == null || keystoneToken.isEmpty()) {
+            throw new IllegalArgumentException("keystoneToken cannot be null or empty");
+        } return keystoneToken;
     }
 }
