@@ -44,4 +44,12 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
+
+    @Bean
+    public WebClient cinderWebClient() {
+        return WebClient.builder()
+                .baseUrl(openstackUrl + "/volume")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
 }
