@@ -14,6 +14,14 @@ public class WebClientConfig {
     private String openstackUrl;
 
     @Bean
+    public WebClient openstackWebClient() {
+        return WebClient.builder()
+                .baseUrl(openstackUrl)
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
+
+    @Bean
     public WebClient keystoneWebClient() {
         return WebClient.builder()
                 .baseUrl(openstackUrl)
