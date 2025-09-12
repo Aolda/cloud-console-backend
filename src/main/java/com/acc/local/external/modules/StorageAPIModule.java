@@ -6,6 +6,7 @@ import com.acc.local.external.dto.storage.attachment.UpdateAttachmentRequest;
 import com.acc.local.external.dto.storage.backup.*;
 import com.acc.local.external.dto.storage.defaultTypes.UpdateVolumeTypeRequest;
 import com.acc.local.external.dto.storage.quota.UpdateQuotaClassRequest;
+import com.acc.local.external.dto.storage.quota.UpdateQuotaRequest;
 import com.acc.local.external.dto.storage.service.ServiceRequest;
 import com.acc.local.external.dto.storage.snapshot.*;
 import com.acc.local.external.dto.storage.volume.*;
