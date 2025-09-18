@@ -49,7 +49,7 @@ public class AuthModule {
         );
 
         return keystoneWebClient.post()
-                .uri("/identity/v3/auth/tokens")
+                .uri("/v3/auth/tokens")
                 .bodyValue(request)
                 .exchangeToMono(resp -> {
                     String token = resp.headers().asHttpHeaders().getFirst("X-Subject-Token");
