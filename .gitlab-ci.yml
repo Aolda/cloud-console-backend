@@ -34,7 +34,6 @@ build:
     paths:
       - build/libs/
     expire_in: 7 days
-  tags: [docker, java]   # 러너에 태그가 필요하면 맞춰서 수정
 
 test:
   stage: test
