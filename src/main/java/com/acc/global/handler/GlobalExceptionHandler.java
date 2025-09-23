@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex) {
         CommonErrorCode errorCode = CommonErrorCode.INTERNAL_FAILURE;
+        ex.printStackTrace();
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(new ErrorResponse(errorCode, ex.getMessage()));
