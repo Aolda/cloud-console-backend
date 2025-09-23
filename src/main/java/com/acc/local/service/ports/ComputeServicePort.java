@@ -5,7 +5,7 @@ import com.acc.local.dto.compute.ComputeResponse;
 
 import java.util.List;
 
-public interface ComputePort {
+public interface ComputeServicePort {
     List<ComputeResponse> getComputes(String token);
     List<ComputeDetailResponse> getComputeDetail(String token);
 

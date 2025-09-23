@@ -4,7 +4,7 @@ import com.acc.local.dto.project.ProjectResponse;
 
 import java.util.List;
 
-public interface ProjectPort {
+public interface ProjectServicePort {
     List<ProjectResponse> listProjects(String token);
 
 }

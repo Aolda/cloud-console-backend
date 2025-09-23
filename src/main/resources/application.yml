@@ -5,6 +5,10 @@ server:
 spring:
   profiles:
     active: db, google, discord, mail
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1GB
   mail:
     host: smtp.gmail.com
     port: 587
@@ -16,7 +20,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
 openstack:
   url: ${OPENSTACK_URL}
   keystone:

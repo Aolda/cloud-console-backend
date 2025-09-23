@@ -1,7 +1,7 @@
 package com.acc.local.service.adapters.project;
 
 import com.acc.local.service.modules.project.ProjectModule;
-import com.acc.local.service.ports.ProjectPort;
+import com.acc.local.service.ports.ProjectServicePort;
 import com.acc.local.dto.project.ProjectResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 @Primary
 @RequiredArgsConstructor
-public class ProjectAdapter implements ProjectPort {
+public class ProjectServiceAdapter implements ProjectServicePort {
     private final ProjectModule projectModule;
 
     @Override

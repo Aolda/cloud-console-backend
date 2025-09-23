@@ -1,0 +1,21 @@
+package com.acc.global.exception.image;
+
+import com.acc.global.exception.ErrorCode;
+import lombok.Getter;
+
+@Getter
+public enum ImageErrorCode implements ErrorCode {
+    IMAGE_CREATION_FAILURE(500,"ACC-IMAGE-CREATE-FAILURE","이미지 생성 중 오류가 발생하였습니다."),
+    IMAGE_UPLOAD_FAILURE(500, "ACC-IMAGE-UPLOAD-FAILURE", "이미지 파일 업로드 중 오류가 발생하였습니다."),
+    INVALID_IMAGE_METADATA(400, "ACC-IMAGE-METADATA-INVALID", "이미지 메타데이터 형식이 올바르지 않습니다.");
+
+    private final int status;
+    private final String code;
+    private final String message;
+
+    ImageErrorCode(int status, String code, String message) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+    }
+}
