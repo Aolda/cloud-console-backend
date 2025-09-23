@@ -48,7 +48,13 @@ test:
     MARIADB_ROOT_PASSWORD: rootpw
     MARIADB_DATABASE: aoldaacc
     MARIADB_USER: aoldaacc
-    MARIADB_PASSWORD: aoldaacc123@
+    MARIADB_PASSWORD: "aoldaacc123@"
+
+    SPRING_DATASOURCE_URL: "jdbc:mariadb://mariadb:3306/aoldaacc"
+    SPRING_DATASOURCE_USERNAME: "aoldaacc"
+    SPRING_DATASOURCE_PASSWORD: "aoldaacc123@"
+    SPRING_PROFILES_ACTIVE: "db"
+
   needs: ["build"]
   before_script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
