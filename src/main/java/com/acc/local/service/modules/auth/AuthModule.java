@@ -2,6 +2,7 @@ package com.acc.local.service.modules.auth;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.JwtAuthenticationException;
 import com.acc.global.properties.OpenStackProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.acc.global.security.JwtUtils;
 import com.acc.local.domain.enums.ProjectPermission;
 import com.acc.local.entity.UserTokenEntity;
@@ -56,6 +57,36 @@ public class AuthModule {
                     return Mono.justOrEmpty(token);
                 })
                 .block();
+    }
+    public String getProjectIdFromToken(String token) {
+        JsonNode tokenInfo = keystoneWebClient.get()
+                .uri("/identity/v3/auth/tokens")
+                .header("X-Auth-Token", token)
+                .header("X-Subject-Token", token)
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .block();
+
+        return tokenInfo.path("token").path("project").path("id").asText();
+    }
+    public List<String> getRolesFromToken(String token) {
+        JsonNode tokenInfo = keystoneWebClient.get()
+                .uri("/identity/v3/auth/tokens")
+                .header("X-Auth-Token", token)
+                .header("X-Subject-Token", token)
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .block();
+
+        JsonNode rolesNode = tokenInfo.path("token").path("roles");
+
+        List<String> roles = new java.util.ArrayList<>();
+        if (rolesNode.isArray()) {
+            for (JsonNode role : rolesNode) {
+                roles.add(role.path("name").asText());
+            }
+        }
+        return roles;
     }
 
     @Transactional

@@ -25,8 +25,7 @@ public class WebClientConfig {
     public WebClient glanceWebClient() {
         return WebClient.builder()
                 .baseUrl(openstackUrl)
-                .defaultHeader("Content-Type", "application/json")
-                .build();
+                .build(); // 기본 Content-Type 제거
     }
 
     @Bean

@@ -9,5 +9,6 @@ public record ImageResponse(
         String diskFormat,
         String containerFormat,
         String createdAt,
-        String updatedAt
+        String updatedAt,
+        String owner
 ){}
