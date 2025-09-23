@@ -51,8 +51,6 @@ test:
     MARIADB_PASSWORD: aoldaacc123
   needs: ["build"]
   before_script:
-    - echo "URL=${SPRING_DATASOURCE_URL}"
-    - echo "USER=${SPRING_DATASOURCE_USERNAME}"
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
     - chmod +x gradlew
     - apt-get update && apt-get install -y mariadb-client >/dev/null
@@ -95,5 +93,3 @@ workflow:
     - if: $CI_MERGE_REQUEST_ID
     - if: $CI_COMMIT_BRANCH
 
-variables:
-  SPRING_PROFILES_ACTIVE: test
