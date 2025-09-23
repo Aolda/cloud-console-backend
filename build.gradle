@@ -50,7 +50,6 @@ dependencies {
 	testImplementation 'org.junit.platform:junit-platform-suite-api'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-	testImplementation 'com.h2database:h2'
 
 	// GCP
 	implementation 'com.google.apis:google-api-services-sheets:v4-rev612-1.25.0'

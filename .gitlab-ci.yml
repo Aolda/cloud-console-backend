@@ -41,6 +41,9 @@ test:
   tags: [acc]
   # allow_failure: true   # ← 실패해도 파이프라인은 계속 진행
   image: eclipse-temurin:21-jdk
+  services:
+    - name: mariadb:11
+      alias: mariadb
   needs: ["build"]
   before_script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
