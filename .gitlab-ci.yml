@@ -97,5 +97,3 @@ workflow:
 
 variables:
   SPRING_PROFILES_ACTIVE: test
-  SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
-  SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MariaDBDialect
