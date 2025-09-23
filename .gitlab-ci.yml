@@ -6,7 +6,7 @@ check_runner:
   # 프로젝트 러너에 태그가 acc 라면 유지, Run untagged jobs를 켰다면 이 줄 삭제해도 됨
   tags: [acc]
   script:
-    - echo "runner OK: $(date)"
+    - echo "runner OK"
     - java -version || true
 
 # 1) Gradle 빌드 (테스트 제외)
