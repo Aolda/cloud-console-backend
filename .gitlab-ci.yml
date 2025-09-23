@@ -1,7 +1,7 @@
 stages: [check, build, test, package]
 
 # 0) 러너 연결 스모크 테스트
-check:runner:
+check_runner:
   stage: check
   # 프로젝트 러너에 태그가 acc 라면 유지, Run untagged jobs를 켰다면 이 줄 삭제해도 됨
   tags: [acc]
