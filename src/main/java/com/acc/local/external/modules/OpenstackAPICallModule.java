@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import org.springframework.core.io.Resource;
 
 import java.util.Map;
 
@@ -85,6 +88,19 @@ public class OpenstackAPICallModule {
                 .block();
     }
 
+    //binary 업로드 함수 임시 구현 추후 논블로킹 업그레이드
+    /// chunck 단위로 바로 업로드
+    public ResponseEntity<JsonNode> callPutBinaryResourceAPI(
+            String uri, Map<String, String> headers, Resource resource, int port) {
+        return openstackWebClient.put()
+                .uri(b -> b.port(port).path(uri).build())
+                .headers(h -> headers.forEach(h::add))
+                .header("Content-Type", "application/octet-stream")
+                .body(BodyInserters.fromResource(resource))
+                .retrieve()
+                .toEntity(JsonNode.class)
+                .block();
+    }
 
 }
 
