@@ -62,18 +62,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        
-        // 인가 체크 + 필터링 조차 필요 없는 패스들 -> 굳이 나중에 필요 없으면 삭제
-        return path.startsWith("/api/v1/auth/") ||
-               path.startsWith("/api/v1/google/") ||
-               path.startsWith("/api/v1/computes/") ||
-               path.startsWith("/api/v1/images/") ||
-               path.startsWith("/api/v1/projects") ||
-               path.startsWith("/swagger-ui/") ||
-               path.startsWith("/v3/api-docs/") ||
-               path.equals("/swagger-ui.html");
-    }
 }

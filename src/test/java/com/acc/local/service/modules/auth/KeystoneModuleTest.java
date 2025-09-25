@@ -3,14 +3,8 @@ package com.acc.local.service.modules.auth;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.acc.local.domain.model.KeystoneProject;
+import com.acc.local.domain.model.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,22 +15,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.acc.global.util.PrintUtil;
-import com.acc.local.domain.enums.ProjectPermission;
-import com.acc.local.dto.auth.KeystoneTokenInfo;
-import com.acc.local.service.modules.auth.constant.KeystoneRoutes;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
-import jdk.jfr.Description;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
@@ -147,4 +133,231 @@ class KeystoneModuleTest {
 			generatedKeystoneToken
 		);
 	}
+
+	@Test
+	@DisplayName("관리자는 ACC 요청자의 개인정보와 keystone 토큰을 이용해 Keystone의 사용자 계정을 생성할 수 있다.")
+	void givenDomainUserAndKeystoneToken_whenCreateKeystoneUser_thenReturnKeystoneUserInfo() {
+		// given
+		User user = User.builder()
+				.name("testUser")
+				.email("test@example.com")
+				.enabled(true)
+				.build();
+		String keystoneToken = "test-keystone-token";
+		String createdUserId = "created-user-id";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.CREATED)
+			.header("Content-Type", "application/json")
+			.body("{\"user\": {\"id\": \"" + createdUserId + "\", \"name\": \"testUser\", \"email\": \"test@example.com\", \"enabled\": true}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		User createdUser = keystoneModule.createUser(user, keystoneToken);
+
+		// then
+		assertEquals(createdUserId, createdUser.getId());
+		assertEquals("testUser", createdUser.getName());
+		assertEquals("test@example.com", createdUser.getEmail());
+		assertTrue(createdUser.isEnabled());
+	}
+
+	@Test
+	@DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID를 이용해 Keystone에서 사용자 상세 정보를 조회할 수 있다.")
+	void givenUserIdAndKeystoneToken_whenGetUserDetail_thenReturnUserInfo() {
+		// given
+		String userId = "test-user-id";
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.OK)
+			.header("Content-Type", "application/json")
+			.body("{\"user\": {\"id\": \"" + userId + "\"," +
+					" \"name\": \"testUser\"," +
+					" \"email\": \"test@example.com\", " +
+					"\"enabled\": true, " +
+					"\"description\": \"test description\"}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		User userDetail = keystoneModule.getUserDetail(userId, keystoneToken);
+
+		// then
+		assertEquals(userId, userDetail.getId());
+		assertEquals("testUser", userDetail.getName());
+		assertEquals("test@example.com", userDetail.getEmail());
+		assertEquals("test description", userDetail.getDescription());
+		assertTrue(userDetail.isEnabled());
+	}
+
+	@Test
+	@DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID, 수정할 정보를 이용해 Keystone에서 사용자 정보를 업데이트할 수 있다.")
+	void givenUserIdAndUserInfoAndKeystoneToken_whenUpdateUser_thenReturnUpdatedUserInfo() {
+		// given
+		String userId = "test-user-id";
+		User user = User.builder()
+				.name("updatedUser")
+				.email("updated@example.com")
+				.description("updated description")
+				.enabled(true)
+				.build();
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.OK)
+			.header("Content-Type", "application/json")
+			.body("{\"user\": {\"id\": \"" + userId + "\"," +
+					" \"name\": \"updatedUser\", " +
+					"\"email\": \"updated@example.com\", " +
+					"\"description\": \"updated description\", " +
+					"\"enabled\": true}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		User updatedUser = keystoneModule.updateUser(userId, user, keystoneToken);
+
+		// then
+		assertEquals(userId, updatedUser.getId());
+		assertEquals("updatedUser", updatedUser.getName());
+		assertEquals("updated@example.com", updatedUser.getEmail());
+		assertEquals("updated description", updatedUser.getDescription());
+		assertTrue(updatedUser.isEnabled());
+	}
+
+	@Test
+	@DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID를 이용해 Keystone에서 사용자를 삭제할 수 있다.")
+	void givenUserIdAndKeystoneToken_whenDeleteUser_thenDeleteUserSuccessfully() {
+		// given
+		String userId = "test-user-id";
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.NO_CONTENT)
+			.header("Content-Type", "application/json")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when & then
+		assertDoesNotThrow(() -> {
+			keystoneModule.deleteUser(userId, keystoneToken);
+		});
+	}
+
+	@Test
+	@DisplayName("관리자는 ACC 요청자의 프로젝트 정보와 keystone 토큰을 이용해 Keystone의 프로젝트를 생성할 수 있다.")
+	void givenKeystoneProjectAndKeystoneToken_whenCreateKeystoneProject_thenReturnKeystoneProjectInfo() {
+		// given
+		KeystoneProject project = KeystoneProject.builder()
+				.name("testProject")
+				.description("test project description")
+				.enabled(true)
+				.isDomain(false)
+				.build();
+		String keystoneToken = "test-keystone-token";
+		String createdProjectId = "created-project-id";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.CREATED)
+			.header("Content-Type", "application/json")
+			.body("{\"project\": {\"id\": \"" + createdProjectId + "\", \"name\": \"testProject\", \"description\": \"test project description\", \"enabled\": true, \"is_domain\": false}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		KeystoneProject createdProject = keystoneModule.createProject(project, keystoneToken);
+
+		// then
+		assertEquals(createdProjectId, createdProject.getId());
+		assertEquals("testProject", createdProject.getName());
+		assertEquals("test project description", createdProject.getDescription());
+		assertTrue(createdProject.getEnabled());
+		assertFalse(createdProject.getIsDomain());
+	}
+
+	@Test
+	@DisplayName("관리자와 사용자는 keystone 토큰과 프로젝트 ID를 이용해 Keystone에서 프로젝트 상세 정보를 조회할 수 있다.")
+	void givenProjectIdAndKeystoneToken_whenGetProjectDetail_thenReturnProjectInfo() {
+		// given
+		String projectId = "test-project-id";
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.OK)
+			.header("Content-Type", "application/json")
+			.body("{\"project\": {\"id\": \"" + projectId + "\"," +
+					" \"name\": \"testProject\"," +
+					" \"description\": \"test project description\", " +
+					"\"enabled\": true, " +
+					"\"is_domain\": false}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		KeystoneProject projectDetail = keystoneModule.getProjectDetail(projectId, keystoneToken);
+
+		// then
+		assertEquals(projectId, projectDetail.getId());
+		assertEquals("testProject", projectDetail.getName());
+		assertEquals("test project description", projectDetail.getDescription());
+		assertTrue(projectDetail.getEnabled());
+		assertFalse(projectDetail.getIsDomain());
+	}
+
+	@Test
+	@DisplayName("관리자는 keystone 토큰과 프로젝트 ID, 수정할 정보를 이용해 Keystone에서 프로젝트 정보를 업데이트할 수 있다.")
+	void givenProjectIdAndProjectInfoAndKeystoneToken_whenUpdateProject_thenReturnUpdatedProjectInfo() {
+		// given
+		String projectId = "test-project-id";
+		KeystoneProject project = KeystoneProject.builder()
+				.name("updatedProject")
+				.description("updated project description")
+				.enabled(true)
+				.isDomain(false)
+				.build();
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.OK)
+			.header("Content-Type", "application/json")
+			.body("{\"project\": {\"id\": \"" + projectId + "\"," +
+					" \"name\": \"updatedProject\", " +
+					"\"description\": \"updated project description\", " +
+					"\"enabled\": true, " +
+					"\"is_domain\": false}}")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when
+		KeystoneProject updatedProject = keystoneModule.updateProject(projectId, project, keystoneToken);
+
+		// then
+		assertEquals(projectId, updatedProject.getId());
+		assertEquals("updatedProject", updatedProject.getName());
+		assertEquals("updated project description", updatedProject.getDescription());
+		assertTrue(updatedProject.getEnabled());
+		assertFalse(updatedProject.getIsDomain());
+	}
+
+	@Test
+	@DisplayName("관리자는 keystone 토큰과 프로젝트 ID를 이용해 Keystone에서 프로젝트를 삭제할 수 있다.")
+	void givenProjectIdAndKeystoneToken_whenDeleteProject_thenDeleteProjectSuccessfully() {
+		// given
+		String projectId = "test-project-id";
+		String keystoneToken = "test-keystone-token";
+		
+		ClientResponse mockResponse = ClientResponse.create(HttpStatus.NO_CONTENT)
+			.header("Content-Type", "application/json")
+			.build();
+		when(exchangeFunction.exchange(any(ClientRequest.class)))
+			.thenReturn(Mono.just(mockResponse));
+
+		// when & then
+		assertDoesNotThrow(() -> {
+			keystoneModule.deleteProject(projectId, keystoneToken);
+		});
+	}
+
 }
