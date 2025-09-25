@@ -23,8 +23,8 @@ public class UserTokenEntity {
     @Column(name = "jwt_token", nullable = false, length = 1000)
     private String jwtToken;
 
-    @Column(name = "keystone_token", length = 1000)
-    private String keystoneToken;
+    @Column(name = "keystone_Unscoped_token", length = 1000)
+    private String keystoneUnscopedToken;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
@@ -38,11 +38,11 @@ public class UserTokenEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    private UserTokenEntity(String userId, String jwtToken, String keystoneToken,
+    private UserTokenEntity(String userId, String jwtToken, String keystoneUnscopedToken,
                             LocalDateTime expiresAt) {
         this.userId = userId;
         this.jwtToken = jwtToken;
-        this.keystoneToken = keystoneToken;
+        this.keystoneUnscopedToken = keystoneUnscopedToken;
         this.isActive = true;
         this.expiresAt = expiresAt;
         this.createdAt = LocalDateTime.now();
@@ -59,9 +59,9 @@ public class UserTokenEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateTokens(String jwtToken, String keystoneToken, LocalDateTime expiresAt) {
+    public void updateTokens(String jwtToken, String keystoneUnscopedToken, LocalDateTime expiresAt) {
         this.jwtToken = jwtToken;
-        this.keystoneToken = keystoneToken;
+        this.keystoneUnscopedToken = keystoneUnscopedToken;
         this.expiresAt = expiresAt;
         this.isActive = true;
         this.updatedAt = LocalDateTime.now();
