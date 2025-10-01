@@ -1,7 +1,7 @@
 package com.acc.local.controller;
 
-import com.acc.local.dto.google.GoogleFormRequest;
-import com.acc.local.service.ports.GoogleServicePort;
+import com.acc.local.external.dto.google.GoogleFormRequest;
+import com.acc.local.external.ports.GoogleExternalPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,16 +13,16 @@ import java.util.List;
 @RequestMapping("/api/v1/google")
 public class GoogleController {
 
-    private final GoogleServicePort googlePort;
+    private final GoogleExternalPort googleExternalPort;
 
     @GetMapping("/sheets")
     public ResponseEntity<List<GoogleFormRequest>> readSheet() {
-        return ResponseEntity.ok(googlePort.readSheetData());
+        return ResponseEntity.ok(googleExternalPort.readSheetData());
     }
 
     @PostMapping("/form-submissions")
     public ResponseEntity<Void> receiveGoogleForm(@RequestBody GoogleFormRequest request) {
-        googlePort.receiveFormSubmission(request);
+        googleExternalPort.receiveFormSubmission(request);
         return ResponseEntity.ok().build();
     }
 }

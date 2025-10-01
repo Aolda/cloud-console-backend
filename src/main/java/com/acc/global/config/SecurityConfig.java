@@ -36,9 +36,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/google/**",
                                 "/api/v1/auth/token",
+                                "/api/v1/auth/login/general",
                                 "/api/v1/computes/**",
                                 "/api/v1/images/**",
                                 "/api/v1/projects",
+                                "/api/v1/quick-setting/**",
+                                "/api/v1/flavors/**",
+                                "/api/v1/projects/*/images",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
                         ).permitAll()
                         .anyRequest().authenticated()
