@@ -1,11 +1,15 @@
 package com.acc.local.service.modules.volume.snapshot;
+import com.acc.global.exception.volume.VolumeErrorCode;
+import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotsResponse.VolumeSnapshot;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotsResponse;
 import com.acc.local.external.modules.cinder.CinderSnapshotsModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -61,4 +65,31 @@ public class VolumeSnapshotModule {
         ZonedDateTime utcZoned = utcDateTime.atZone(ZoneId.of("UTC"));
         return utcZoned.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
     }
+
+    public ResponseEntity<Void> deleteSnapshot(String token, String snapshotId) {
+        try {
+            ResponseEntity<JsonNode> response = cinderSnapshotsModule.deleteSnapshot(token, snapshotId);
+
+            return ResponseEntity.status(response.getStatusCode()).build();
+
+        } catch (WebClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.ACCEPTED || e.getStatusCode() == HttpStatus.NO_CONTENT) {
+                return ResponseEntity.status(e.getStatusCode()).build();
+            }
+
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new VolumeException(VolumeErrorCode.SNAPSHOT_NOT_FOUND);
+            } else if (e.getStatusCode() == HttpStatus.CONFLICT) {
+                throw new VolumeException(VolumeErrorCode.SNAPSHOT_IN_USE);
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                throw new VolumeException(VolumeErrorCode.FORBIDDEN_ACCESS);
+            }
+
+            throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE, e);
+        }
+    }
+
+
+
+
 }

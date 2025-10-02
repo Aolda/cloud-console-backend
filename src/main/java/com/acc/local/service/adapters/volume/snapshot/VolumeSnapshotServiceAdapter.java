@@ -5,6 +5,7 @@ import com.acc.local.service.modules.volume.snapshot.VolumeSnapshotModule;
 import com.acc.local.service.ports.VolumeSnapshotServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,5 +18,10 @@ public class VolumeSnapshotServiceAdapter implements VolumeSnapshotServicePort {
     @Override
     public VolumeSnapshotsResponse getSnapshots(String token){
         return volumeSnapshotModule.getSnapshots(token);
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteSnapshot(String token, String snapshotId) {
+        return volumeSnapshotModule.deleteSnapshot(token, snapshotId);
     }
 }
