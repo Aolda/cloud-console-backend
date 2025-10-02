@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 "/api/v1/quick-setting/**",
                                 "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
+                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
+                                "/api/v1/volume-snapshot/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
