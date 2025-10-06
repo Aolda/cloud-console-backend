@@ -70,7 +70,7 @@ class AuthModuleTest {
         // Mock ResponseEntity for login response
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Subject-Token", keystoneToken);
-        JsonNode emptyBody = objectMapper.readTree("{}");
+        JsonNode emptyBody = objectMapper.readTree("{\"token\": {\"methods\": [\"password\", \"token\"], \"user\": {\"domain\": {\"id\": \"default\", \"name\": \"Default\"}, \"id\": \"5d8dc5fb0a0b412fa239eade92059b69\", \"name\": \"Acc_test_123\", \"password_expires_at\": null}, \"audit_ids\": [\"zs3FjaQQQ0ikRHBT5g-wTg\", \"acpjPWkbRCW7Pv7nVgUcZA\"], \"expires_at\": \"2025-09-29T12:29:18.000000Z\", \"issued_at\": \"2025-09-28T12:31:32.000000Z\"}}");
         ResponseEntity<JsonNode> loginResponse = new ResponseEntity<>(emptyBody, headers, HttpStatus.OK);
 
         when(jwtUtils.extractUserIdFromKeycloakToken(keycloakToken)).thenReturn(userId);

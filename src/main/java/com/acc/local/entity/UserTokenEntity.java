@@ -2,6 +2,7 @@ package com.acc.local.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,11 +24,14 @@ public class UserTokenEntity {
     @Column(name = "jwt_token", nullable = false, length = 1000)
     private String jwtToken;
 
-    @Column(name = "keystone_Unscoped_token", length = 1000)
+    @Column(name = "keystone_unscoped_token", length = 1000)
     private String keystoneUnscopedToken;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @Column(name = "keystone_expires_at", nullable = false)
+    private LocalDateTime keystoneExpiresAt;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
@@ -38,20 +42,21 @@ public class UserTokenEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder
     private UserTokenEntity(String userId, String jwtToken, String keystoneUnscopedToken,
-                            LocalDateTime expiresAt) {
+                            LocalDateTime keystoneExpiresAt) {
+        LocalDateTime now = LocalDateTime.now();
+
         this.userId = userId;
         this.jwtToken = jwtToken;
-        this.keystoneUnscopedToken = keystoneUnscopedToken;
         this.isActive = true;
-        this.expiresAt = expiresAt;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
 
-    public static UserTokenEntity create(String userId, String jwtToken, String keystoneToken,
-                                        LocalDateTime expiresAt) {
-        return new UserTokenEntity(userId, jwtToken, keystoneToken, expiresAt);
+        this.keystoneUnscopedToken = keystoneUnscopedToken;
+        this.keystoneExpiresAt = keystoneExpiresAt;
+
+        this.expiresAt = now.plusSeconds(2 * 60 * 60);
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     public void deactivate() {
@@ -73,5 +78,9 @@ public class UserTokenEntity {
 
     public boolean isValid() {
         return isActive && !isExpired();
+    }
+
+    public boolean isMappingUnscopedTokenExpired() {
+        return LocalDateTime.now().isAfter(keystoneExpiresAt);
     }
 }

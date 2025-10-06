@@ -13,4 +13,8 @@ public class KeystoneManagementException extends AccBaseException {
         super(authErrorCode, customMessage);
     }
 
+    public KeystoneManagementException(AuthErrorCode authErrorCode) {
+        super(authErrorCode, authErrorCode.getMessage());
+    }
+
 }
