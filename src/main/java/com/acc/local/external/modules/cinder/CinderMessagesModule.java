@@ -16,17 +16,17 @@ public class CinderMessagesModule extends CinderAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> getMessage(String token, String projectId, String messageId) {
-        String uri = "/v3/" + projectId + "/messages/" + messageId;
+        String uri = "/v3/messages/" + messageId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
     public ResponseEntity<JsonNode> listMessages(String token, String projectId, Map<String, String> queryParams) {
-        String uri = "/v3/" + projectId + "/messages";
+        String uri = "/v3/messages";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
     public ResponseEntity<JsonNode> deleteMessage(String token, String projectId, String messageId) {
-        String uri = "/v3/" + projectId + "/messages/" + messageId;
+        String uri = "/v3/messages/" + messageId;
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }

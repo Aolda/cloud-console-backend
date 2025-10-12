@@ -17,22 +17,22 @@ public class CinderDefaultTypesModule extends CinderAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> getDefaultType(String token, String projectId) {
-        String uri = "/v3/default-types/" + projectId;
+        String uri = "/v3/default-types";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
     public ResponseEntity<JsonNode> updateVolumeType(String token, String projectId, UpdateVolumeTypeRequest request) {
-        String uri = "/v3/default-types/" + projectId;
+        String uri = "/v3/default-types";
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     public ResponseEntity<JsonNode> listDefaultTypes(String token, Map<String, String> queryParams) {
-        String uri = "/v3/default-types/";
+        String uri = "/v3/default-types";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
     public ResponseEntity<JsonNode> deleteDefaultType(String token, String projectId) {
-        String uri = "/v3/default-types/" + projectId;
+        String uri = "/v3/default-types";
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }
