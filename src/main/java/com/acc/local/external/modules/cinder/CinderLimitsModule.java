@@ -15,7 +15,7 @@ public class CinderLimitsModule extends CinderAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> getProjectLimits(String token, String projectId) {
-        String uri = "/v3/" + projectId + "/limits";
+        String uri = "/v3/limits";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 }

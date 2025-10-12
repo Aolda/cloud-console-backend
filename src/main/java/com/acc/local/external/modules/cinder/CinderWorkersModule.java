@@ -16,7 +16,7 @@ public class CinderWorkersModule extends CinderAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> cleanupWorker(String token, String projectId, CleanupWorkerRequest request) {
-        String uri = "/v3/" + projectId + "/workers/cleanup";
+        String uri = "/v3/workers/cleanup";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 }

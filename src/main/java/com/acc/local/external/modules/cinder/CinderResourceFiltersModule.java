@@ -15,7 +15,7 @@ public class CinderResourceFiltersModule extends CinderAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> listResourceFilters(String token, String projectId) {
-        String uri = "/v3/" + projectId + "/resource_filters";
+        String uri = "/v3/resource_filters";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 }
