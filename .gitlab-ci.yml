@@ -62,9 +62,18 @@ test:
 #    - chmod +x gradlew
 #    - apt-get update && apt-get install -y mariadb-client >/dev/null
 #    - until mysqladmin ping -hmariadb --silent; do echo "waiting for mariadb..."; sleep 2; done
-  script:
-    - ./gradlew --no-daemon test jacocoTestReport || ./gradlew --no-daemon test
-    - ./gradlew --no-daemon test -Dspring.profiles.active=test
+  variables:
+    SPRING_PROFILES_ACTIVE: "test"   # << 핵심: 항상 test 프로필
+  cache:
+    key: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .gradle/wrapper/
+      - .gradle/caches/
+    before_script:
+      - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
+      - chmod +x gradlew
+    script:
+      - ./gradlew --no-daemon clean test jacocoTestReport
   artifacts:
     when: always
     reports:
