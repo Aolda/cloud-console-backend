@@ -1,0 +1,5 @@
+test:
+  stage: test
+  image: eclipse-temurin:21-jdk
+  script:
+    - ./gradlew --no-daemon test -Dspring.profiles.active=test
