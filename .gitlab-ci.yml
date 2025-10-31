@@ -98,4 +98,12 @@ workflow:
   rules:
     - if: $CI_MERGE_REQUEST_ID
     - if: $CI_COMMIT_BRANCH
-
+ping:
+  stage: check          # 네가 이미 정의한 stages: [check, build, test, package] 중 check 사용
+  tags: [acc]           # 러너(#405)에 acc 태그가 있으므로 반드시 필요
+  image: alpine
+  script:
+    - echo "runner OK on $(uname -a)"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "web"
