@@ -14,10 +14,10 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PageResponse<T> {
-    private Integer totalPages;
-    private Long totalElements;
-    private Integer size;
     private List<T> contents;
     private Boolean first;
     private Boolean last;
+    private Integer size;
+    private String nextMarker;
+    private String prevMarker;
 }
