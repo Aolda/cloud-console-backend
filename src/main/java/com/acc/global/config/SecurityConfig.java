@@ -44,7 +44,7 @@ public class SecurityConfig {
                                 "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
-                                "/api/v1/volume-snapshot/**"
+                                "/api/v1/snapshots/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

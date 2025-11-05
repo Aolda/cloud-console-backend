@@ -3,6 +3,7 @@ package com.acc.local.external.modules.cinder;
 import com.acc.local.external.dto.cinder.snapshot.*;
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,12 +22,12 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
-    public ResponseEntity<JsonNode> createSnapshot(String token, CreateSnapshotRequest request) {
-        String uri = "/v3/snapshots";
+    public ResponseEntity<JsonNode> createSnapshot(String token,String projectId, CreateSnapshotRequest request) {
+        String uri = "/v3/"+ projectId+ "/snapshots";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
-    public ResponseEntity<JsonNode> listSnapshots(String token, Map<String, String> queryParams) {
-        String uri = "/v3/snapshots";
+    public ResponseEntity<JsonNode> listSnapshots(String token,String projectId, Map<String, String> queryParams) {
+        String uri = "/v3/" + projectId + "/snapshots";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
@@ -40,8 +41,8 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> getSnapshot(String token, String snapshotId) {
-        String uri = "/v3/snapshots/" + snapshotId;
+    public ResponseEntity<JsonNode> getSnapshot(String token, String projectId, String snapshotId) {
+        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
@@ -65,8 +66,8 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> deleteSnapshot(String token, String snapshotId) {
-        String uri = "/v3/snapshots/" + snapshotId;
+    public ResponseEntity<JsonNode> deleteSnapshot(String token, String projectId, String snapshotId) {
+        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId;
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 
