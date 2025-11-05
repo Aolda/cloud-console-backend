@@ -44,5 +44,5 @@ public class CreateImageRequest {
 
     @JsonProperty("visibility")
     private String visibility;
-ß
+
 }
