@@ -25,6 +25,7 @@ public class CreateNetworkRequest {
     public static class Network {
         private String name;
         private String description;
+        private Integer mtu;
         @JsonProperty("admin_state_up")
         private Boolean adminStateUp;
         private Boolean shared;
