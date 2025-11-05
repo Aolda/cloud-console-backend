@@ -44,20 +44,5 @@ public class CreateImageRequest {
 
     @JsonProperty("visibility")
     private String visibility;
-
-    @Builder.Default
-    private Map<String, String> additionalProperties = new LinkedHashMap<>();
-
-    @JsonAnySetter
-    public void putAdditionalProperty(String key, String value) {
-        if (additionalProperties == null) {
-            additionalProperties = new LinkedHashMap<>();
-        }
-        additionalProperties.put(key, value);
-    }
-
-    @JsonAnyGetter
-    public Map<String, String> any() {
-        return additionalProperties;
-    }
+ß
 }
