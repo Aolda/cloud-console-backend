@@ -157,6 +157,7 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     @Override
     public String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request) {
+        // TODO: 에러발생 시 logout로직 추가
         return authModule.authenticateKeystoneAndGenerateJwt(request);
     }
 }

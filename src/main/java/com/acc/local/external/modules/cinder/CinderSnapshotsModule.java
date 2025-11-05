@@ -16,53 +16,52 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listSnapshotsDetail(String token, String projectId, Map<String, String> queryParams) {
-        String uri = "/v3/" + projectId + "/snapshots/detail";
+    public ResponseEntity<JsonNode> listSnapshotsDetail(String token, Map<String, String> queryParams) {
+        String uri = "/v3/snapshots/detail";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
-    public ResponseEntity<JsonNode> createSnapshot(String token, String projectId, CreateSnapshotRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots";
+    public ResponseEntity<JsonNode> createSnapshot(String token, CreateSnapshotRequest request) {
+        String uri = "/v3/snapshots";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
-
     public ResponseEntity<JsonNode> listSnapshots(String token, Map<String, String> queryParams) {
         String uri = "/v3/snapshots";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
-    public ResponseEntity<JsonNode> getSnapshotMetadata(String token, String projectId, String snapshotId) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata";
+    public ResponseEntity<JsonNode> getSnapshotMetadata(String token, String snapshotId) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> createSnapshotMetadata(String token, String projectId, String snapshotId, CreateSnapshotMetadataRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata";
+    public ResponseEntity<JsonNode> createSnapshotMetadata(String token, String snapshotId, CreateSnapshotMetadataRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> getSnapshot(String token, String projectId, String snapshotId) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId;
+    public ResponseEntity<JsonNode> getSnapshot(String token, String snapshotId) {
+        String uri = "/v3/snapshots/" + snapshotId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> updateSnapshotMetadata(String token, String projectId, String snapshotId, UpdateSnapshotMetadataRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata";
+    public ResponseEntity<JsonNode> updateSnapshotMetadata(String token, String snapshotId, UpdateSnapshotMetadataRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata";
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> updateSnapshot(String token, String projectId, String snapshotId, UpdateSnapshotRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId;
+    public ResponseEntity<JsonNode> updateSnapshot(String token, String snapshotId, UpdateSnapshotRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId;
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> getSnapshotMetadataKey(String token, String projectId, String snapshotId, String key) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata/" + key;
+    public ResponseEntity<JsonNode> getSnapshotMetadataKey(String token, String snapshotId, String key) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata/" + key;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> updateSnapshotMetadataKey(String token, String projectId, String snapshotId, String key, UpdateSnapshotMetadataKeyRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata/" + key;
+    public ResponseEntity<JsonNode> updateSnapshotMetadataKey(String token, String snapshotId, String key, UpdateSnapshotMetadataKeyRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata/" + key;
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
@@ -71,23 +70,23 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 
-    public ResponseEntity<JsonNode> deleteSnapshotMetadataKey(String token, String projectId, String snapshotId, String key) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/metadata/" + key;
+    public ResponseEntity<JsonNode> deleteSnapshotMetadataKey(String token, String snapshotId, String key) {
+        String uri = "/v3/snapshots/" + snapshotId + "/metadata/" + key;
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 
-    public ResponseEntity<JsonNode> resetSnapshotStatus(String token, String projectId, String snapshotId, ResetSnapshotStatusRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/action";
+    public ResponseEntity<JsonNode> resetSnapshotStatus(String token, String snapshotId, ResetSnapshotStatusRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/action";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> updateSnapshotStatus(String token, String projectId, String snapshotId, UpdateSnapshotStatusRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/action";
+    public ResponseEntity<JsonNode> updateSnapshotStatus(String token, String snapshotId, UpdateSnapshotStatusRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/action";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> forceDeleteSnapshot(String token, String projectId, String snapshotId, ForceDeleteSnapshotRequest request) {
-        String uri = "/v3/" + projectId + "/snapshots/" + snapshotId + "/action";
+    public ResponseEntity<JsonNode> forceDeleteSnapshot(String token, String snapshotId, ForceDeleteSnapshotRequest request) {
+        String uri = "/v3/snapshots/" + snapshotId + "/action";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 }
