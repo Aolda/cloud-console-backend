@@ -112,6 +112,26 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
         return parseNetworkNameAndId(response);
     }
 
+    @Override
+    public Map<String, String> getProviderNetwork(String keystoneToken) {
+        ResponseEntity<JsonNode> response;
+        try {
+            response = networksAPIModule.listNeutronNetworks(keystoneToken,
+                    Map.of("router:external", "true"));
+        } catch (WebClientException e) {
+            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+        }
+
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+        }
+
+        return Map.of(
+                "id", response.getBody().get("networks").get(0).get("id").asText(),
+                "name", response.getBody().get("networks").get(0).get("name").asText()
+        );
+    }
+
     private List<ViewNetworksResponse.Subnet> callListSubnetsByNetworkId(String keystoneToken, String networkId) {
         ResponseEntity<JsonNode> response;
 

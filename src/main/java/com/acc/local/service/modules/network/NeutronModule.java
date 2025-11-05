@@ -5,7 +5,9 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
+import com.acc.local.dto.network.ViewRoutersResponse;
 import com.acc.local.external.ports.NeutronNetworkExternalPort;
+import com.acc.local.external.ports.NeutronRouterExternalPort;
 import com.acc.local.external.ports.NeutronSubnetExternalPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,7 @@ public class NeutronModule {
 
     private final NeutronNetworkExternalPort neutronNetworkExternalPort;
     private final NeutronSubnetExternalPort neutronSubnetExternalPort;
+    private final NeutronRouterExternalPort neutronRouterExternalPort;
 
     public String createGeneralNetwork(CreateNetworkRequest request, String keystoneToken) {
         return neutronNetworkExternalPort.callCreateGeneralNetwork(keystoneToken,
@@ -40,8 +43,30 @@ public class NeutronModule {
         return neutronNetworkExternalPort.callListNetworks(keystoneToken, projectId, marker, direction, limit);
     }
 
+    public String getProviderNetworkId(String keystoneToken) {
+        return neutronNetworkExternalPort.getProviderNetwork(keystoneToken).get("id");
+    }
+
     public void createSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
         neutronSubnetExternalPort.callCreateSubnet(keystoneToken, subnets, networkId);
     }
 
+    /* --- Routers --- */
+    public PageResponse<ViewRoutersResponse> listRouters(String keystoneToken, String projectId, String marker, String direction, int limit) {
+        return neutronRouterExternalPort.callListRouters(keystoneToken, projectId, marker, direction, limit);
+    }
+
+    public void deleteRouter(String keystoneToken, String routerId) {
+        neutronRouterExternalPort.callDeleteRouter(keystoneToken, routerId);
+    }
+
+    public void createRouter(String keystoneToken, String routerName, boolean isExternal) {
+        String networkId = null;
+        if (isExternal) {
+            networkId = getProviderNetworkId(keystoneToken);
+        }
+        neutronRouterExternalPort.callCreateRouter(keystoneToken, routerName, networkId);
+    }
+
+    /* --- External IPs --- */
 }

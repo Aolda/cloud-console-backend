@@ -11,7 +11,6 @@ import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.ports.NetworkServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,7 +28,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
         /* --- Quota 검증 --- */
 
         /* --- 네트워크 생성 --- */
-        if (!networkUtil.validateNetworkName(request.getNetworkName())) {
+        if (!networkUtil.validateResourceName(request.getNetworkName())) {
             throw new NetworkException(NetworkErrorCode.INVALID_NETWORK_NAME);
         }
         if (!networkUtil.validateNetworkMtu(request.getMtu())) {
@@ -48,7 +47,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_CIDR);
                 }
             }
-            
+
             neutronModule.createSubnet(token, request.getSubnets(), networkId);
         }
     }
