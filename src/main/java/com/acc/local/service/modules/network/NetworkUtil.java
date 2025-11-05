@@ -1,15 +1,14 @@
 package com.acc.local.service.modules.network;
 
-import com.acc.global.exception.network.NetworkErrorCode;
-import com.acc.global.exception.network.NetworkException;
-import com.acc.local.dto.network.CreateNetworkRequest;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NetworkUtil {
 
-    public boolean validateNetworkName(String networkName) {
-        return networkName != null && !networkName.isEmpty();
+    public boolean validateResourceName(String resourceName) {
+
+        return resourceName != null && !resourceName.isEmpty() &&
+                resourceName.matches("^[a-zA-Z][0-9a-zA-Z\\-_()\\[\\]\\.:^]{0,127}$");
     }
 
     public boolean validateNetworkMtu(int mtu) {
@@ -27,4 +26,10 @@ public class NetworkUtil {
     public boolean validateSubnetName(String subnetName) {
         return subnetName != null && !subnetName.isEmpty();
     }
+
+    public boolean validateGateway(Boolean gateway) {
+        return gateway != null;
+    }
+
+
 }

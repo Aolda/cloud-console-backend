@@ -11,4 +11,5 @@ public interface NeutronNetworkExternalPort {
     PageResponse<ViewNetworksResponse> callListNetworks(String keystoneToken, String projectId, String marker, String direction, int limit);
     void callDeleteNetwork(String keystoneToken, String networkId);
     Map<String, String> getNetworkNameAndId(String keystoneToken, String networkId);
+    Map<String, String> getProviderNetwork(String keystoneToken);
 }
