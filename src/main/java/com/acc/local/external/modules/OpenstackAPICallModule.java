@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -22,6 +23,25 @@ public class OpenstackAPICallModule {
                 .uri(uriBuilder -> {
                     uriBuilder.port(port);
                     queryParams.forEach(uriBuilder::queryParam);
+                    return uriBuilder.path(uri).build();
+                })
+                .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                .retrieve()
+                .toEntity(JsonNode.class)
+                .block();
+    }
+
+    public ResponseEntity<JsonNode> callGetAPI(String uri, Map<String, String> headers, MultiValueMap<String, String> queryParams, int port) {
+        return openstackWebClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.port(port);
+                    if (queryParams != null) {
+                        queryParams.forEach((key, values) -> {
+                            if (values != null) {
+                                values.forEach(value -> uriBuilder.queryParam(key, value));
+                            }
+                        });
+                    }
                     return uriBuilder.path(uri).build();
                 })
                 .headers(httpHeaders -> headers.forEach(httpHeaders::add))
