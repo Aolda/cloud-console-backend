@@ -15,10 +15,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,24 +172,10 @@ public class VolumeSnapshotExternalAdapter implements VolumeSnapshotExternalPort
         return VolumeSnapshotResponse.builder()
                 .snapshotId(snapshotNode.path("id").asText())
                 .name(snapshotNode.path("name").asText(null))
-                .createdAt(parseDate(snapshotNode.path("created_at").asText(null)))
+                .createdAt(snapshotNode.path("created_at").asText(null))
                 .sourceVolumeId(snapshotNode.path("volume_id").asText(null)) // path()와 asText(null) 사용
                 .status(snapshotNode.path("status").asText(null))
                 .sizeGb(snapshotNode.path("size").asInt(0)) // path()와 asInt(0) 사용
                 .build();
-    }
-
-    private LocalDateTime parseDate(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
-            return null;
-        }
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-            LocalDateTime utcDateTime = LocalDateTime.parse(dateTimeStr, formatter);
-            ZonedDateTime utcZoned = utcDateTime.atZone(ZoneId.of("UTC"));
-            return utcZoned.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

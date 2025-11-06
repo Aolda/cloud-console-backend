@@ -1,12 +1,9 @@
 package com.acc.local.dto.volume.snapshot;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -29,7 +26,6 @@ public class VolumeSnapshotResponse {
     @Schema(description = "원본 볼륨 ID", example = "b8f6a3b2-9d3a-4a6e-8b1e-2e4a6d8c2e1f")
     private String sourceVolumeId;
 
-    @Schema(description = "생성 시간", example = "2025-10-10T13:00:00")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
+    @Schema(description = "생성 시간 (UTC)", example = "2025-10-10T04:00:00.000000")
+    private String createdAt;
 }
