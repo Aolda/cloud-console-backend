@@ -1,15 +1,12 @@
 stages: [check, build, test, package]
 
-# 0) 러너 연결 스모크 테스트
 check_runner:
   stage: check
-  # 프로젝트 러너에 태그가 acc 라면 유지, Run untagged jobs를 켰다면 이 줄 삭제해도 됨
   tags: [acc]
   script:
     - echo "runner OK"
     - java -version || true
 
-# 1) Gradle 빌드 (테스트 제외)
 build:
   stage: build
   tags: [acc]
@@ -29,51 +26,23 @@ build:
     paths:
       - build/libs/
     expire_in: 7 days
-  rules:
-    - exists:
-        - gradlew
-        - build.gradle
-        - settings.gradle*
 
-# 2) Gradle 테스트(+커버리지 있으면 자동 수집)
 test:
   stage: test
   tags: [acc]
-  # allow_failure: true   # ← 실패해도 파이프라인은 계속 진행
   image: eclipse-temurin:21-jdk
-#  services:
-#    - name: mariadb:11
-#      alias: mariadb
-#  variables:
-#    MARIADB_ROOT_PASSWORD: rootpw
-#    MARIADB_DATABASE: aoldaacc
-#    MARIADB_USER: aoldaacc
-#    MARIADB_PASSWORD: "aoldaacc123@"
-#
-#    SPRING_DATASOURCE_URL: "jdbc:mariadb://mariadb:3306/aoldaacc"
-#    SPRING_DATASOURCE_USERNAME: "aoldaacc"
-#    SPRING_DATASOURCE_PASSWORD: "aoldaacc123@"
-#    SPRING_PROFILES_ACTIVE: "db"
-
-
-#  needs: ["build"]
-#  before_script:
-#    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
-#    - chmod +x gradlew
-#    - apt-get update && apt-get install -y mariadb-client >/dev/null
-#    - until mysqladmin ping -hmariadb --silent; do echo "waiting for mariadb..."; sleep 2; done
   variables:
-    SPRING_PROFILES_ACTIVE: "test"   # << 핵심: 항상 test 프로필
+    SPRING_PROFILES_ACTIVE: "test"
   cache:
     key: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_REF_SLUG}"
     paths:
       - .gradle/wrapper/
       - .gradle/caches/
-    before_script:
-      - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
-      - chmod +x gradlew
-    script:
-      - ./gradlew --no-daemon clean test jacocoTestReport
+  before_script:
+    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
+    - chmod +x gradlew
+  script:
+    - ./gradlew --no-daemon clean test jacocoTestReport
   artifacts:
     when: always
     reports:
@@ -87,7 +56,6 @@ test:
       - build/reports/jacoco/test
   coverage: '/TOTAL.*?([0-9]{1,3})%/'
 
-# 3) 패키징(메인 브랜치일 때만)
 package:
   stage: package
   tags: [acc]
@@ -109,12 +77,3 @@ workflow:
   rules:
     - if: $CI_MERGE_REQUEST_ID
     - if: $CI_COMMIT_BRANCH
-ping:
-  stage: check          # 네가 이미 정의한 stages: [check, build, test, package] 중 check 사용
-  tags: [acc]           # 러너(#405)에 acc 태그가 있으므로 반드시 필요
-  image: alpine
-  script:
-    - echo "runner OK on $(uname -a)"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-    - if: $CI_PIPELINE_SOURCE == "web"
