@@ -37,10 +37,9 @@ public class WebClientConfig {
     }
 
     @Bean
-    public WebClient computeWebClient() {
+    public WebClient instanceWebClient() {
         return WebClient.builder()
                 .baseUrl(openstackUrl)
-                .defaultHeader("Content-Type", "application/json")
                 .build();
     }
 

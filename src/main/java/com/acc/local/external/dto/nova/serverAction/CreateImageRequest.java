@@ -6,21 +6,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateImageRequest {
-    private CreateImage createImage;
-    
+
+    private ImageInfo createImage;
+
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class CreateImage {
+    public static class ImageInfo {
         private String name;
-        private String metadata;
+        private Map<String, String> metadata;
     }
-} 
+}
