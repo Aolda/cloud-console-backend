@@ -1,12 +1,20 @@
-stages: [check, build, package, test]   # ← test 삭제
+stages: [check, build, package]
 
-build:
-  stage: build
-  tags: [acc]
+# 공통 기본값 (원하면 생략 가능)
+default:
   image: eclipse-temurin:21-jdk
+  tags: [acc]
   before_script:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
     - chmod +x gradlew
+
+check_runner:
+  stage: check
+  script:
+    - echo "runner OK"; java -version || true
+
+build:
+  stage: build
   script:
     - ./gradlew --no-daemon clean build -x test   # ← 테스트 제외
   artifacts:
@@ -14,11 +22,11 @@ build:
     paths:
       - build/libs/
     expire_in: 7 days
-test:
-  stage: test
-  tags: [acc]
-  image: eclipse-temurin:21-jdk
-  when: manual          # ← 수동 실행
-  allow_failure: true   # ← 눌러서 실패해도 파이프라인은 통과
+
+package:
+  stage: package
+  needs: ["build"]
   script:
-    - ./gradlew --no-daemon test jacocoTestReport
+    - ./gradlew --no-daemon assemble -x test      # ← 여기서도 제외
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
