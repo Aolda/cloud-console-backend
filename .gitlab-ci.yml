@@ -83,51 +83,46 @@ update_manifest_image:
   needs: ["kaniko_build_image"]
   before_script:
     - apk add --no-cache git openssh-client
-  script:
+  script: |
+    set -e
     # 필수 변수 확인
-    - |
-      if [ -z "$DOCKERHUB_REPO" ]; then
-        echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
-      if [ -z "$MANIFEST_FILE" ] && [ -z "$MANIFEST_GLOB" ]; then
-        echo "[error] Set MANIFEST_FILE or MANIFEST_GLOB (e.g. k8s/rollout.yaml or k8s/**/rollout*.yaml)" >&2; exit 1; fi
-      if [ -z "$CONTAINER_NAME" ]; then
-        echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
+    if [ -z "$DOCKERHUB_REPO" ]; then
+      echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
+    if [ -z "$MANIFEST_FILE" ]; then
+      echo "[error] Missing CI variable: MANIFEST_FILE (e.g. acc/backend/acc-backend-deploy.yaml)" >&2; exit 1; fi
+    if [ -z "$CONTAINER_NAME" ]; then
+      echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
+    if [ -z "$GITOPS_REPO_URL" ]; then
+      echo "[error] Missing CI variable: GITOPS_REPO_URL (e.g. https://gitlab.com/group/gitops-repo.git)" >&2; exit 1; fi
+    if [ -z "$GITOPS_REPO_BRANCH" ]; then
+      echo "[error] Missing CI variable: GITOPS_REPO_BRANCH (e.g. main)" >&2; exit 1; fi
+    if [ -z "$GITOPS_TOKEN" ]; then
+      echo "[error] Missing CI variable: GITOPS_TOKEN (write access token)" >&2; exit 1; fi
+
     # 새 이미지 태그 구성
-    - export FULL_IMAGE="docker.io/$DOCKERHUB_REPO:$CI_COMMIT_SHORT_SHA"
-    # 대상 컨테이너 이미지 필드 업데이트 (단일 파일 또는 글롭)
-    - |
-      if [ -n "$MANIFEST_FILE" ]; then
-        yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$MANIFEST_FILE"
-      else
-        set -e
-        FOUND=0
-        for f in $(ls -1 $MANIFEST_GLOB 2>/dev/null || true); do
-          echo "Updating $f -> $FULL_IMAGE"
-          yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$f"
-          FOUND=1
-        done
-        if [ "$FOUND" = "0" ]; then
-          echo "[warn] No manifest matched MANIFEST_GLOB: $MANIFEST_GLOB" >&2
-          exit 1
-        fi
-      fi
+    FULL_IMAGE="docker.io/$DOCKERHUB_REPO:$CI_COMMIT_SHORT_SHA"
+    export FULL_IMAGE
+
+    # GitOps 레포 클론(HTTPS + 토큰)
+    GITOPS_USERNAME="${GITOPS_USERNAME:-${GIT_PUSH_USERNAME:-gitlab-ci-token}}"
+    REMOTE_URL="$GITOPS_REPO_URL"
+    case "$REMOTE_URL" in
+      https://*) REMOTE_URL="https://$GITOPS_USERNAME:$GITOPS_TOKEN@${GITOPS_REPO_URL#https://}" ;;
+      http://*)  REMOTE_URL="http://$GITOPS_USERNAME:$GITOPS_TOKEN@${GITOPS_REPO_URL#http://}" ;;
+    esac
+    rm -rf gitops && mkdir -p gitops
+    git clone --depth 1 --branch "$GITOPS_REPO_BRANCH" "$REMOTE_URL" gitops
+
+    # GitOps 레포 내 매니페스트 수정 (단일 파일)
+    cd gitops
+    yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$MANIFEST_FILE"
+
     # 변경 사항 커밋 및 푸시 ([skip ci]로 루프 방지)
-    - git config user.email "ci-bot@${CI_SERVER_HOST}"
-    - git config user.name "gitlab-ci"
-    - |
-      if [ -n "$MANIFEST_FILE" ]; then
-        git add "$MANIFEST_FILE"
-      else
-        git add $MANIFEST_GLOB
-      fi
-    - git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
-    # origin에 푸시 (토큰이 설정된 경우 리모트 재설정)
-    - |
-      if [ -n "$GIT_PUSH_TOKEN" ]; then
-        : "Using provided push token"
-        git remote set-url origin "https://${GIT_PUSH_USERNAME:-gitlab-ci-token}:$GIT_PUSH_TOKEN/$CI_PROJECT_PATH.git"
-      fi
-    - git push origin "HEAD:$CI_COMMIT_REF_NAME"
+    git config user.email "ci-bot@${CI_SERVER_HOST}"
+    git config user.name "gitlab-ci"
+    git add "$MANIFEST_FILE"
+    git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
+    git push origin "$GITOPS_REPO_BRANCH"
   rules:
     # 기본 브랜치에서만 매니페스트에 커밋 (원하면 변경)
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
