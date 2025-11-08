@@ -69,11 +69,7 @@ kaniko_build_image:
       --destination "docker.io/$DOCKERHUB_REPO:$IMAGE_TAG"
       --cache=true
       --cache-repo "docker.io/$DOCKERHUB_REPO-cache"
-  rules:
-    # 릴리스 태그면 항상 빌드
-    - if: $CI_COMMIT_TAG
-    # 브랜치 푸시 시 Dockerfile 또는 소스 변경 시 빌드
-    - if: $CI_PIPELINE_SOURCE == "push"
+  # rules 제거: 모든 파이프라인에서 실행
 
 # 매니페스트의 이미지 태그 갱신 (GitOps 커밋)
 update_manifest_image:
@@ -121,8 +117,3 @@ update_manifest_image:
     git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
     # 푸시(Authorization 헤더 사용)
     git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin "$GITOPS_REPO_BRANCH"
-  rules:
-    # 변수들이 준비된 경우, 브랜치 푸시에서 실행
-    - if: '$CI_PIPELINE_SOURCE == "push" && $DOCKERHUB_REPO && $CONTAINER_NAME && $MANIFEST_FILE && $GITOPS_REPO_URL && $GITOPS_REPO_BRANCH && $GITOPS_TOKEN'
-    # 태그 파이프라인에서도 실행 가능하게 하려면 아래 주석 해제
-    # - if: '$CI_COMMIT_TAG && $DOCKERHUB_REPO && $CONTAINER_NAME && $MANIFEST_FILE && $GITOPS_REPO_URL && $GITOPS_REPO_BRANCH && $GITOPS_TOKEN'
