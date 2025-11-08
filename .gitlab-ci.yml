@@ -122,5 +122,7 @@ update_manifest_image:
     # 푸시(Authorization 헤더 사용)
     git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin "$GITOPS_REPO_BRANCH"
   rules:
-    # 기본 브랜치에서만 매니페스트에 커밋 (원하면 변경)
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    # 변수들이 준비된 경우, 브랜치 푸시에서 실행
+    - if: '$CI_PIPELINE_SOURCE == "push" && $DOCKERHUB_REPO && $CONTAINER_NAME && $MANIFEST_FILE && $GITOPS_REPO_URL && $GITOPS_REPO_BRANCH && $GITOPS_TOKEN'
+    # 태그 파이프라인에서도 실행 가능하게 하려면 아래 주석 해제
+    # - if: '$CI_COMMIT_TAG && $DOCKERHUB_REPO && $CONTAINER_NAME && $MANIFEST_FILE && $GITOPS_REPO_URL && $GITOPS_REPO_BRANCH && $GITOPS_TOKEN'
