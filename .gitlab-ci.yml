@@ -1,4 +1,4 @@
-stages: [check, build, package]
+stages: [check, build, package, image, manifest]
 
 # 공통 기본값 (원하면 생략 가능)
 default:
@@ -30,3 +30,104 @@ package:
     - ./gradlew --no-daemon assemble -x test      # ← 여기서도 제외
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# 컨테이너 이미지 빌드(kaniko)
+kaniko_build_image:
+  stage: image
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  tags: [acc]
+  variables:
+    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"  # 깃랩 커밋 해시(쇼트)
+  before_script: []
+  script:
+    # Docker 인증 정보 작성 (CI_REGISTRY_USER/CI_JOB_TOKEN 사용)
+    - |
+      mkdir -p /kaniko/.docker
+      cat > /kaniko/.docker/config.json <<EOF
+      {
+        "auths": {
+          "https://index.docker.io/v1/": {
+            "username": "$DOCKERHUB_USERNAME",
+            "password": "$DOCKERHUB_TOKEN"
+          }
+        }
+      }
+      EOF
+    # 필수 변수 확인: DOCKERHUB_REPO (예: aolda/acc_backend)
+    - |
+      if [ -z "$DOCKERHUB_REPO" ]; then
+        echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2
+        exit 1
+      fi
+    # 캐시를 레지스트리에 저장/활용하여 빠른 빌드
+    - >
+      /kaniko/executor
+      --context "$CI_PROJECT_DIR"
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+      --destination "docker.io/$DOCKERHUB_REPO:$IMAGE_TAG"
+      --cache=true
+      --cache-repo "docker.io/$DOCKERHUB_REPO-cache"
+  rules:
+    # 릴리스 태그면 항상 빌드
+    - if: $CI_COMMIT_TAG
+    # 브랜치 푸시 시 Dockerfile 또는 소스 변경 시 빌드
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+# 매니페스트의 이미지 태그 갱신 (GitOps 커밋)
+update_manifest_image:
+  stage: manifest
+  image: mikefarah/yq:4.44.1
+  tags: [acc]
+  needs: ["kaniko_build_image"]
+  before_script:
+    - apk add --no-cache git openssh-client
+  script:
+    # 필수 변수 확인
+    - |
+      if [ -z "$DOCKERHUB_REPO" ]; then
+        echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
+      if [ -z "$MANIFEST_FILE" ] && [ -z "$MANIFEST_GLOB" ]; then
+        echo "[error] Set MANIFEST_FILE or MANIFEST_GLOB (e.g. k8s/rollout.yaml or k8s/**/rollout*.yaml)" >&2; exit 1; fi
+      if [ -z "$CONTAINER_NAME" ]; then
+        echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
+    # 새 이미지 태그 구성
+    - export FULL_IMAGE="docker.io/$DOCKERHUB_REPO:$CI_COMMIT_SHORT_SHA"
+    # 대상 컨테이너 이미지 필드 업데이트 (단일 파일 또는 글롭)
+    - |
+      if [ -n "$MANIFEST_FILE" ]; then
+        yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$MANIFEST_FILE"
+      else
+        set -e
+        FOUND=0
+        for f in $(ls -1 $MANIFEST_GLOB 2>/dev/null || true); do
+          echo "Updating $f -> $FULL_IMAGE"
+          yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$f"
+          FOUND=1
+        done
+        if [ "$FOUND" = "0" ]; then
+          echo "[warn] No manifest matched MANIFEST_GLOB: $MANIFEST_GLOB" >&2
+          exit 1
+        fi
+      fi
+    # 변경 사항 커밋 및 푸시 ([skip ci]로 루프 방지)
+    - git config user.email "ci-bot@${CI_SERVER_HOST}"
+    - git config user.name "gitlab-ci"
+    - |
+      if [ -n "$MANIFEST_FILE" ]; then
+        git add "$MANIFEST_FILE"
+      else
+        git add $MANIFEST_GLOB
+      fi
+    - git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
+    # origin에 푸시 (토큰이 설정된 경우 리모트 재설정)
+    - |
+      if [ -n "$GIT_PUSH_TOKEN" ]; then
+        : "Using provided push token"
+        git remote set-url origin "https://${GIT_PUSH_USERNAME:-gitlab-ci-token}:$GIT_PUSH_TOKEN/$CI_PROJECT_PATH.git"
+      fi
+    - git push origin "HEAD:$CI_COMMIT_REF_NAME"
+  rules:
+    # 기본 브랜치에서만 매니페스트에 커밋 (원하면 변경)
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
