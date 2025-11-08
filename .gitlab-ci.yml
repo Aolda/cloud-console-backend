@@ -12,11 +12,17 @@ check_runner:
   stage: check
   script:
     - echo "runner OK"; java -version || true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 build:
   stage: build
   script:
     - ./gradlew --no-daemon clean build -x test   # ← 테스트 제외
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   artifacts:
     when: always
     paths:
@@ -29,7 +35,7 @@ package:
   script:
     - ./gradlew --no-daemon assemble -x test      # ← 여기서도 제외
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # 컨테이너 이미지 빌드(kaniko)
 kaniko_build_image:
@@ -70,6 +76,8 @@ kaniko_build_image:
       --cache=true
       --cache-repo "docker.io/$DOCKERHUB_REPO-cache"
   # rules 제거: 모든 파이프라인에서 실행
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # 매니페스트의 이미지 태그 갱신 (GitOps 커밋)
 update_manifest_image:
@@ -85,17 +93,17 @@ update_manifest_image:
     set -euo pipefail
     set -x
     # 필수 변수 확인
-    if [ -z "$DOCKERHUB_REPO" ]; then
+    if [ -z "${DOCKERHUB_REPO:-}" ]; then
       echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
-    if [ -z "$MANIFEST_FILE" ]; then
+    if [ -z "${MANIFEST_FILE:-}" ]; then
       echo "[error] Missing CI variable: MANIFEST_FILE (e.g. acc/backend/acc-backend-deploy.yaml)" >&2; exit 1; fi
-    if [ -z "$CONTAINER_NAME" ]; then
+    if [ -z "${CONTAINER_NAME:-}" ]; then
       echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
-    if [ -z "$GITOPS_REPO_URL" ]; then
+    if [ -z "${GITOPS_REPO_URL:-}" ]; then
       echo "[error] Missing CI variable: GITOPS_REPO_URL (e.g. https://gitlab.com/group/gitops-repo.git)" >&2; exit 1; fi
-    if [ -z "$GITOPS_REPO_BRANCH" ]; then
+    if [ -z "${GITOPS_REPO_BRANCH:-}" ]; then
       echo "[error] Missing CI variable: GITOPS_REPO_BRANCH (e.g. main)" >&2; exit 1; fi
-    if [ -z "$GITOPS_TOKEN" ]; then
+    if [ -z "${GITOPS_TOKEN:-}" ]; then
       echo "[error] Missing CI variable: GITOPS_TOKEN (write access token)" >&2; exit 1; fi
 
     # 새 이미지 태그 구성
@@ -119,3 +127,5 @@ update_manifest_image:
     git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
     # 푸시(Authorization 헤더 사용)
     git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin "$GITOPS_REPO_BRANCH"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
