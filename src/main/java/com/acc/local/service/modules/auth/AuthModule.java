@@ -10,8 +10,12 @@ import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.domain.model.auth.KeystoneProject;
 import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.RefreshToken;
+import com.acc.local.domain.model.auth.UserToken;
+import com.acc.local.entity.RefreshTokenEntity;
 import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
+import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
@@ -26,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.InvalidParameterException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +45,7 @@ public class AuthModule {
     private final OpenstackProperties openstackProperties;
 
     private final UserTokenRepositoryPort userTokenRepositoryPort;
+    private final RefreshTokenRepositoryPort refreshTokenRepositoryPort;
     private final KeystoneAPIExternalPort keystoneAPIExternalPort;
 
     public String getProjectIdFromToken(String token) {
@@ -330,6 +336,64 @@ public class AuthModule {
     public String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest passwordLoginRequest) {
         KeystoneToken keystoneToken = keystoneAPIExternalPort.getUnscopedToken(passwordLoginRequest);
         return issueACCToken(keystoneToken);
+    }
+
+    /**
+     * 로그인 처리 - UserToken 모델 반환
+     */
+    @Transactional
+    public UserToken generateAccessToken(KeystonePasswordLoginRequest passwordLoginRequest) {
+        // 1. Keystone으로부터 토큰 받기
+        KeystoneToken keystoneToken = keystoneAPIExternalPort.getUnscopedToken(passwordLoginRequest);
+        if (keystoneToken == null) {
+            throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
+        }
+
+        String userId = keystoneToken.userId();
+        invalidateServiceTokensByUserId(userId);
+
+        // 2. UserToken 모델 생성 및 저장
+        UserToken userToken = createUserToken(userId, keystoneToken);
+
+        // 4. 두 모델 반환
+        return userToken;
+    }
+
+    /**
+     * 최초 로그인 시에는 리프레시 토큰 반환
+     */
+    @Transactional
+    public RefreshToken generateRefreshToken(KeystonePasswordLoginRequest passwordLoginRequest , String userId) {
+        return createRefreshToken(userId);
+    }
+
+
+
+    private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {
+        String accessToken = jwtUtils.generateToken(userId);
+
+        UserToken userToken = UserToken.builder()
+            .userId(userId)
+            .jwtToken(accessToken)
+            .keystoneUnscopedToken(keystoneToken.token())
+            .keystoneExpiresAt(keystoneToken.expiresAt())
+            .build();
+
+        UserTokenEntity savedEntity = userTokenRepositoryPort.save(userToken.toEntity());
+        return UserToken.from(savedEntity);
+    }
+
+    private RefreshToken createRefreshToken(String userId) {
+        String refreshTokenValue = jwtUtils.generateRefreshToken(userId);
+
+        RefreshToken refreshToken = RefreshToken.builder()
+            .userId(userId)
+            .refreshToken(refreshTokenValue)
+            .expiresAt(LocalDateTime.now().plusDays(7))
+            .build();
+
+        RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(refreshToken.toEntity());
+        return RefreshToken.from(savedEntity);
     }
 
     private String issueACCToken(KeystoneToken keystoneToken) {

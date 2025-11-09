@@ -1,14 +1,20 @@
 package com.acc.local.service.adapters.auth;
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
+@Slf4j
 @Service
 @Primary
 @RequiredArgsConstructor
@@ -141,5 +147,21 @@ public class AuthServiceAdapter implements AuthServicePort {
     public String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request) {
         // TODO: 에러발생 시 logout로직 추가
         return authModule.authenticateKeystoneAndGenerateJwt(request);
+    }
+
+    @Override
+    public LoginTokens login(KeystonePasswordLoginRequest request) {
+
+        UserToken userToken = authModule.generateAccessToken(request);
+        log.info(userToken.toString());
+
+        RefreshToken refreshToken = authModule.generateRefreshToken(request, userToken.getUserId());
+        log.info(refreshToken.toString());
+
+        // 3. DTO로 변환하여 반환
+        return LoginTokens.from(
+            userToken.getJwtToken(),
+            refreshToken.getRefreshToken()
+        );
     }
 }

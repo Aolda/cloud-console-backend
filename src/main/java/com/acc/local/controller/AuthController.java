@@ -1,26 +1,18 @@
 package com.acc.local.controller;
 
+import com.acc.global.common.ApiResponse;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.jwt.JwtUtils;
-import com.acc.local.dto.auth.CreateUserRequest;
-import com.acc.local.dto.auth.CreateUserResponse;
-import com.acc.local.dto.auth.GetUserResponse;
-import com.acc.local.dto.auth.UpdateUserRequest;
-import com.acc.local.dto.auth.UpdateUserResponse;
-import com.acc.local.dto.auth.CreateProjectRequest;
-import com.acc.local.dto.auth.CreateProjectResponse;
-import com.acc.local.dto.auth.GetProjectResponse;
-import com.acc.local.dto.auth.UpdateProjectRequest;
-import com.acc.local.dto.auth.UpdateProjectResponse;
-import com.acc.local.dto.auth.UserPermissionResponse;
-import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
+import com.acc.local.dto.auth.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.URI;
 
 @RestController
@@ -166,6 +158,29 @@ public class AuthController {
     public ResponseEntity<String> loginGeneral(@RequestBody @Validated KeystonePasswordLoginRequest request) {
         String jwtToken = authServicePort.authenticateKeystoneAndGenerateJwt(request);
         return ResponseEntity.ok(jwtToken);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @RequestBody @Validated KeystonePasswordLoginRequest request,
+            HttpServletResponse response
+    ) {
+        // 1. Service에서 LoginTokens DTO 받기
+        LoginTokens tokens = authServicePort.login(request);
+
+        // 2. Refresh Token을 Cookie에 설정
+        Cookie refreshTokenCookie = new Cookie("acc-refresh-token", tokens.refreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+        response.addCookie(refreshTokenCookie);
+
+        // 3. Access Token은 Response Body에 반환
+        LoginResponse loginResponse = new LoginResponse(tokens.accessToken());
+        return ResponseEntity.ok(
+                ApiResponse.success("로그인이 완료 되었습니다.", loginResponse)
+        );
     }
 
 }
