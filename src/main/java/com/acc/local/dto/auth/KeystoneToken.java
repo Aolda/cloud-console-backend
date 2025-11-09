@@ -3,10 +3,15 @@ package com.acc.local.dto.auth;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record KeystoneTokenInfo(
+import com.acc.local.domain.enums.auth.KeystoneTokenType;
+
+public record KeystoneToken(
+	KeystoneTokenType tokenType,
 	List<String> auditIds,
 	LocalDateTime expiresAt,
 	LocalDateTime issuedAt,
 	String userId,
-	String userName
+	String userName,
+	String token,
+	Boolean isAdmin
 ) {}

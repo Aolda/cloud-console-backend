@@ -16,12 +16,12 @@ import java.util.Collections;
  */
 @Component
 @RequiredArgsConstructor
-public class KeystoneRoleAPIModule extends KeystoneAPIUtils{
+public class KeystoneRoleAPIModule {
 
     public final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> getAccountPermissionList(String userId, String token) {
         String uri = KeystoneRoutes.GET_ASSIGNED_PERMISSIONS.replace("{user_id}", userId) + "?user.id=" + userId + "&effective&include_names=true";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap() ,port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 }

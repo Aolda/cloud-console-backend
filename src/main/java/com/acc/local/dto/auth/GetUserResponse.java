@@ -1,6 +1,6 @@
 package com.acc.local.dto.auth;
 
-import com.acc.local.domain.model.User;
+import com.acc.local.domain.model.auth.User;
 import lombok.Builder;
 
 import java.util.List;
@@ -18,7 +18,12 @@ public record GetUserResponse(
     String passwordExpiresAt,
     String email,
     String description,
-    Map<String, Object> options
+    Map<String, Object> options,
+
+    // ACC 내부 정보
+    String department,
+    String phoneNumber,
+    Integer projectLimit
 ) {
     public static GetUserResponse from(User user) {
         return GetUserResponse.builder()
@@ -33,6 +38,11 @@ public record GetUserResponse(
                 .email(user.getEmail())
                 .description(user.getDescription())
                 .options(user.getOptions())
+                // ACC 내부 정보
+                .department(user.getDepartment())
+                .phoneNumber(user.getPhoneNumber())
+                // TODO: API 개발 시, 확인 필요
+                //.projectLimit(user.getProjectLimit())
                 .build();
     }
 }
