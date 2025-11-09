@@ -1,11 +1,9 @@
-package com.acc.local.domain.enums;
+package com.acc.local.domain.enums.auth;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter

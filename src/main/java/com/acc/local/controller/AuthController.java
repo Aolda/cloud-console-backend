@@ -2,8 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
-import com.acc.global.security.JwtUtils;
-import com.acc.local.domain.enums.ProjectPermission;
+import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.CreateUserResponse;
 import com.acc.local.dto.auth.GetUserResponse;
@@ -16,8 +15,6 @@ import com.acc.local.dto.auth.UpdateProjectRequest;
 import com.acc.local.dto.auth.UpdateProjectResponse;
 import com.acc.local.dto.auth.UserPermissionResponse;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
-import com.acc.local.service.ports.AuthServicePort;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,10 +32,6 @@ public class AuthController {
     private final KeycloakProperties keycloakProperties;
     private final AuthServicePort authServicePort;
 
-    @GetMapping("/token")
-    public String issueToken() {
-        return authServicePort.issueKeystoneToken();
-    }
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
     @GetMapping("/login")
     public ResponseEntity<Void> login() {

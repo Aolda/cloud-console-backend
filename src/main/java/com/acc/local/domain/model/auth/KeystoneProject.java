@@ -1,4 +1,4 @@
-package com.acc.local.domain.model;
+package com.acc.local.domain.model.auth;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,7 +18,7 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
     Optional<UserTokenEntity> findByJwtTokenAndIsActiveTrue(String jwtToken);
 
     // 사용자별 활성화된 토큰 조회 (한 사용자당 하나의 활성 토큰만 유지)
-    Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId);
+    List<UserTokenEntity> findAllByUserIdAndIsActiveTrue(String userId);
 
     // 특정 사용자의 모든 활성 토큰을 비활성화 (새 로그인 시 기존 토큰 무효화)
     @Modifying

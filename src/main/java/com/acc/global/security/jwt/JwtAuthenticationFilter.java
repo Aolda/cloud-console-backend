@@ -1,4 +1,4 @@
-package com.acc.global.security;
+package com.acc.global.security.jwt;
 
 import com.acc.global.exception.auth.JwtAuthenticationException;
 import com.acc.local.service.ports.AuthServicePort;

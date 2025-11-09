@@ -1,4 +1,4 @@
-package com.acc.global.security;
+package com.acc.global.security.jwt;
 
 import com.acc.global.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
@@ -37,14 +37,13 @@ public class JwtUtils {
 
 
 
-    public String generateToken(String userId, String keystoneToken) {
+    public String generateToken(String userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
                 .subject(userId)
-                .claim("keystoneToken", keystoneToken)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -55,12 +54,6 @@ public class JwtUtils {
         Claims claims = getClaimsFromToken(token);
         return claims.getSubject();
     }
-
-    public String getKeystoneTokenFromToken(String token) {
-        Claims claims = getClaimsFromToken(token);
-        return claims.get("keystoneToken", String.class);
-    }
-
 
     public boolean validateToken(String token) {
         try {

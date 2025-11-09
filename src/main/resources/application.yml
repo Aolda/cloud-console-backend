@@ -20,12 +20,37 @@ spring:
           auth: true
           starttls:
             enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_PASSWORD}
+            redirect-uri: ${GOOGLE_OAUTH_REDIRECT_URL}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Google
+            scope: # 추후 변경 가능
+              - email
+              - profile
+              - https://www.googleapis.com/auth/userinfo.profile
+              - https://www.googleapis.com/auth/directory.readonly
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
+            user-name-attribute: id
 openstack:
-  url: ${OPENSTACK_URL}
-  keystone:
-    username: ${OPENSTACK_USERNAME}
-    password: ${OPENSTACK_PASSWORD}
-    project: ${OPENSTACK_PROJECT}
+    url: ${OPENSTACK_URL}
+    sa_username: ${OPENSTACK_BFF_USERNAME}
+    sa_password: ${OPENSTACK_BFF_PASSWORD}
+
+super-admin:
+  user-id: ${SUPER_ADMIN_USER_ID}
+  phone-number: ${SUPER_ADMIN_PHONE_NUMBER}
+
 keycloak:
   url: ${KEYCLOAK_URL}
 
@@ -38,4 +63,10 @@ keycloak-temp:
 jwt:
   secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_MS}
+
+oauth:
+  success:
+    redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL}
+  failure:
+    redirect-url: ${OAUTH_FAILURE_REDIRECT_URL}
 

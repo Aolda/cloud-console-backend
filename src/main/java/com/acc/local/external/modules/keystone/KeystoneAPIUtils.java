@@ -1,15 +1,16 @@
 package com.acc.local.external.modules.keystone;
 
-import com.acc.local.domain.enums.ProjectPermission;
-import com.acc.local.domain.model.KeystoneProject;
-import com.acc.local.domain.model.User;
-import com.acc.local.dto.auth.KeystoneTokenInfo;
+import com.acc.local.domain.enums.auth.KeystoneTokenType;
+import com.acc.local.domain.enums.auth.ProjectPermission;
+import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.domain.model.auth.User;
+import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.KeystoneManagementException;
+import com.acc.global.exception.auth.KeystoneException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,18 +19,67 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class KeystoneAPIUtils {
     //TODO : 테스트 베드 생성 후 정확한 포트 값 으로 지정 (keystonePropertise 에서 관리 ?)
-    protected final int port = 5000;
+    protected static final int port = 5000;
 
+    public static KeystoneToken extractKeystoneToken(ResponseEntity<JsonNode> response) throws KeystoneException {
+        JsonNode body = validateAndExtractBody(response);
+        if (!body.has("token")) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
+                "Response body에 'token' 필드가 존재하지 않습니다."
+            );
+        }
 
-    public static String extractKeystoneToken(ResponseEntity<JsonNode> response) {
+        KeystoneTokenType tokenType = getKeystoneTokenType(body);
+        try {
+            return new KeystoneToken(
+                tokenType,
+                getAuditIds(body),
+                getKeystoneTokenDate(body, "token.expires_at"),
+                getKeystoneTokenDate(body, "token.issued_at"),
+                getObjectValue(body, "token.user.id"),
+                getObjectValue(body, "token.user.name"),
+                getKeystoneTokenValue(response),
+                isKeystoneTokenSystemRoleAdmin(body)
+            );
+        } catch (Exception e) {
+            throw e;
+            // throw new KeystoneException(
+            //     AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
+            //     "Token 정보 파싱 중 오류가 발생했습니다.",
+            //     e
+            // );
+        }
+    }
+
+    private static boolean isKeystoneTokenSystemRoleAdmin(JsonNode body) {
+        return Optional.ofNullable(getObjectValue(body, "token.system.all"))
+            .orElse("false")
+            .equals("true");
+    }
+
+    private static LocalDateTime getKeystoneTokenDate(JsonNode body, String dateKey) {
+        return LocalDateTime.parse(getObjectValue(body, dateKey).toString().split("\\.")[0]);
+    }
+
+    private static KeystoneTokenType getKeystoneTokenType(JsonNode body) {
+        KeystoneTokenType tokenType;
+        Object projectFieldValue = getObjectValue(body, "token.project");
+        if (projectFieldValue == null) tokenType = KeystoneTokenType.UNSCOPED;
+        else tokenType = KeystoneTokenType.SCOPED;
+        return tokenType;
+    }
+
+    private static String getKeystoneTokenValue(ResponseEntity<JsonNode> response) {
         String token = response.getHeaders().getFirst("X-Subject-Token");
         if (token == null || token.trim().isEmpty()) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED,
                 "X-Subject-Token 헤더가 존재하지 않거나 비어있습니다."
             );
@@ -37,47 +87,22 @@ public class KeystoneAPIUtils {
         return token.trim();
     }
 
-    public static KeystoneTokenInfo extractKeystoneTokenInfo(ResponseEntity<JsonNode> response) {
-        JsonNode body = validateAndExtractBody(response);
-
-        if (!body.has("token")) {
-            throw new KeystoneManagementException(
-                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
-                "Response body에 'token' 필드가 존재하지 않습니다."
-            );
-        }
-
-        try {
-            // audit_ids 배열 처리
-            JsonNode auditIdsNode = body.get("token").get("audit_ids");
-            List<String> auditIds = new ArrayList<>();
-            if (auditIdsNode != null && auditIdsNode.isArray()) {
-                for (JsonNode auditId : auditIdsNode) {
-                    auditIds.add(auditId.asText());
-                }
+    private static List<String> getAuditIds(JsonNode body) {
+        JsonNode auditIdsNode = body.get("token").get("audit_ids");
+        List<String> auditIds = new ArrayList<>();
+        if (auditIdsNode != null && auditIdsNode.isArray()) {
+            for (JsonNode auditId : auditIdsNode) {
+                auditIds.add(auditId.asText());
             }
-
-            return new KeystoneTokenInfo(
-                auditIds,
-                LocalDateTime.parse(getObjectValue(body, "token.expires_at").toString().split("\\.")[0]),
-                LocalDateTime.parse(getObjectValue(body, "token.issued_at").toString().split("\\.")[0]),
-                getObjectValue(body, "token.user.id"),
-                getObjectValue(body, "token.user.name")
-            );
-        } catch (Exception e) {
-            throw new KeystoneManagementException(
-                AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
-                "Token 정보 파싱 중 오류가 발생했습니다.",
-                e
-            );
         }
+        return auditIds;
     }
 
     public static User parseKeystoneUserResponse(ResponseEntity<JsonNode> response) {
         JsonNode body = validateAndExtractBody(response);
 
         if (!body.has("user")) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
                 "Response body에 'user' 필드가 존재하지 않습니다."
             );
@@ -96,7 +121,7 @@ public class KeystoneAPIUtils {
                     .description(userObject.has("description") ? userObject.get("description").asText() : null)
                     .build();
         } catch (Exception e) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
                 "User 정보 파싱 중 오류가 발생했습니다.",
                 e
@@ -108,7 +133,7 @@ public class KeystoneAPIUtils {
         JsonNode body = validateAndExtractBody(response);
 
         if (!body.has("project")) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
                 "Response body에 'project' 필드가 존재하지 않습니다."
             );
@@ -128,7 +153,7 @@ public class KeystoneAPIUtils {
                     .parentId(projectObject.has("parent_id") ? projectObject.get("parent_id").asText() : null)
                     .build();
         } catch (Exception e) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
                 "Project 정보 파싱 중 오류가 발생했습니다.",
                 e
@@ -140,7 +165,7 @@ public class KeystoneAPIUtils {
         JsonNode body = validateAndExtractBody(response);
 
         if (!body.has("role_assignments")) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
                 "Response body에 'role_assignments' 필드가 존재하지 않습니다."
             );
@@ -159,7 +184,7 @@ public class KeystoneAPIUtils {
             }
             return new HashMap<>();
         } catch (Exception e) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
                 "Permission 맵 생성 중 오류가 발생했습니다.",
                 e
@@ -281,6 +306,22 @@ public class KeystoneAPIUtils {
         return authRequest;
     }
 
+    public static Map<String, Object> createSystemAdminTokenRequest(String unScopedToken) {
+        Map<String, Object> authRequest = new HashMap<>();
+        authRequest.put("auth", Map.of(
+            "identity", Map.of(
+                "methods", List.of("token"),
+                "token", Map.of(
+                    "id", unScopedToken // password 대신 token 사용
+                )
+            ),
+            "scope", Map.of("system", Map.of(
+                "all", true
+            ))
+        ));
+        return authRequest;
+    }
+
     public static Map<String, Object> createPasswordAuthRequest(KeystonePasswordLoginRequest request) {
         Map<String, Object> authRequest = new HashMap<>();
         authRequest.put("auth", Map.of(
@@ -298,12 +339,27 @@ public class KeystoneAPIUtils {
         return authRequest;
     }
 
+    public static Map<String, String> createKeystoneTokenInfoRequestHeader(String keystoneToken) {
+        return generateKeystoneTokenTaskHeader(keystoneToken);
+    }
+
+    public static Map<String, String> createRevokeTokenRequestHeader(String revokeToken) {
+        return generateKeystoneTokenTaskHeader(revokeToken);
+    }
+
+    protected static Map<String, String> generateKeystoneTokenTaskHeader(String keystoneToken) {
+        Map<String, String> tokenTaskHeader = new HashMap<>();
+        tokenTaskHeader.put("X-Auth-Token", keystoneToken);
+        tokenTaskHeader.put("X-Subject-Token", keystoneToken);
+        return tokenTaskHeader;
+    }
+
     // -- Helper 메서드 분리 --//
 
     private static JsonNode validateAndExtractBody(ResponseEntity<JsonNode> response) {
         JsonNode body = response.getBody();
         if (body == null) {
-            throw new KeystoneManagementException(
+            throw new KeystoneException(
                 AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
                 "Response body가 null입니다."
             );
