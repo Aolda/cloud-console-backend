@@ -1,6 +1,7 @@
 package com.acc.local.controller;
 
 import com.acc.global.common.ApiResponse;
+import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.jwt.JwtUtils;
@@ -45,7 +46,8 @@ public class AuthController {
             @RequestParam String keystoneProjectId,
             Authentication authentication
     ) {
-        String userId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         UserPermissionResponse response = authServicePort.getUserPermission(keystoneProjectId, userId);
 
         return ResponseEntity.ok(response);
@@ -57,7 +59,8 @@ public class AuthController {
             @ModelAttribute @Validated CreateUserRequest request,
             Authentication authentication
     ) {
-        String userId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         CreateUserResponse response = authServicePort.createUser(request, userId);
 
         return ResponseEntity.status(201).body(response);
@@ -68,7 +71,8 @@ public class AuthController {
             @PathVariable String keystoneUserId,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         GetUserResponse response = authServicePort.getUserDetail(keystoneUserId, requesterId);
 
         return ResponseEntity.ok(response);
@@ -80,7 +84,8 @@ public class AuthController {
             @RequestBody @Validated UpdateUserRequest request,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         UpdateUserResponse response = authServicePort.updateUser(keystoneUserId, request, requesterId);
 
         return ResponseEntity.ok(response);
@@ -91,7 +96,8 @@ public class AuthController {
             @PathVariable String keystoneUserId,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         authServicePort.deleteUser(keystoneUserId, requesterId);
 
         return ResponseEntity.noContent().build();
@@ -103,7 +109,8 @@ public class AuthController {
             @RequestBody @Validated CreateProjectRequest request,
             Authentication authentication
     ) {
-        String userId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         CreateProjectResponse response = authServicePort.createProject(request, userId);
 
         return ResponseEntity.status(201).body(response);
@@ -114,7 +121,8 @@ public class AuthController {
             @PathVariable String keystoneProjectId,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         GetProjectResponse response = authServicePort.getProjectDetail(keystoneProjectId, requesterId);
 
         return ResponseEntity.ok(response);
@@ -126,7 +134,8 @@ public class AuthController {
             @RequestBody @Validated UpdateProjectRequest request,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         UpdateProjectResponse response = authServicePort.updateProject(keystoneProjectId, request, requesterId);
 
         return ResponseEntity.ok(response);
@@ -137,7 +146,8 @@ public class AuthController {
             @PathVariable String keystoneProjectId,
             Authentication authentication
     ) {
-        String requesterId = authentication.getName();
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String requesterId = jwtInfo.getUserId();
         authServicePort.deleteProject(keystoneProjectId, requesterId);
 
         return ResponseEntity.noContent().build();
@@ -148,8 +158,9 @@ public class AuthController {
             @RequestParam String projectId,
             Authentication authentication
     ) {
-        String userId = authentication.getName();
-        String token = authServicePort.issueProjectScopeToken(projectId,userId);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String token = authServicePort.issueProjectScopeToken(projectId, userId);
         return ResponseEntity.ok(token);
     }
 
