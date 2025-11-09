@@ -70,3 +70,5 @@ oauth:
   failure:
     redirect-url: ${OAUTH_FAILURE_REDIRECT_URL}
 
+apm:
+    server-url: ${APM_SERVER_URL}
