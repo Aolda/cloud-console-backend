@@ -42,6 +42,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
+	public KeystoneToken getUnscopedTokenByToken(String existingToken) throws AccBaseException {
+		ResponseEntity<JsonNode> tokenResponse = authenticateKeystoneByToken(existingToken);
+		return KeystoneAPIUtils.extractKeystoneToken(tokenResponse);
+	}
+
+	@Override
 	public KeystoneToken getScopedToken(String projectId, String unscopedToken) throws AccBaseException {
 		ResponseEntity<JsonNode> tokenResponse = authenticateKeystoneWithScope(projectId, unscopedToken);
 		return KeystoneAPIUtils.extractKeystoneToken(tokenResponse);
@@ -358,6 +364,27 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			}
 
 			return loginResponse;
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED, e);
+		}
+	}
+
+	private ResponseEntity<JsonNode> authenticateKeystoneByToken(String existingToken) {
+		try {
+			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueUnscopedTokenByToken(existingToken);
+			if (tokenResponse == null) {
+				throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
+			}
+
+			return tokenResponse;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {

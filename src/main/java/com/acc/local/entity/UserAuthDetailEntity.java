@@ -31,6 +31,9 @@ public class UserAuthDetailEntity {
     @Column(name = "auth_type", nullable = false)
     private Integer authType;
 
+    @Column(name = "user_email" , nullable = false)
+    private String userEmail;
+
     // Enum 변환 헬퍼 메서드
     public AuthType getAuthTypeEnum() {
         return AuthType.fromCode(this.authType);

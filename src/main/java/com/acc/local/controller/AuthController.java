@@ -172,7 +172,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
+    public ResponseEntity<LoginResponse> login(
             @RequestBody @Validated KeystonePasswordLoginRequest request,
             HttpServletResponse response
     ) {
@@ -189,9 +189,7 @@ public class AuthController {
 
         // 3. Access Token은 Response Body에 반환
         LoginResponse loginResponse = new LoginResponse(tokens.accessToken());
-        return ResponseEntity.ok(
-                ApiResponse.success("로그인이 완료 되었습니다.", loginResponse)
-        );
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/tokens/project")
@@ -206,5 +204,16 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/login/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(
+            @RequestBody @Validated RefreshTokenRequest request
+    ) {
+        LoginResponse loginResponse = authServicePort.refreshToken(request.refreshToken());
+        return ResponseEntity.ok(loginResponse);
+    }
+
+
+
 
 }

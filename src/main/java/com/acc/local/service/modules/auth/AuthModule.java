@@ -441,4 +441,56 @@ public class AuthModule {
         return jwtToken;
     }
 
+    /**
+     * Refresh Token으로 새로운 Access Token 발급
+     * 기존 Keystone Token도 재발급하여 완전히 새로운 세션 생성
+     */
+    @Transactional
+    public String refreshAccessToken(String refreshTokenValue) {
+        // 1. Refresh Token 검증
+        if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
+            throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
+        }
+
+        // 2. Refresh Token에서 userId 추출
+        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+
+        // 3. DB에서 Refresh Token 확인
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepositoryPort
+            .findByRefreshTokenAndIsActiveTrue(refreshTokenValue)
+            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+
+        // 4. Refresh Token 만료 확인
+        if (refreshTokenEntity.isExpired()) {
+            throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
+        }
+
+        // 5. 기존 UserToken 조회
+        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
+
+        // 6. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
+        KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
+
+        if (newKeystoneToken == null) {
+            throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
+        }
+
+        // 7. 기존 Keystone Token revoke
+        keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
+
+        // 8. 기존 UserToken 비활성화
+        userTokenRepositoryPort.deactivateAllByUserId(userId);
+
+        // 9. 새로운 JWT Access Token 발급 (projectId 없이)
+        String newAccessToken = jwtUtils.generateToken(userId);
+
+        // 10. 새로운 UserToken 생성 및 저장
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(userId,newKeystoneToken,newAccessToken);
+
+        userTokenRepositoryPort.save(newUserToken.toEntity());
+
+        return newAccessToken;
+    }
+
 }

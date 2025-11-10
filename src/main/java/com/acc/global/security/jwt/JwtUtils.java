@@ -118,6 +118,20 @@ public class JwtUtils {
         return LocalDateTime.now().plus(jwtProperties.getExpirationMs(), ChronoUnit.MILLIS);
     }
 
+    /**
+     * Refresh Token 검증
+     */
+    public boolean validateRefreshToken(String refreshToken) {
+        return validateToken(refreshToken);
+    }
+
+    /**
+     * Refresh Token에서 userId 추출
+     */
+    public String extractUserIdFromRefreshToken(String refreshToken) {
+        return getUserIdFromToken(refreshToken);
+    }
+
     private Claims getClaimsFromToken(String token) {
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
 

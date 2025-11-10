@@ -50,6 +50,7 @@ openstack:
 super-admin:
   user-id: ${SUPER_ADMIN_USER_ID}
   phone-number: ${SUPER_ADMIN_PHONE_NUMBER}
+  user-name: ${SUPER_ADMIN_USER_NAME}
 
 keycloak:
   url: ${KEYCLOAK_URL}

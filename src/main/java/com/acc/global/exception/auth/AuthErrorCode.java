@@ -16,8 +16,8 @@ public enum AuthErrorCode implements ErrorCode {
     // 401 Unauthorized
     UNAUTHORIZED(401, "ACC-AUTH-UNAUTHORIZED", "인증에 실패했습니다."),
     KEYSTONE_TOKEN_GENERATION_FAILED(401, "ACC-AUTH-KEYSTONE-TOKEN-GENERATION-FAILED", "Keystone 토큰 생성에 실패했습니다."),
-    // INVALID_TOKEN(401, "ACC-AUTH-INVALID-TOKEN", "유효하지 않은 토큰입니다."),
-    // TOKEN_EXPIRED(401, "ACC-AUTH-TOKEN-EXPIRED", "토큰이 만료되었습니다."),
+    INVALID_TOKEN(401, "ACC-AUTH-INVALID-TOKEN", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(401, "ACC-AUTH-TOKEN-EXPIRED", "토큰이 만료되었습니다."),
 
     // 403 Forbidden
     FORBIDDEN_ACCESS(403, "ACC-AUTH-FORBIDDEN", "해당 리소스에 접근할 권한이 없습니다."),

@@ -175,4 +175,11 @@ public class AuthServiceAdapter implements AuthServicePort {
                 .accessToken(userToken.getJwtToken())
                 .build();
     }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        // AuthModule에서 refresh token 검증 및 새 access token 발급
+        return LoginResponse.from(authModule.refreshAccessToken(refreshToken));
+
+    }
 }

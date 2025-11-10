@@ -1,5 +1,6 @@
 package com.acc.local.domain.model.auth;
 
+import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.entity.UserTokenEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,5 +64,15 @@ public class UserToken {
                 .createdAt(existingUserToken.getCreatedAt())
                 .build();
     }
+
+    public static UserToken updateKeystoneByRefreshToken(String newAccessToken, KeystoneToken newKeystoneToken, String userId) {
+         return UserToken.builder()
+                .userId(userId)
+                .jwtToken(newAccessToken)
+                .keystoneUnscopedToken(newKeystoneToken.token())
+                .keystoneExpiresAt(newKeystoneToken.expiresAt())
+                .build();
+    }
+
 
 }

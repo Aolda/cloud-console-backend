@@ -23,4 +23,9 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryPort
     public Optional<RefreshTokenEntity> findById(String userId) {
         return refreshTokenJpaRepository.findById(userId);
     }
+
+    @Override
+    public Optional<RefreshTokenEntity> findByRefreshTokenAndIsActiveTrue(String refreshToken) {
+        return refreshTokenJpaRepository.findByRefreshTokenAndIsActiveTrue(refreshToken);
+    }
 }

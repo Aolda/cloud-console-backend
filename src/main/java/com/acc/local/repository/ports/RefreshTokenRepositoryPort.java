@@ -9,4 +9,6 @@ public interface RefreshTokenRepositoryPort {
     RefreshTokenEntity save(RefreshTokenEntity refreshToken);
 
     Optional<RefreshTokenEntity> findById(String userId);
+
+    Optional<RefreshTokenEntity> findByRefreshTokenAndIsActiveTrue(String refreshToken);
 }

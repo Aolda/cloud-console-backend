@@ -1,20 +1,7 @@
 package com.acc.local.service.ports;
 
 import com.acc.local.domain.enums.auth.ProjectPermission;
-import com.acc.local.dto.auth.CreateProjectRequest;
-import com.acc.local.dto.auth.CreateProjectResponse;
-import com.acc.local.dto.auth.CreateUserRequest;
-import com.acc.local.dto.auth.GetProjectResponse;
-import com.acc.local.dto.auth.CreateUserResponse;
-import com.acc.local.dto.auth.GetUserResponse;
-import com.acc.local.dto.auth.UpdateProjectRequest;
-import com.acc.local.dto.auth.UpdateProjectResponse;
-import com.acc.local.dto.auth.UpdateUserRequest;
-import com.acc.local.dto.auth.UpdateUserResponse;
-import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
-import com.acc.local.dto.auth.LoginTokens;
-import com.acc.local.dto.auth.UserPermissionResponse;
-import com.acc.local.dto.auth.ProjectTokenResponse;
+import com.acc.local.dto.auth.*;
 
 public interface AuthServicePort {
     String authenticateAndGenerateJwt(String keycloakToken);
@@ -34,4 +21,5 @@ public interface AuthServicePort {
     String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request);
     LoginTokens login(KeystonePasswordLoginRequest request);
     ProjectTokenResponse issueProjectAccessToken(String userId, String projectId);
+    LoginResponse refreshToken(String refreshToken);
 }
