@@ -75,7 +75,7 @@ kaniko_build_image:
       --destination "docker.io/$DOCKERHUB_REPO:$IMAGE_TAG"
       --cache=true
       --cache-repo "docker.io/$DOCKERHUB_REPO-cache"
-  # rules 제거: 모든 파이프라인에서 실행
+  # 기본 브랜치 + 필수 변수 있으면 자동, 그 외 manual
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 

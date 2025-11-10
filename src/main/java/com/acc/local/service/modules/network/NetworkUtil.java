@@ -31,5 +31,17 @@ public class NetworkUtil {
         return gateway != null;
     }
 
+    public boolean isNullOrEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
+
+    public boolean isNullOrEmpty(java.util.List<?> list) {
+        return list == null || list.isEmpty();
+    }
+
+    public boolean isNullOrEmpty(Boolean bool) {
+        return bool == null;
+    }
+
 
 }
