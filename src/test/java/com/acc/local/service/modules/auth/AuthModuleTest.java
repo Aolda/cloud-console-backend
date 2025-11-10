@@ -57,6 +57,9 @@ class AuthModuleTest {
     @Mock
     private com.acc.local.repository.ports.RefreshTokenRepositoryPort refreshTokenRepositoryPort;
 
+    @Mock
+    private com.acc.local.repository.ports.UserRepositoryPort userRepositoryPort;
+
     @InjectMocks
     private AuthModule authModule;
 
@@ -721,5 +724,62 @@ class AuthModuleTest {
         assertTrue(refreshToken.getIsActive());
         verify(jwtUtils).generateRefreshToken(userId);
         verify(refreshTokenRepositoryPort).save(any(com.acc.local.entity.RefreshTokenEntity.class));
+    }
+
+    // ==== Signup Tests ====
+
+    @Test
+    @DisplayName("회원가입 시 Keystone에 사용자를 생성하고 ACC DB에 사용자 정보를 저장할 수 있다.")
+    void givenSignupRequest_whenSignup_thenCreateKeystoneUserAndSaveToDatabase() throws Exception {
+        // given
+        com.acc.local.dto.auth.SignupRequest signupRequest = new com.acc.local.dto.auth.SignupRequest(
+            "hong123",
+            "hong@example.com",
+            "securePassword123!",
+            "컴퓨터공학과",
+            "2024123456",
+            "010-1234-5678",
+            com.acc.local.domain.enums.auth.AuthType.GOOGLE
+        );
+        String adminToken = "system-admin-token";
+        String createdUserId = "created-user-id-12345";
+
+        // Keystone 사용자 생성 응답 mock
+        JsonNode userBody = objectMapper.readTree(
+            "{\"user\": {\"id\": \"" + createdUserId + "\", \"name\": \"hong@example.com\", \"email\": \"hong@example.com\", \"enabled\": true, \"domain_id\": \"default\"}}"
+        );
+        ResponseEntity<JsonNode> mockKeystoneResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
+        when(keystoneAPIExternalPort.createUser(eq(adminToken), any())).thenReturn(mockKeystoneResponse);
+
+        // Repository save mock
+        com.acc.local.entity.UserDetailEntity savedUserDetail = com.acc.local.entity.UserDetailEntity.builder()
+                .userId(createdUserId)
+                .userName("hong123")
+                .userPhoneNumber("010-1234-5678")
+                .isAdmin(false)
+                .build();
+        when(userRepositoryPort.saveUserDetail(any(com.acc.local.entity.UserDetailEntity.class)))
+                .thenReturn(savedUserDetail);
+
+        com.acc.local.entity.UserAuthDetailEntity savedUserAuthDetail = com.acc.local.entity.UserAuthDetailEntity.builder()
+                .userId(createdUserId)
+                .user(savedUserDetail)
+                .department("컴퓨터공학과")
+                .studentId("2024123456")
+                .authType(0) // GOOGLE
+                .userEmail("hong@example.com")
+                .build();
+        when(userRepositoryPort.saveUserAuth(any(com.acc.local.entity.UserAuthDetailEntity.class)))
+                .thenReturn(savedUserAuthDetail);
+
+        // when
+        String resultUserId = authModule.signup(signupRequest, adminToken);
+
+        // then
+        assertEquals(createdUserId, resultUserId);
+        verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
+        verify(userRepositoryPort).saveUserDetail(any(com.acc.local.entity.UserDetailEntity.class));
+        verify(userRepositoryPort).saveUserAuth(any(com.acc.local.entity.UserAuthDetailEntity.class));
+        verify(keystoneAPIExternalPort).revokeToken(adminToken);
     }
 }
