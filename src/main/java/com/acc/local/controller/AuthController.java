@@ -1,6 +1,5 @@
 package com.acc.local.controller;
 
-import com.acc.global.common.ApiResponse;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
@@ -199,7 +198,6 @@ public class AuthController {
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-
         ProjectTokenResponse response = authServicePort.issueProjectAccessToken(userId, request.projectId());
 
         return ResponseEntity.ok(response);
