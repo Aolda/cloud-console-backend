@@ -14,6 +14,7 @@ import com.acc.local.dto.auth.UpdateUserResponse;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.LoginTokens;
 import com.acc.local.dto.auth.UserPermissionResponse;
+import com.acc.local.dto.auth.ProjectTokenResponse;
 
 public interface AuthServicePort {
     String authenticateAndGenerateJwt(String keycloakToken);
@@ -32,4 +33,5 @@ public interface AuthServicePort {
     String issueProjectScopeToken(String projectId , String userId);
     String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request);
     LoginTokens login(KeystonePasswordLoginRequest request);
+    ProjectTokenResponse issueProjectAccessToken(String userId, String projectId);
 }

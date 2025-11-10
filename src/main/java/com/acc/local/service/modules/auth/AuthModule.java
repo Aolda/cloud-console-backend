@@ -367,6 +367,30 @@ public class AuthModule {
         return createRefreshToken(userId);
     }
 
+    /**
+     * 프로젝트 진입 시 projectId가 포함된 토큰 발급
+     * 기존 UserTokenEntity의 jwtToken만 업데이트 (Keystone 호출 없음)
+     */
+    @Transactional
+    public UserToken issueProjectScopedToken(String userId, String projectId) {
+
+        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
+
+        // keystoneUnscopedToken이 유효한지 확인
+        checkUnscopedTokenExpired(existingTokenEntity);
+
+        UserToken existingUserToken = UserToken.from(existingTokenEntity);
+
+        String newJwtToken = jwtUtils.generateToken(userId, projectId);
+
+        // 5. Domain Model 업데이트 (새로운 UserToken 생성)
+        UserToken updatedToken = UserToken.updateJwtWithProjectId(existingUserToken , newJwtToken , jwtUtils.calculateExpirationDateTime());
+
+        UserTokenEntity savedEntity = userTokenRepositoryPort.save(updatedToken.toEntity());
+
+        return UserToken.from(savedEntity);
+    }
+
 
 
     private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {

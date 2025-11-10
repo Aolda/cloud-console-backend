@@ -164,4 +164,15 @@ public class AuthServiceAdapter implements AuthServicePort {
             refreshToken.getRefreshToken()
         );
     }
+
+    @Override
+    public ProjectTokenResponse issueProjectAccessToken(String userId, String projectId) {
+        // Module에서 UserToken 받기
+        UserToken userToken = authModule.issueProjectScopedToken(userId, projectId);
+
+        // DTO로 변환하여 반환
+        return ProjectTokenResponse.builder()
+                .accessToken(userToken.getJwtToken())
+                .build();
+    }
 }

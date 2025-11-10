@@ -194,4 +194,17 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/tokens/project")
+    public ResponseEntity<ProjectTokenResponse> issueProjectToken(
+            @RequestBody @Validated ProjectTokenRequest request,
+            Authentication authentication
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+
+        ProjectTokenResponse response = authServicePort.issueProjectAccessToken(userId, request.projectId());
+
+        return ResponseEntity.ok(response);
+    }
+
 }

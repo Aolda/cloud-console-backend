@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 
@@ -106,6 +108,14 @@ public class JwtUtils {
     public boolean isTokenExpired(String token) {
         Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
+    }
+
+    /**
+     * JWT 만료시간을 LocalDateTime으로 계산
+     * 토큰 생성 시와 동일한 만료시간 적용
+     */
+    public LocalDateTime calculateExpirationDateTime() {
+        return LocalDateTime.now().plus(jwtProperties.getExpirationMs(), ChronoUnit.MILLIS);
     }
 
     private Claims getClaimsFromToken(String token) {

@@ -49,4 +49,19 @@ public class UserToken {
                 .keystoneExpiresAt(this.keystoneExpiresAt)
                 .build();
     }
+
+
+    public static UserToken updateJwtWithProjectId(UserToken existingUserToken, String newJwtToken ,LocalDateTime expiresAt) {
+        return UserToken.builder()
+                .id(existingUserToken.getId())
+                .userId(existingUserToken.getUserId())
+                .jwtToken(newJwtToken)
+                .keystoneUnscopedToken(existingUserToken.getKeystoneUnscopedToken())
+                .keystoneExpiresAt(existingUserToken.getKeystoneExpiresAt())
+                .isActive(existingUserToken.isActive())
+                .expiresAt(expiresAt)
+                .createdAt(existingUserToken.getCreatedAt())
+                .build();
+    }
+
 }
