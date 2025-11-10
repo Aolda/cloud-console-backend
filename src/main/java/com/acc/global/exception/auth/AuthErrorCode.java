@@ -45,7 +45,8 @@ public enum AuthErrorCode implements ErrorCode {
     KEYSTONE_PROJECT_DELETION_FAILED(500, "ACC-AUTH-KEYSTONE-PROJECT-DELETION-FAILED", "Keystone 프로젝트 삭제에 실패했습니다."),
     KEYSTONE_TOKEN_EXTRACTION_FAILED(500, "ACC-AUTH-KEYSTONE-TOKEN-EXTRACTION-FAILED", "Keystone 토큰 추출에 실패했습니다."),
     KEYSTONE_RESPONSE_PARSING_FAILED(500, "ACC-AUTH-KEYSTONE-RESPONSE-PARSING-FAILED", "Keystone 응답 파싱에 실패했습니다."),
-    KEYSTONE_INVALID_RESPONSE_STRUCTURE(500, "ACC-AUTH-KEYSTONE-INVALID-RESPONSE-STRUCTURE", "Keystone 응답 구조가 올바르지 않습니다.");
+    KEYSTONE_INVALID_RESPONSE_STRUCTURE(500, "ACC-AUTH-KEYSTONE-INVALID-RESPONSE-STRUCTURE", "Keystone 응답 구조가 올바르지 않습니다."),
+    SIGN_UP_ERROR(500,"ACC-AUTH-SIGNUP-ERROR" ,"회원가입 도중 에러가 발생했습니다." );
     private final int status;
     private final String code;
     private final String message;

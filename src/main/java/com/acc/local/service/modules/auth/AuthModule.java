@@ -1,4 +1,5 @@
 package com.acc.local.service.modules.auth;
+import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
@@ -326,9 +327,6 @@ public class AuthModule {
     @Transactional
     public String issueSystemAdminToken(String userId) {
         // TODO: 추후 응답구조 변경을 통한 폐기 프로세스 자동화 필요
-        log.info("[ADMIN-TOKEN-1] System Admin Token 발급 시작 - requesterId: {}", userId);
-        log.info("[ADMIN-TOKEN-2] 사용할 계정 정보 - username: {}, domainName: {}",
-            openstackProperties.getSaUsername(), "Default");
 
         KeystonePasswordLoginRequest systemAdminLoginRequest = new KeystonePasswordLoginRequest(
             openstackProperties.getSaUsername(),
@@ -336,10 +334,7 @@ public class AuthModule {
             "Default"
         );
 
-        log.info("[ADMIN-TOKEN-3] Keystone API 호출 직전 - request: {}", systemAdminLoginRequest);
         KeystoneToken adminToken = keystoneAPIExternalPort.getAdminToken(systemAdminLoginRequest);
-        log.info("[ADMIN-TOKEN-4] Keystone API 호출 성공 - token: {}...",
-            adminToken.token().substring(0, Math.min(20, adminToken.token().length())));
 
         return adminToken.token();
     }
@@ -511,27 +506,14 @@ public class AuthModule {
      */
     @Transactional
     public String signup(SignupRequest request , String adminToken) {
-        // 1. System Admin Token 발급
         try {
-            log.info("[SIGNUP-4] Keystone 사용자 생성 시작 - email: {}, username: {}",
-                request.email(), request.username());
 
             // 2. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
             User newUser = User.from(request);
-            log.info("[SIGNUP-5] User 도메인 모델 생성 완료 - name(email): {}, password: {}",
-                newUser.getName(), newUser.getPassword() != null ? "****" : "null");
 
             Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newUser);
-            log.info("[SIGNUP-6] Keystone API 요청 생성 완료 - request: {}", userRequest);
-
-            log.info("[SIGNUP-7] Keystone API 호출 - createUser with adminToken: {}...",
-                adminToken.substring(0, Math.min(20, adminToken.length())));
 
             ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
-
-            log.info("[SIGNUP-8] Keystone API 응답 받음 - status: {}, hasBody: {}",
-                response != null ? response.getStatusCode() : "null",
-                response != null && response.getBody() != null);
 
             if (response == null) {
                 throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
@@ -541,31 +523,20 @@ public class AuthModule {
             User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
             String userId = createdUser.getId();
 
-            log.info("[SIGNUP-9] Keystone 사용자 생성 완료 - userId: {}", userId);
-
             // 4. UserDetail 도메인 모델 생성 및 저장
-            log.info("[SIGNUP-10] UserDetail 저장 시작");
             UserDetail userDetail = UserDetail.createForSignup(userId,request);
             UserDetailEntity userDetailEntity = userRepositoryPort.saveUserDetail(userDetail.toEntity());
-            log.info("[SIGNUP-11] UserDetail 저장 완료");
 
             // 5. UserAuthDetail 도메인 모델 생성 및 저장
-            log.info("[SIGNUP-12] UserAuthDetail 저장 시작");
             UserAuthDetail userAuthDetail = UserAuthDetail.createForSignup(userId, request);
             userRepositoryPort.saveUserAuth(userAuthDetail.toEntity(userDetailEntity));
-            log.info("[SIGNUP-13] UserAuthDetail 저장 완료");
 
             return userId;
 
         } catch (Exception e) {
-            log.error("[SIGNUP-ERROR] 회원가입 중 에러 발생 - message: {}, type: {}",
-                e.getMessage(), e.getClass().getSimpleName(), e);
-            throw e;
+            throw new AuthServiceException(AuthErrorCode.SIGN_UP_ERROR);
         } finally {
-            // 6. Admin Token revoke (반드시 실행)
-            log.info("[SIGNUP-14] Admin Token revoke 시작");
             invalidateSystemAdminToken(adminToken);
-            log.info("[SIGNUP-15] Admin Token revoke 완료");
         }
     }
 

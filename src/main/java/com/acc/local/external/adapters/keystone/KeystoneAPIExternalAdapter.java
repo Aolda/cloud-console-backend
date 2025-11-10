@@ -56,7 +56,6 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
 		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
-        log.info("unscopedToken: {}", unscopedToken.token());
 		ResponseEntity<JsonNode> systemAdminTokenResponse = authenticateKeystoneWithSystemPrivilege(unscopedToken.token());
 		return KeystoneAPIUtils.extractKeystoneToken(systemAdminTokenResponse);
 	}
