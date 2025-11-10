@@ -19,11 +19,6 @@ public class UserAuthDetailEntity {
     @Column(name = "user_id", length = 64, nullable = false)
     private String userId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "user_id")
-    private UserDetailEntity user;
-
     @Column(name = "department", length = 100, nullable = false)
     private String department;
 

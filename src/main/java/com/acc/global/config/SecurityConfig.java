@@ -57,6 +57,9 @@ public class SecurityConfig {
                                 "/api/v1/google/**",
                                 "/api/v1/auth/token",
                                 "/api/v1/auth/login/general",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/signup",
+                                "/api/v1/auth/login/refresh",
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/api/v1/computes/**",
@@ -68,9 +71,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
                                 "/api/v1/snapshots/**",
                                 "/api/v1/networks/**",
-                                "/api/v1/routers/**",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
-                                "/api/v1/auth/login"
+                                "/api/v1/routers/**"
 
                         ).permitAll()
                         .anyRequest().authenticated()

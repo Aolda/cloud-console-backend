@@ -40,7 +40,6 @@ public class UserAuthDetail {
     public UserAuthDetailEntity toEntity(UserDetailEntity userDetailEntity) {
         return UserAuthDetailEntity.builder()
                 .userId(this.userId)
-                .user(userDetailEntity)
                 .department(this.department)
                 .studentId(this.studentId)
                 .authType(this.authType.getCode())
