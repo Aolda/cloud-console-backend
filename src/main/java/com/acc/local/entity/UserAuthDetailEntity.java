@@ -10,6 +10,8 @@ import lombok.*;
 @Entity
 @Table(name = "user_auth_detail")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserAuthDetailEntity {
 

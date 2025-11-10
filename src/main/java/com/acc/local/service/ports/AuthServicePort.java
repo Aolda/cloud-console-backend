@@ -22,4 +22,5 @@ public interface AuthServicePort {
     LoginTokens login(KeystonePasswordLoginRequest request);
     ProjectTokenResponse issueProjectAccessToken(String userId, String projectId);
     LoginResponse refreshToken(String refreshToken);
+    SignupResponse signup(SignupRequest request);
 }

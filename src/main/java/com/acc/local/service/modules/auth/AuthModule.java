@@ -19,6 +19,11 @@ import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
+import com.acc.local.dto.auth.SignupRequest;
+import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserAuthDetailEntity;
+import com.acc.local.domain.model.auth.UserDetail;
+import com.acc.local.domain.model.auth.UserAuthDetail;
 
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +52,7 @@ public class AuthModule {
     private final UserTokenRepositoryPort userTokenRepositoryPort;
     private final RefreshTokenRepositoryPort refreshTokenRepositoryPort;
     private final KeystoneAPIExternalPort keystoneAPIExternalPort;
+    private final UserRepositoryPort userRepositoryPort;
 
     public String getProjectIdFromToken(String token) {
         JsonNode tokenInfo = keystoneWebClient.get()
@@ -491,6 +497,46 @@ public class AuthModule {
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
         return newAccessToken;
+    }
+
+    /**
+     * 회원가입 처리
+     * System Admin 권한으로 Keystone 사용자 생성 후 ACC DB에 저장
+     */
+    @Transactional
+    public String signup(SignupRequest request , String adminToken) {
+        // 1. System Admin Token 발급
+        try {
+            // 2. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
+            User newUser = User.from(request);
+
+            Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newUser);
+            ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
+
+            if (response == null) {
+                throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
+            }
+
+            // 3. Keystone 응답에서 userId 추출
+            User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+
+
+            String userId = createdUser.getId();
+
+            // 4. UserDetail 도메인 모델 생성 및 저장
+            UserDetail userDetail = UserDetail.createForSignup(userId,request);
+            UserDetailEntity userDetailEntity = userRepositoryPort.saveUserDetail(userDetail.toEntity());
+
+            // 5. UserAuthDetail 도메인 모델 생성 및 저장
+            UserAuthDetail userAuthDetail = UserAuthDetail.createForSignup(userId, request);
+            userRepositoryPort.saveUserAuth(userAuthDetail.toEntity(userDetailEntity));
+
+            return userId;
+
+        } finally {
+            // 6. Admin Token revoke (반드시 실행)
+            invalidateSystemAdminToken(adminToken);
+        }
     }
 
 }

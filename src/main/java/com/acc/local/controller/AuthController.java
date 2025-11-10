@@ -213,6 +213,15 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<SignupResponse> signup(
+            @RequestBody @Validated SignupRequest request
+    ) {
+        SignupResponse response = authServicePort.signup(request);
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
 

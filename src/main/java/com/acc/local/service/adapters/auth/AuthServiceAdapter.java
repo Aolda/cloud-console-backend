@@ -182,4 +182,11 @@ public class AuthServiceAdapter implements AuthServicePort {
         return LoginResponse.from(authModule.refreshAccessToken(refreshToken));
 
     }
+
+    @Override
+    public SignupResponse signup(SignupRequest request) {
+        String adminToken = authModule.issueSystemAdminToken("signup-process");
+        String userId = authModule.signup(request, adminToken);
+        return SignupResponse.from(userId);
+    }
 }
