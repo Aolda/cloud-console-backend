@@ -1,6 +1,8 @@
 package com.acc.local.domain.model.auth;
 
 import com.acc.local.dto.auth.CreateUserRequest;
+import com.acc.local.dto.auth.SignupRequest;
+import com.acc.local.dto.auth.SignupResponse;
 import com.acc.local.dto.auth.UpdateUserRequest;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,6 +78,14 @@ public class User {
                 .build();
     }
 
+    public static User from(SignupRequest request) {
+        return User.builder()
+                .name(request.email()) // email을 name(아이디)로 사용
+                .email(request.email())
+                .password(request.password())
+                .enabled(true)
+                .build();
+    }
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

@@ -36,6 +36,7 @@ public class SuperAdminInitializer implements ApplicationRunner {
                 .userId(userId)
                 .userPhoneNumber(phoneNumber)
                 .isAdmin(true)
+                .userName(superAdminProperties.getUserName())
                 .build();
 
         userDetailJpaRepository.save(superAdmin);

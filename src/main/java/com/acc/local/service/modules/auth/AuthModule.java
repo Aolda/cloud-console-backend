@@ -1,4 +1,5 @@
 package com.acc.local.service.modules.auth;
+import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
@@ -10,11 +11,20 @@ import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.domain.model.auth.KeystoneProject;
 import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.RefreshToken;
+import com.acc.local.domain.model.auth.UserToken;
+import com.acc.local.entity.RefreshTokenEntity;
 import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
+import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
+import com.acc.local.dto.auth.SignupRequest;
+import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserAuthDetailEntity;
+import com.acc.local.domain.model.auth.UserDetail;
+import com.acc.local.domain.model.auth.UserAuthDetail;
 
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +36,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.InvalidParameterException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +51,9 @@ public class AuthModule {
     private final OpenstackProperties openstackProperties;
 
     private final UserTokenRepositoryPort userTokenRepositoryPort;
+    private final RefreshTokenRepositoryPort refreshTokenRepositoryPort;
     private final KeystoneAPIExternalPort keystoneAPIExternalPort;
+    private final UserRepositoryPort userRepositoryPort;
 
     public String getProjectIdFromToken(String token) {
         JsonNode tokenInfo = keystoneWebClient.get()
@@ -314,7 +327,6 @@ public class AuthModule {
     @Transactional
     public String issueSystemAdminToken(String userId) {
         // TODO: 추후 응답구조 변경을 통한 폐기 프로세스 자동화 필요
-        log.info("System Admin Token Issued: {}", userId);
 
         KeystonePasswordLoginRequest systemAdminLoginRequest = new KeystonePasswordLoginRequest(
             openstackProperties.getSaUsername(),
@@ -323,6 +335,7 @@ public class AuthModule {
         );
 
         KeystoneToken adminToken = keystoneAPIExternalPort.getAdminToken(systemAdminLoginRequest);
+
         return adminToken.token();
     }
 
@@ -330,6 +343,88 @@ public class AuthModule {
     public String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest passwordLoginRequest) {
         KeystoneToken keystoneToken = keystoneAPIExternalPort.getUnscopedToken(passwordLoginRequest);
         return issueACCToken(keystoneToken);
+    }
+
+    /**
+     * 로그인 처리 - UserToken 모델 반환
+     */
+    @Transactional
+    public UserToken generateAccessToken(KeystonePasswordLoginRequest passwordLoginRequest) {
+        // 1. Keystone으로부터 토큰 받기
+        KeystoneToken keystoneToken = keystoneAPIExternalPort.getUnscopedToken(passwordLoginRequest);
+        if (keystoneToken == null) {
+            throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
+        }
+
+        String userId = keystoneToken.userId();
+        invalidateServiceTokensByUserId(userId);
+
+        // 2. UserToken 모델 생성 및 저장
+        UserToken userToken = createUserToken(userId, keystoneToken);
+
+        // 4. 두 모델 반환
+        return userToken;
+    }
+
+    /**
+     * 최초 로그인 시에는 리프레시 토큰 반환
+     */
+    @Transactional
+    public RefreshToken generateRefreshToken(KeystonePasswordLoginRequest passwordLoginRequest , String userId) {
+        return createRefreshToken(userId);
+    }
+
+    /**
+     * 프로젝트 진입 시 projectId가 포함된 토큰 발급
+     * 기존 UserTokenEntity의 jwtToken만 업데이트 (Keystone 호출 없음)
+     */
+    @Transactional
+    public UserToken issueProjectScopedToken(String userId, String projectId) {
+
+        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
+
+        // keystoneUnscopedToken이 유효한지 확인
+        checkUnscopedTokenExpired(existingTokenEntity);
+
+        UserToken existingUserToken = UserToken.from(existingTokenEntity);
+
+        String newJwtToken = jwtUtils.generateToken(userId, projectId);
+
+        // 5. Domain Model 업데이트 (새로운 UserToken 생성)
+        UserToken updatedToken = UserToken.updateJwtWithProjectId(existingUserToken , newJwtToken , jwtUtils.calculateExpirationDateTime());
+
+        UserTokenEntity savedEntity = userTokenRepositoryPort.save(updatedToken.toEntity());
+
+        return UserToken.from(savedEntity);
+    }
+
+
+
+    private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {
+        String accessToken = jwtUtils.generateToken(userId);
+
+        UserToken userToken = UserToken.builder()
+            .userId(userId)
+            .jwtToken(accessToken)
+            .keystoneUnscopedToken(keystoneToken.token())
+            .keystoneExpiresAt(keystoneToken.expiresAt())
+            .build();
+
+        UserTokenEntity savedEntity = userTokenRepositoryPort.save(userToken.toEntity());
+        return UserToken.from(savedEntity);
+    }
+
+    private RefreshToken createRefreshToken(String userId) {
+        String refreshTokenValue = jwtUtils.generateRefreshToken(userId);
+
+        RefreshToken refreshToken = RefreshToken.builder()
+            .userId(userId)
+            .refreshToken(refreshTokenValue)
+            .expiresAt(LocalDateTime.now().plusDays(7))
+            .build();
+
+        RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(refreshToken.toEntity());
+        return RefreshToken.from(savedEntity);
     }
 
     private String issueACCToken(KeystoneToken keystoneToken) {
@@ -351,6 +446,98 @@ public class AuthModule {
 
         userTokenRepositoryPort.save(tokenEntity);
         return jwtToken;
+    }
+
+    /**
+     * Refresh Token으로 새로운 Access Token 발급
+     * 기존 Keystone Token도 재발급하여 완전히 새로운 세션 생성
+     */
+    @Transactional
+    public String refreshAccessToken(String refreshTokenValue) {
+        // 1. Refresh Token 검증
+        if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
+            throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
+        }
+
+        // 2. Refresh Token에서 userId 추출
+        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+
+        // 3. DB에서 Refresh Token 확인
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepositoryPort
+            .findByRefreshTokenAndIsActiveTrue(refreshTokenValue)
+            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+
+        // 4. Refresh Token 만료 확인
+        if (refreshTokenEntity.isExpired()) {
+            throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
+        }
+
+        // 5. 기존 UserToken 조회
+        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
+
+        // 6. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
+        KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
+
+        if (newKeystoneToken == null) {
+            throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
+        }
+
+        // 7. 기존 Keystone Token revoke
+        keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
+
+        // 8. 기존 UserToken 비활성화
+        userTokenRepositoryPort.deactivateAllByUserId(userId);
+
+        // 9. 새로운 JWT Access Token 발급 (projectId 없이)
+        String newAccessToken = jwtUtils.generateToken(userId);
+
+        // 10. 새로운 UserToken 생성 및 저장
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(userId,newKeystoneToken,newAccessToken);
+
+        userTokenRepositoryPort.save(newUserToken.toEntity());
+
+        return newAccessToken;
+    }
+
+    /**
+     * 회원가입 처리
+     * System Admin 권한으로 Keystone 사용자 생성 후 ACC DB에 저장
+     */
+    @Transactional
+    public String signup(SignupRequest request , String adminToken) {
+        try {
+
+            // 2. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
+            User newUser = User.from(request);
+
+            Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newUser);
+
+            ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
+
+            if (response == null) {
+                throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
+            }
+
+            // 3. Keystone 응답에서 userId 추출
+            User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+            String userId = createdUser.getId();
+
+            // 4. UserDetail 도메인 모델 생성 및 저장
+            UserDetail userDetail = UserDetail.createForSignup(userId,request);
+            UserDetailEntity userDetailEntity = userRepositoryPort.saveUserDetail(userDetail.toEntity());
+
+            // 5. UserAuthDetail 도메인 모델 생성 및 저장
+            UserAuthDetail userAuthDetail = UserAuthDetail.createForSignup(userId, request);
+            userRepositoryPort.saveUserAuth(userAuthDetail.toEntity(userDetailEntity));
+
+            return userId;
+
+        } catch (Exception e) {
+            throw new AuthServiceException(AuthErrorCode.SIGN_UP_ERROR);
+        } finally {
+            invalidateSystemAdminToken(adminToken);
+        }
     }
 
 }

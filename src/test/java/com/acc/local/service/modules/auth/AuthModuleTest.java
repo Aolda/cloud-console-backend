@@ -54,6 +54,12 @@ class AuthModuleTest {
     @Mock
     private OpenstackProperties openstackProperties;
 
+    @Mock
+    private com.acc.local.repository.ports.RefreshTokenRepositoryPort refreshTokenRepositoryPort;
+
+    @Mock
+    private com.acc.local.repository.ports.UserRepositoryPort userRepositoryPort;
+
     @InjectMocks
     private AuthModule authModule;
 
@@ -633,5 +639,147 @@ class AuthModuleTest {
             // When
             () -> authModule.invalidateSystemAdminToken(testGeneralToken)
         );
+    }
+
+    // ==== Login with Refresh Token Tests ====
+
+    @Test
+    @DisplayName("로그인 시 Keystone 패스워드 인증으로 Access Token(UserToken)을 생성하고 저장할 수 있다.")
+    void givenKeystonePasswordLoginRequest_whenGenerateAccessToken_thenReturnUserToken() {
+        // given
+        KeystonePasswordLoginRequest request = new KeystonePasswordLoginRequest(
+            "testuser",
+            "testpassword",
+            "Default"
+        );
+        String userId = "test-user-id";
+        String keystoneToken = "keystone-unscoped-token";
+        String expectedAccessToken = "access-token-12345";
+        LocalDateTime keystoneExpiresAt = LocalDateTime.now().plusDays(1);
+
+        KeystoneToken mockKeystoneToken = new KeystoneToken(
+            KeystoneTokenType.UNSCOPED,
+            List.of("audit1", "audit2"),
+            keystoneExpiresAt,
+            LocalDateTime.now(),
+            userId,
+            "testuser",
+            keystoneToken,
+            false
+        );
+
+        when(keystoneAPIExternalPort.getUnscopedToken(request)).thenReturn(mockKeystoneToken);
+        when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of());
+        when(jwtUtils.generateToken(userId)).thenReturn(expectedAccessToken);
+
+        com.acc.local.entity.UserTokenEntity savedEntity = mock(com.acc.local.entity.UserTokenEntity.class);
+        when(savedEntity.getUserId()).thenReturn(userId);
+        when(savedEntity.getJwtToken()).thenReturn(expectedAccessToken);
+        when(savedEntity.getKeystoneUnscopedToken()).thenReturn(keystoneToken);
+        when(savedEntity.getKeystoneExpiresAt()).thenReturn(keystoneExpiresAt);
+        when(userTokenRepositoryPort.save(any(com.acc.local.entity.UserTokenEntity.class))).thenReturn(savedEntity);
+
+        // when
+        com.acc.local.domain.model.auth.UserToken userToken = authModule.generateAccessToken(request);
+
+        // then
+        assertNotNull(userToken);
+        assertEquals(userId, userToken.getUserId());
+        assertEquals(expectedAccessToken, userToken.getJwtToken());
+        assertEquals(keystoneToken, userToken.getKeystoneUnscopedToken());
+        verify(keystoneAPIExternalPort).getUnscopedToken(request);
+        verify(userTokenRepositoryPort).deactivateAllByUserId(userId);
+        verify(jwtUtils).generateToken(userId);
+        verify(userTokenRepositoryPort).save(any(com.acc.local.entity.UserTokenEntity.class));
+    }
+
+    @Test
+    @DisplayName("로그인 시 사용자 ID로 Refresh Token을 생성하고 저장할 수 있다.")
+    void givenUserIdAndRequest_whenGenerateRefreshToken_thenReturnRefreshToken() {
+        // given
+        KeystonePasswordLoginRequest request = new KeystonePasswordLoginRequest(
+            "testuser",
+            "testpassword",
+            "Default"
+        );
+        String userId = "test-user-id";
+        String expectedRefreshToken = "refresh-token-12345";
+
+        when(jwtUtils.generateRefreshToken(userId)).thenReturn(expectedRefreshToken);
+
+        com.acc.local.entity.RefreshTokenEntity savedEntity = mock(com.acc.local.entity.RefreshTokenEntity.class);
+        when(savedEntity.getUserId()).thenReturn(userId);
+        when(savedEntity.getRefreshToken()).thenReturn(expectedRefreshToken);
+        when(savedEntity.getExpiresAt()).thenReturn(LocalDateTime.now().plusDays(7));
+        when(savedEntity.getIsActive()).thenReturn(true);
+        when(refreshTokenRepositoryPort.save(any(com.acc.local.entity.RefreshTokenEntity.class))).thenReturn(savedEntity);
+
+        // when
+        com.acc.local.domain.model.auth.RefreshToken refreshToken = authModule.generateRefreshToken(request, userId);
+
+        // then
+        assertNotNull(refreshToken);
+        assertEquals(userId, refreshToken.getUserId());
+        assertEquals(expectedRefreshToken, refreshToken.getRefreshToken());
+        assertTrue(refreshToken.getIsActive());
+        verify(jwtUtils).generateRefreshToken(userId);
+        verify(refreshTokenRepositoryPort).save(any(com.acc.local.entity.RefreshTokenEntity.class));
+    }
+
+    // ==== Signup Tests ====
+
+    @Test
+    @DisplayName("회원가입 시 Keystone에 사용자를 생성하고 ACC DB에 사용자 정보를 저장할 수 있다.")
+    void givenSignupRequest_whenSignup_thenCreateKeystoneUserAndSaveToDatabase() throws Exception {
+        // given
+        com.acc.local.dto.auth.SignupRequest signupRequest = new com.acc.local.dto.auth.SignupRequest(
+            "hong123",
+            "hong@example.com",
+            "securePassword123!",
+            "컴퓨터공학과",
+            "2024123456",
+            "010-1234-5678",
+            com.acc.local.domain.enums.auth.AuthType.GOOGLE
+        );
+        String adminToken = "system-admin-token";
+        String createdUserId = "created-user-id-12345";
+
+        // Keystone 사용자 생성 응답 mock
+        JsonNode userBody = objectMapper.readTree(
+            "{\"user\": {\"id\": \"" + createdUserId + "\", \"name\": \"hong@example.com\", \"email\": \"hong@example.com\", \"enabled\": true, \"domain_id\": \"default\"}}"
+        );
+        ResponseEntity<JsonNode> mockKeystoneResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
+        when(keystoneAPIExternalPort.createUser(eq(adminToken), any())).thenReturn(mockKeystoneResponse);
+
+        // Repository save mock
+        com.acc.local.entity.UserDetailEntity savedUserDetail = com.acc.local.entity.UserDetailEntity.builder()
+                .userId(createdUserId)
+                .userName("hong123")
+                .userPhoneNumber("010-1234-5678")
+                .isAdmin(false)
+                .build();
+        when(userRepositoryPort.saveUserDetail(any(com.acc.local.entity.UserDetailEntity.class)))
+                .thenReturn(savedUserDetail);
+
+        com.acc.local.entity.UserAuthDetailEntity savedUserAuthDetail = com.acc.local.entity.UserAuthDetailEntity.builder()
+                .userId(createdUserId)
+                .user(savedUserDetail)
+                .department("컴퓨터공학과")
+                .studentId("2024123456")
+                .authType(0) // GOOGLE
+                .userEmail("hong@example.com")
+                .build();
+        when(userRepositoryPort.saveUserAuth(any(com.acc.local.entity.UserAuthDetailEntity.class)))
+                .thenReturn(savedUserAuthDetail);
+
+        // when
+        String resultUserId = authModule.signup(signupRequest, adminToken);
+
+        // then
+        assertEquals(createdUserId, resultUserId);
+        verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
+        verify(userRepositoryPort).saveUserDetail(any(com.acc.local.entity.UserDetailEntity.class));
+        verify(userRepositoryPort).saveUserAuth(any(com.acc.local.entity.UserAuthDetailEntity.class));
+        verify(keystoneAPIExternalPort).revokeToken(adminToken);
     }
 }

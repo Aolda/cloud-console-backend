@@ -14,6 +14,8 @@ public interface KeystoneAPIExternalPort {
 
 	KeystoneToken getUnscopedToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException;
 
+	KeystoneToken getUnscopedTokenByToken(String existingToken) throws AccBaseException;
+
 	KeystoneToken getScopedToken(String projectId, String unscopedToken) throws AccBaseException;
 
 	KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException;

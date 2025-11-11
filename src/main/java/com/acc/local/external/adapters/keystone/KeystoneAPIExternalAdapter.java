@@ -42,6 +42,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
+	public KeystoneToken getUnscopedTokenByToken(String existingToken) throws AccBaseException {
+		ResponseEntity<JsonNode> tokenResponse = authenticateKeystoneByToken(existingToken);
+		return KeystoneAPIUtils.extractKeystoneToken(tokenResponse);
+	}
+
+	@Override
 	public KeystoneToken getScopedToken(String projectId, String unscopedToken) throws AccBaseException {
 		ResponseEntity<JsonNode> tokenResponse = authenticateKeystoneWithScope(projectId, unscopedToken);
 		return KeystoneAPIUtils.extractKeystoneToken(tokenResponse);
@@ -87,6 +93,7 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public ResponseEntity<JsonNode> getTokenInfo(String token) {
 		try {
+            log.info("token - 시스템 어드민  {}" ,token);
 			return keystoneAuthAPIModule.getTokenInfo(token);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
@@ -371,12 +378,11 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		}
 	}
 
-	private ResponseEntity<JsonNode> authenticateKeystoneWithScope(String projectId, String unscopedTokenString) {
+	private ResponseEntity<JsonNode> authenticateKeystoneByToken(String existingToken) {
 		try {
-			Map<String, Object> tokenRequest = KeystoneAPIUtils.createProjectScopeTokenRequest(projectId , unscopedTokenString);
-			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(tokenRequest);
+			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueUnscopedTokenByToken(existingToken);
 			if (tokenResponse == null) {
-				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
+				throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
 			}
 
 			return tokenResponse;
@@ -386,23 +392,35 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
 			} else if (status == HttpStatus.FORBIDDEN) {
 				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
-			} else if (status == HttpStatus.NOT_FOUND) {
-				throw new KeystoneException(AuthErrorCode.PROJECT_NOT_FOUND, e);
 			} else if (status == HttpStatus.BAD_REQUEST) {
 				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
 			}
-			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, e);
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED, e);
 		}
+	}
+
+	private ResponseEntity<JsonNode> authenticateKeystoneWithScope(String projectId, String unscopedTokenString) {
+
+			Map<String, Object> tokenRequest = KeystoneAPIUtils.createProjectScopeTokenRequest(projectId , unscopedTokenString);
+			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(tokenRequest);
+
+			if (tokenResponse == null) {
+				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
+			}
+
+			return tokenResponse;
+
 	}
 
 	private ResponseEntity<JsonNode> authenticateKeystoneWithSystemPrivilege(String unscopedTokenString) {
 		try {
 			Map<String, Object> systemAdminTokenRequest = KeystoneAPIUtils.createSystemAdminTokenRequest(unscopedTokenString);
+            log.info("System Admin Token Request: {}", systemAdminTokenRequest);
 			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(systemAdminTokenRequest);
 			if (tokenResponse == null) {
 				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
 			}
-
+            log.info("System Admin Token tokenResponse: {}", tokenResponse);
 			return tokenResponse;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();

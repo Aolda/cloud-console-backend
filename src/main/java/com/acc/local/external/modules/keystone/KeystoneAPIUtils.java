@@ -339,6 +339,19 @@ public class KeystoneAPIUtils {
         return authRequest;
     }
 
+    public static Map<String, Object> createTokenAuthRequest(String existingToken) {
+        Map<String, Object> authRequest = new HashMap<>();
+        authRequest.put("auth", Map.of(
+                "identity", Map.of(
+                        "methods", List.of("token"),
+                        "token", Map.of(
+                                "id", existingToken
+                        )
+                )
+        ));
+        return authRequest;
+    }
+
     public static Map<String, String> createKeystoneTokenInfoRequestHeader(String keystoneToken) {
         return generateKeystoneTokenTaskHeader(keystoneToken);
     }

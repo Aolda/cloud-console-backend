@@ -16,8 +16,8 @@ public enum AuthErrorCode implements ErrorCode {
     // 401 Unauthorized
     UNAUTHORIZED(401, "ACC-AUTH-UNAUTHORIZED", "인증에 실패했습니다."),
     KEYSTONE_TOKEN_GENERATION_FAILED(401, "ACC-AUTH-KEYSTONE-TOKEN-GENERATION-FAILED", "Keystone 토큰 생성에 실패했습니다."),
-    // INVALID_TOKEN(401, "ACC-AUTH-INVALID-TOKEN", "유효하지 않은 토큰입니다."),
-    // TOKEN_EXPIRED(401, "ACC-AUTH-TOKEN-EXPIRED", "토큰이 만료되었습니다."),
+    INVALID_TOKEN(401, "ACC-AUTH-INVALID-TOKEN", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(401, "ACC-AUTH-TOKEN-EXPIRED", "토큰이 만료되었습니다."),
 
     // 403 Forbidden
     FORBIDDEN_ACCESS(403, "ACC-AUTH-FORBIDDEN", "해당 리소스에 접근할 권한이 없습니다."),
@@ -45,7 +45,8 @@ public enum AuthErrorCode implements ErrorCode {
     KEYSTONE_PROJECT_DELETION_FAILED(500, "ACC-AUTH-KEYSTONE-PROJECT-DELETION-FAILED", "Keystone 프로젝트 삭제에 실패했습니다."),
     KEYSTONE_TOKEN_EXTRACTION_FAILED(500, "ACC-AUTH-KEYSTONE-TOKEN-EXTRACTION-FAILED", "Keystone 토큰 추출에 실패했습니다."),
     KEYSTONE_RESPONSE_PARSING_FAILED(500, "ACC-AUTH-KEYSTONE-RESPONSE-PARSING-FAILED", "Keystone 응답 파싱에 실패했습니다."),
-    KEYSTONE_INVALID_RESPONSE_STRUCTURE(500, "ACC-AUTH-KEYSTONE-INVALID-RESPONSE-STRUCTURE", "Keystone 응답 구조가 올바르지 않습니다.");
+    KEYSTONE_INVALID_RESPONSE_STRUCTURE(500, "ACC-AUTH-KEYSTONE-INVALID-RESPONSE-STRUCTURE", "Keystone 응답 구조가 올바르지 않습니다."),
+    SIGN_UP_ERROR(500,"ACC-AUTH-SIGNUP-ERROR" ,"회원가입 도중 에러가 발생했습니다." );
     private final int status;
     private final String code;
     private final String message;

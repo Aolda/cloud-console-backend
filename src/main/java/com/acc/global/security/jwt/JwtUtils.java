@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 
@@ -38,8 +40,32 @@ public class JwtUtils {
 
 
     public String generateToken(String userId) {
+        return generateToken(userId, null);
+    }
+
+    public String generateToken(String userId, String projectId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpirationMs());
+
+        SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+
+        var builder = Jwts.builder()
+                .subject(userId)
+                .issuedAt(now)
+                .expiration(expiryDate);
+
+        // projectId가 있으면 Claims에 추가
+        if (projectId != null) {
+            builder.claim("projectId", projectId);
+        }
+
+        return builder.signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(String userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000L)); // 7일
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
@@ -53,6 +79,15 @@ public class JwtUtils {
     public String getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.getSubject();
+    }
+
+    public String getProjectIdFromToken(String token) {
+        try {
+            Claims claims = getClaimsFromToken(token);
+            return claims.get("projectId", String.class);
+        } catch (Exception e) {
+            return null; // projectId가 없을 수 있음
+        }
     }
 
     public boolean validateToken(String token) {
@@ -73,6 +108,28 @@ public class JwtUtils {
     public boolean isTokenExpired(String token) {
         Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
+    }
+
+    /**
+     * JWT 만료시간을 LocalDateTime으로 계산
+     * 토큰 생성 시와 동일한 만료시간 적용
+     */
+    public LocalDateTime calculateExpirationDateTime() {
+        return LocalDateTime.now().plus(jwtProperties.getExpirationMs(), ChronoUnit.MILLIS);
+    }
+
+    /**
+     * Refresh Token 검증
+     */
+    public boolean validateRefreshToken(String refreshToken) {
+        return validateToken(refreshToken);
+    }
+
+    /**
+     * Refresh Token에서 userId 추출
+     */
+    public String extractUserIdFromRefreshToken(String refreshToken) {
+        return getUserIdFromToken(refreshToken);
     }
 
     private Claims getClaimsFromToken(String token) {
