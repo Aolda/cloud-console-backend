@@ -72,6 +72,7 @@ public class SecurityConfig {
                                 "/api/v1/snapshots/**",
                                 "/api/v1/networks/**",
                                 "/api/v1/routers/**",
+                                "/api/v1/keypairs/**",
                                 "/api/v1/interfaces/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 

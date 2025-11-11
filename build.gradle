@@ -80,6 +80,12 @@ dependencies {
 
 	// keycloak Admin RestAPI 자동화 라이브러리
 	implementation 'org.keycloak:keycloak-admin-client:26.0.6'
+
+	// Querydsl
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
 
 tasks.named('test') {
@@ -96,4 +102,17 @@ jacocoTestReport {
 		xml.required = true   // GitLab에서 coverage 수치 읽을 때 필요
 		html.required = true  // 로컬에서 눈으로 확인할 때 편함
 	}
+}
+
+// Q-Type을 생성할 경로 설정
+def querydslDir = file("$buildDir/generated/querydsl")
+
+// Java 컴파일 시 Q-타입을 생성하도록 설정
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(querydslDir)
+}
+
+// 생성된 Q-타입을 소스 코드로 인식
+sourceSets {
+	main.java.srcDirs += [querydslDir]
 }
