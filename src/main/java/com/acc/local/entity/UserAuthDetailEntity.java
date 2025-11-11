@@ -10,17 +10,14 @@ import lombok.*;
 @Entity
 @Table(name = "user_auth_detail")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserAuthDetailEntity {
 
     @Id
     @Column(name = "user_id", length = 64, nullable = false)
     private String userId;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "user_id")
-    private UserDetailEntity user;
 
     @Column(name = "department", length = 100, nullable = false)
     private String department;
@@ -30,6 +27,9 @@ public class UserAuthDetailEntity {
 
     @Column(name = "auth_type", nullable = false)
     private Integer authType;
+
+    @Column(name = "user_email" , nullable = false)
+    private String userEmail;
 
     // Enum 변환 헬퍼 메서드
     public AuthType getAuthTypeEnum() {

@@ -34,8 +34,8 @@ public class UserDetailEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserAuthDetailEntity userAuth;
+    @Column(name = "user_name", nullable = false)
+    private String userName;
 
     @PrePersist
     protected void onCreate() {

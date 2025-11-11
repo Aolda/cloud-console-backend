@@ -40,6 +40,11 @@ public class KeystoneAuthAPIModule {
         return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), passwordAuthRequest, KeystoneAPIUtils.port);
     }
 
+    public ResponseEntity<JsonNode> issueUnscopedTokenByToken(String existingToken) {
+        Map<String, Object> tokenAuthRequest = KeystoneAPIUtils.createTokenAuthRequest(existingToken);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenAuthRequest, KeystoneAPIUtils.port);
+    }
+
     public ResponseEntity<JsonNode> revokeToken(String token) {
         return openstackAPICallModule.callDeleteAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, KeystoneAPIUtils.generateKeystoneTokenTaskHeader(token), KeystoneAPIUtils.port);
     }
