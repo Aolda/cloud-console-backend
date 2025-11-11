@@ -6,6 +6,7 @@ import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.dto.auth.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.net.URI;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -205,9 +207,10 @@ public class AuthController {
 
     @PostMapping("/login/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
-            @RequestBody @Validated RefreshTokenRequest request
+            @CookieValue("acc-refresh-token") String refreshToken
     ) {
-        LoginResponse loginResponse = authServicePort.refreshToken(request.refreshToken());
+        log.info("refresh : {}" , refreshToken);
+        LoginResponse loginResponse = authServicePort.refreshToken(refreshToken);
         return ResponseEntity.ok(loginResponse);
     }
 
