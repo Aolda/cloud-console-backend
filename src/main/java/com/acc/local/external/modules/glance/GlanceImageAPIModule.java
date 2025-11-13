@@ -76,4 +76,14 @@ public class GlanceImageAPIModule {
         String uri = "/v2/images/" + imageId;
         return openstackAPICallModule.callPatchAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
+
+    // Delete Image
+    public ResponseEntity<JsonNode> deleteImage(String token, String imageId) {
+        String uri = "/v2/images/" + imageId;
+        return openstackAPICallModule.callDeleteAPI(
+                uri,
+                Collections.singletonMap("X-Auth-Token", token),
+                port
+        );
+    }
 }
