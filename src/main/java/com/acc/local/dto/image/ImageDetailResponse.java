@@ -28,6 +28,6 @@ public record ImageDetailResponse(
         Boolean hidden,
         List<String> tags,
         String stores,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        String createdAt,
+        String updatedAt
 ) {}
