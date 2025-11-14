@@ -4,8 +4,8 @@ WORKDIR /app
 COPY . .
 RUN gradle clean bootJar --no-daemon
 
-# 2단계: 빌드된 JAR 실행
-FROM openjdk:21-jdk-slim
+# 2단계: 빌드된 JAR 실행 (Temurin JRE 사용)
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

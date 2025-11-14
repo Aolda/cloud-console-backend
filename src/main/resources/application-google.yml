@@ -3,3 +3,4 @@ google:
     id: ${GOOGLE_SPREADSHEET_ID}
     range: ${GOOGLE_SPREADSHEET_RANGE}
   credentials-path: ${GOOGLE_CREDENTIALS_PATH}
+  service-name: ${GOOGLE_SERVICE_NAME}

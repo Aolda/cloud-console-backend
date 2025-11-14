@@ -13,26 +13,26 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class KeystoneUserAPIModule extends KeystoneAPIUtils {
+public class KeystoneUserAPIModule {
 
     public final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> createUser(String token, Map<String, Object> userRequest) {
-        return openstackAPICallModule.callPostAPI(KeystoneRoutes.CREATE_USER, Collections.singletonMap("X-Auth-Token", token), userRequest ,port);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.CREATE_USER, Collections.singletonMap("X-Auth-Token", token), userRequest , KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> getUserDetail(String userId, String token) {
         String uri = KeystoneRoutes.POST_USER.replace("{user_id}", userId);
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> updateUser(String userId, String token, Map<String, Object> userRequest) {
         String uri = KeystoneRoutes.POST_USER.replace("{user_id}", userId);
-        return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), userRequest , port);
+        return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), userRequest , KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> deleteUser(String userId, String token) {
         String uri = KeystoneRoutes.POST_USER.replace("{user_id}", userId);
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token) ,port);
+        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token) , KeystoneAPIUtils.port);
     }
 }

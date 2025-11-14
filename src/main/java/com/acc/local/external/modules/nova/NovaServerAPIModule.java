@@ -49,6 +49,11 @@ public class NovaServerAPIModule extends NovaAPIUtil
         return listServersDetail(token, Collections.emptyMap());
     }
 
+    public ResponseEntity<JsonNode> showServer(String token, String serverId) {
+        String uri = "/v2.1/servers/" + serverId;
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+    }
+
     public ResponseEntity<JsonNode> createServer(String token, CreateServerRequest request) {
         String uri = "/v2.1/servers";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);

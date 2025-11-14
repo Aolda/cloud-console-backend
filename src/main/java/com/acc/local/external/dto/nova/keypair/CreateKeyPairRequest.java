@@ -21,8 +21,6 @@ public class CreateKeyPairRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class KeyPair {
         private String name;
-        private String publicKey;
         private String type;
-        private String userId;
     }
 } 

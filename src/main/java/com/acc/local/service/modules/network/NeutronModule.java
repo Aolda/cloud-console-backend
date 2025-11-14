@@ -1,14 +1,8 @@
 package com.acc.local.service.modules.network;
 
 import com.acc.global.common.PageResponse;
-import com.acc.global.exception.network.NetworkErrorCode;
-import com.acc.global.exception.network.NetworkException;
-import com.acc.local.dto.network.CreateNetworkRequest;
-import com.acc.local.dto.network.ViewNetworksResponse;
-import com.acc.local.dto.network.ViewRoutersResponse;
-import com.acc.local.external.ports.NeutronNetworkExternalPort;
-import com.acc.local.external.ports.NeutronRouterExternalPort;
-import com.acc.local.external.ports.NeutronSubnetExternalPort;
+import com.acc.local.dto.network.*;
+import com.acc.local.external.ports.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +16,8 @@ public class NeutronModule {
     private final NeutronNetworkExternalPort neutronNetworkExternalPort;
     private final NeutronSubnetExternalPort neutronSubnetExternalPort;
     private final NeutronRouterExternalPort neutronRouterExternalPort;
+    private final NeutronPortExternalPort neutronPortExternalPort;
+    private final NeutronFloatingIpExternalPort neutronFloatingIpExternalPort;
 
     public String createGeneralNetwork(CreateNetworkRequest request, String keystoneToken) {
         return neutronNetworkExternalPort.callCreateGeneralNetwork(keystoneToken,
@@ -69,4 +65,37 @@ public class NeutronModule {
     }
 
     /* --- External IPs --- */
+    public boolean allocateExternalIpToInterface(String keystoneToken, String floatingNetworkId, String portId) {
+        try {
+            neutronFloatingIpExternalPort.allocateFloatingIpToPort(keystoneToken, floatingNetworkId, portId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    public void releaseExternalIpFromInterface(String keystoneToken, String ExternalIpId) {
+        neutronFloatingIpExternalPort.releaseFloatingIpFromPort(keystoneToken, ExternalIpId);
+    }
+
+    /* --- Interfaces --- */
+    public String createInterface(String keystoneToken, CreateInterfaceRequest request) {
+        return neutronPortExternalPort.callCreatePort(keystoneToken,
+                request.getNetworkId(),
+                request.getInterfaceName(),
+                request.getSubnetId(),
+                request.getSecurityGroupIds(),
+                request.getDescription()).get("id");
+    }
+
+    public Map<String, String> getExternalIpByInterfaceId(String keystoneToken, String interfaceId) {
+        return neutronFloatingIpExternalPort.getFloatingIpInfo(keystoneToken, interfaceId);
+    }
+
+    public void deleteInterface(String keystoneToken, String portId) {
+        neutronPortExternalPort.callDeletePort(keystoneToken, portId);
+    }
+
+    public PageResponse<ViewInterfacesResponse> listInterfaces(String keystoneToken, String projectId, String marker, String direction, int limit, String instanceId, String networkId) {
+        return neutronPortExternalPort.callListPorts(keystoneToken, projectId, marker, direction, limit, instanceId, networkId);
+    }
 }

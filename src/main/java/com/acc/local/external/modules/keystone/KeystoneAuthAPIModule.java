@@ -2,7 +2,6 @@ package com.acc.local.external.modules.keystone;
 
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.acc.local.external.modules.keystone.constant.KeystoneRoutes;
-import com.acc.local.service.modules.auth.KeystoneModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,27 +16,36 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class KeystoneAuthAPIModule extends KeystoneAPIUtils {
+public class KeystoneAuthAPIModule {
 
     public final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> requestFederateLogin(String keycloakCode) {
-        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_FEDERATE, Collections.singletonMap("Authorization", "Bearer " + keycloakCode), Collections.emptyMap(), port);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_FEDERATE, Collections.singletonMap("Authorization", "Bearer " + keycloakCode), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> getTokenInfo(String token) {
-        return openstackAPICallModule.callGetAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap() ,port);
+        return openstackAPICallModule.callGetAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, KeystoneAPIUtils.generateKeystoneTokenTaskHeader(token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> getScopeTokenInfo(String token, Map<String, Object> request) {
-        return openstackAPICallModule.callGetAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap() , port);
+        return openstackAPICallModule.callGetAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
-    public ResponseEntity<JsonNode> issueProjectScopeToken(Map<String, Object> tokenRequest) {
-        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenRequest, port);
+    public ResponseEntity<JsonNode> issueScopedToken(Map<String, Object> tokenRequest) {
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenRequest, KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> issueUnscopedToken(Map<String, Object> passwordAuthRequest) {
-        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), passwordAuthRequest, port);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), passwordAuthRequest, KeystoneAPIUtils.port);
+    }
+
+    public ResponseEntity<JsonNode> issueUnscopedTokenByToken(String existingToken) {
+        Map<String, Object> tokenAuthRequest = KeystoneAPIUtils.createTokenAuthRequest(existingToken);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenAuthRequest, KeystoneAPIUtils.port);
+    }
+
+    public ResponseEntity<JsonNode> revokeToken(String token) {
+        return openstackAPICallModule.callDeleteAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, KeystoneAPIUtils.generateKeystoneTokenTaskHeader(token), KeystoneAPIUtils.port);
     }
 }

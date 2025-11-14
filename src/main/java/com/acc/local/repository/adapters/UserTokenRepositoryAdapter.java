@@ -3,12 +3,14 @@ package com.acc.local.repository.adapters;
 import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.repository.jpa.UserTokenJpaRepository;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,8 +31,8 @@ public class UserTokenRepositoryAdapter implements UserTokenRepositoryPort {
     }
 
     @Override
-    public Optional<UserTokenEntity> findByUserIdAndIsActiveTrue(String userId) {
-        return userTokenJpaRepository.findByUserIdAndIsActiveTrue(userId);
+    public List<UserTokenEntity> findAllByUserIdAndIsActiveTrue(String userId) {
+        return userTokenJpaRepository.findAllByUserIdAndIsActiveTrue(userId);
     }
 
     @Override

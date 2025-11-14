@@ -39,7 +39,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
         /* --- 서브넷 생성 --- */
         if (request.getSubnets() != null) {
             for (CreateNetworkRequest.Subnet subnet : request.getSubnets()) {
-                if (!networkUtil.validateSubnetName(subnet.getSubnetName())) {
+                if (!networkUtil.validateResourceName(subnet.getSubnetName())) {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_NAME);
                 }
 

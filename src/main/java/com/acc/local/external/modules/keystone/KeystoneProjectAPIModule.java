@@ -12,26 +12,26 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class KeystoneProjectAPIModule extends KeystoneAPIUtils{
+public class KeystoneProjectAPIModule {
 
     public final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> createProject(String token, Map<String, Object> projectRequest) {
-        return openstackAPICallModule.callPostAPI(KeystoneRoutes.CREATE_PROJECT, Collections.singletonMap("X-Auth-Token", token), projectRequest , port);
+        return openstackAPICallModule.callPostAPI(KeystoneRoutes.CREATE_PROJECT, Collections.singletonMap("X-Auth-Token", token), projectRequest, KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> getProjectDetail(String projectId, String token) {
         String uri = KeystoneRoutes.POST_PROJECT.replace("{project_id}", projectId);
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap() ,port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> updateProject(String projectId, String token, Map<String, Object> projectRequest) {
         String uri = KeystoneRoutes.POST_PROJECT.replace("{project_id}", projectId);
-        return openstackAPICallModule.callPatchAPI(uri, Collections.singletonMap("X-Auth-Token", token), projectRequest ,port);
+        return openstackAPICallModule.callPatchAPI(uri, Collections.singletonMap("X-Auth-Token", token), projectRequest, KeystoneAPIUtils.port);
     }
 
     public ResponseEntity<JsonNode> deleteProject(String projectId, String token) {
         String uri = KeystoneRoutes.POST_PROJECT.replace("{project_id}", projectId);
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
+        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), KeystoneAPIUtils.port);
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class GoogleProperties {
+    private String serviceName;
+
     private String credentialsPath;
     private Spreadsheet spreadsheet = new Spreadsheet();
 
