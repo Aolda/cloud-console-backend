@@ -1,24 +1,25 @@
 package com.acc.local.service.adapters.auth;
-import com.acc.local.domain.enums.ProjectPermission;
-import com.acc.local.domain.model.KeystoneProject;
-import com.acc.local.domain.model.User;
+import com.acc.local.domain.enums.auth.ProjectPermission;
+import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.domain.model.auth.RefreshToken;
+import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
+@Slf4j
 @Service
 @Primary
 @RequiredArgsConstructor
 public class AuthServiceAdapter implements AuthServicePort {
     private final AuthModule authModule;
-
-    @Override
-    public String issueKeystoneToken() {
-        return authModule.issueKeystoneToken();
-    }
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -33,7 +34,7 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     @Override
     public void invalidateUserTokens(String userId) {
-        authModule.invalidateUserTokens(userId);
+        authModule.invalidateServiceTokensByUserId(userId);
     }
 
     @Override
@@ -41,12 +42,7 @@ public class AuthServiceAdapter implements AuthServicePort {
 
         // TODO: userid 를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 
-        User user = User.builder()
-                .name(createUserRequest.userName())
-                .email(createUserRequest.userEmail())
-                .enabled(true)
-                .build();
-
+        User user = User.from(createUserRequest);
         User createdUser = authModule.createUser(user, userId);
         return CreateUserResponse.from(createdUser);
     }
@@ -63,14 +59,7 @@ public class AuthServiceAdapter implements AuthServicePort {
     public UpdateUserResponse updateUser(String targetUserId, UpdateUserRequest updateUserRequest, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        User user = User.builder()
-                .name(updateUserRequest.userName())
-                .email(updateUserRequest.userEmail())
-                .description(updateUserRequest.description())
-                .defaultProjectId(updateUserRequest.defaultProjectId())
-                .enabled(updateUserRequest.enabled() != null ? updateUserRequest.enabled() : true)
-                .build();
-
+        User user = User.from(updateUserRequest);
         User updatedUser = authModule.updateUser(targetUserId, user, requesterId);
         return UpdateUserResponse.from(updatedUser);
     }
@@ -146,7 +135,6 @@ public class AuthServiceAdapter implements AuthServicePort {
     @Override
     public void deleteProject(String projectId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-
         authModule.deleteProject(projectId, requesterId);
     }
 
@@ -159,5 +147,46 @@ public class AuthServiceAdapter implements AuthServicePort {
     public String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request) {
         // TODO: 에러발생 시 logout로직 추가
         return authModule.authenticateKeystoneAndGenerateJwt(request);
+    }
+
+    @Override
+    public LoginTokens login(KeystonePasswordLoginRequest request) {
+
+        UserToken userToken = authModule.generateAccessToken(request);
+        log.info(userToken.toString());
+
+        RefreshToken refreshToken = authModule.generateRefreshToken(request, userToken.getUserId());
+        log.info(refreshToken.toString());
+
+        // 3. DTO로 변환하여 반환
+        return LoginTokens.from(
+            userToken.getJwtToken(),
+            refreshToken.getRefreshToken()
+        );
+    }
+
+    @Override
+    public ProjectTokenResponse issueProjectAccessToken(String userId, String projectId) {
+        // Module에서 UserToken 받기
+        UserToken userToken = authModule.issueProjectScopedToken(userId, projectId);
+
+        // DTO로 변환하여 반환
+        return ProjectTokenResponse.builder()
+                .accessToken(userToken.getJwtToken())
+                .build();
+    }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        // AuthModule에서 refresh token 검증 및 새 access token 발급
+        return LoginResponse.from(authModule.refreshAccessToken(refreshToken));
+
+    }
+
+    @Override
+    public SignupResponse signup(SignupRequest request) {
+        String adminToken = authModule.issueSystemAdminToken("signup-process");
+        String userId = authModule.signup(request, adminToken);
+        return SignupResponse.from(userId);
     }
 }

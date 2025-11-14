@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Collections;
 import java.util.Map;
@@ -20,6 +21,11 @@ public class NeutronPortsAPIModule extends NeutronAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     public ResponseEntity<JsonNode> listPorts(String token, Map<String, String> queryParams) {
+        String uri = "/v2.0/ports";
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+    }
+
+    public ResponseEntity<JsonNode> listPorts(String token, MultiValueMap<String, String> queryParams) {
         String uri = "/v2.0/ports";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }

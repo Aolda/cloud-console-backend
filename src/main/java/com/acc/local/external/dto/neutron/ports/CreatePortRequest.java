@@ -55,6 +55,8 @@ public class CreatePortRequest {
         @JsonProperty("dns_name")
         private String dnsName;
         private List<String> tags;
+        @JsonProperty("port_security_enabled")
+        private Boolean portSecurityEnabled;
     }
 
     @Data

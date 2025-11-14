@@ -5,11 +5,15 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
 
+  sql:
+    init:
+      mode: always
+
   jpa:
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
-    database-platform: org.hibernate.dialect.MariaDBDialect
 
   springdoc:
     api-docs:
