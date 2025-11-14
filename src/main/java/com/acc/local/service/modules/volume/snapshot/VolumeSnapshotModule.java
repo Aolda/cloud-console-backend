@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class VolumeSnapshotModule {
     private final VolumeSnapshotExternalPort volumeSnapshotExternalPort;
 
-    public PageResponse<VolumeSnapshotResponse> getSnapshots(PageRequest page, String projectId, String token) {
+    public PageResponse<VolumeSnapshotResponse> getSnapshots(String token, String projectId, PageRequest page) {
 
         return volumeSnapshotExternalPort.callListSnapshots(
                 token,

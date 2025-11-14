@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @Tag(name = "Volume Snapshot", description = "볼륨 스냅샷 API")
 @RequestMapping("/api/v1/snapshots")
@@ -41,8 +42,7 @@ public interface VolumeSnapshotDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<VolumeSnapshotResponse>> getSnapshots(
-            @Parameter(description = "인증 토큰", required = true, example = "Bearer {access_token}")
-            @RequestHeader("Authorization") String token,
+            Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -66,8 +66,7 @@ public interface VolumeSnapshotDocs {
     //@GetMapping(params = "snapshotId")
     @GetMapping("/{snapshotId}")
     ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
-            @Parameter(description = "인증 토큰 (ACC Token)", required = true)
-            @RequestHeader("Authorization") String token,
+            Authentication authentication,
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
             @PathVariable String snapshotId
     );
@@ -117,8 +116,7 @@ public interface VolumeSnapshotDocs {
     })
     @DeleteMapping(params ="snapshotId")
     ResponseEntity<Void> deleteSnapshot(
-            @Parameter(description = "인증 토큰 (ACC Token)", required = true, example = "Bearer {access_token}")
-            @RequestHeader("Authorization") String token,
+            Authentication authentication,
             @Parameter(description = "삭제할 볼륨 스냅샷 ID", required = true, example = "92f53cf1-ae3e-4cc2-b5b7-462201a2d847")
             @RequestParam String snapshotId
     );
@@ -162,8 +160,7 @@ public interface VolumeSnapshotDocs {
     })
     @PostMapping
     ResponseEntity<VolumeSnapshotResponse> createSnapshot(
-            @Parameter(description = "인증 토큰 (ACC Token)", required = true)
-            @RequestHeader("Authorization") String token,
+            Authentication authentication,
             @Parameter(description = "스냅샷을 생성할 원본 볼륨 정보", required = true)
             @RequestBody VolumeSnapshotRequest request
     );
