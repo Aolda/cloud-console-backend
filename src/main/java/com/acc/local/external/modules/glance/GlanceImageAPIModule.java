@@ -4,6 +4,7 @@ import com.acc.local.external.dto.glance.image.*;
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.core.io.Resource;
@@ -53,24 +54,6 @@ public class GlanceImageAPIModule {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    // Upload Image File (바이너리 파일 직접 업로드)
-    // ***binary 업로드 함수 임시 구현 -> 파일 업로드 한해서는 논블로킹 수정 예정***
-    public ResponseEntity<JsonNode> uploadImageFile(String token, String imageId, Resource resource) {
-        String uri = "/v2/images/" + imageId + "/file";
-        return openstackAPICallModule.callPutBinaryResourceAPI(
-                uri,
-                Collections.singletonMap("X-Auth-Token", token),
-                resource,
-                port
-        );
-    }
-
-    // 편의 오버로드: MultipartFile -> Resource (메모리로 올리지 않음)
-    public ResponseEntity<JsonNode> uploadImageFile(String token, String imageId, MultipartFile file) {
-        return uploadImageFile(token, imageId, file.getResource());
-    }
-
-
     // Update Image (메타데이터 수정)
     public ResponseEntity<JsonNode> updateImage(String token, String imageId, UpdateImageRequest request) {
         String uri = "/v2/images/" + imageId;
@@ -83,6 +66,18 @@ public class GlanceImageAPIModule {
         return openstackAPICallModule.callDeleteAPI(
                 uri,
                 Collections.singletonMap("X-Auth-Token", token),
+                port
+        );
+    }
+
+    //file Upload
+    public ResponseEntity<JsonNode> uploadImageFileStream(String token, String imageId, InputStreamResource resource, String contentType) {
+        String uri = "/v2/images/" + imageId + "/file";
+        return openstackAPICallModule.callPutBinaryStreamAPI(
+                uri,
+                Collections.singletonMap("X-Auth-Token", token),
+                resource,
+                contentType,
                 port
         );
     }

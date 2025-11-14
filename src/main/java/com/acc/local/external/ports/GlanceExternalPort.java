@@ -7,14 +7,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
+import java.io.InputStream;
+
 public interface GlanceExternalPort {
 
     ResponseEntity<JsonNode> fetchPrivateImageList(String token, String projectId);
+
     ResponseEntity<JsonNode> fetchPublicImageList(String token);
+
     ResponseEntity<JsonNode> fetchImageDetail(String token, String imageId);
 
     ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req);
+
     void importImageUrl(String token, String imageId, String fileUrl);
+
+    void uploadImageProxyStream(String token, String imageId, InputStream body, String contentType);
 
     void deleteImage(String token, String imageId);
 
