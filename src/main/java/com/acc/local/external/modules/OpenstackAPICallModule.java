@@ -2,6 +2,8 @@ package com.acc.local.external.modules;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
@@ -108,14 +110,11 @@ public class OpenstackAPICallModule {
                 .block();
     }
 
-    //binary 업로드 함수 임시 구현 추후 논블로킹 업그레이드
-    /// chunck 단위로 바로 업로드
-    public ResponseEntity<JsonNode> callPutBinaryResourceAPI(
-            String uri, Map<String, String> headers, Resource resource, int port) {
+    public ResponseEntity<JsonNode> callPutBinaryStreamAPI(String uri, Map<String, String> headers, InputStreamResource resource, String contentType, int port) {
         return openstackWebClient.put()
-                .uri(b -> b.port(port).path(uri).build())
-                .headers(h -> headers.forEach(h::add))
-                .header("Content-Type", "application/octet-stream")
+                .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(BodyInserters.fromResource(resource))
                 .retrieve()
                 .toEntity(JsonNode.class)
@@ -123,4 +122,3 @@ public class OpenstackAPICallModule {
     }
 
 }
-
