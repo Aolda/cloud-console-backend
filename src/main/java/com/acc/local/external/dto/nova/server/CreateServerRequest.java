@@ -44,6 +44,7 @@ public class CreateServerRequest {
         private String hypervisor_hostname;
         private Integer minCount;
         private Integer maxCount;
+        private List<BlockDeviceMappingV2> block_device_mapping_v2;
     }
     
     @Data
@@ -65,5 +66,19 @@ public class CreateServerRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class SecurityGroup {
         private String name;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class BlockDeviceMappingV2 {
+        private String source_type;
+        private String destination_type;
+        private String uuid;
+        private Integer boot_index;
+        private Integer volume_size;
+        private Boolean delete_on_termination;
     }
 } 

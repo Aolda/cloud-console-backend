@@ -13,11 +13,11 @@ import java.util.List;
 @Component
 public class FlavorModule {
 
-    private final WebClient computeWebClient;
+    private final WebClient instanceWebClient;
 
     public List<FlavorDto> getAllFlavors(String token) {
-        JsonNode listResponse = computeWebClient.get()
-                .uri("/compute/v2.1/flavors")
+        JsonNode listResponse = instanceWebClient.get()
+                .uri("/instance/v2.1/flavors")
                 .header("X-Auth-Token", token)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
@@ -33,8 +33,8 @@ public class FlavorModule {
     }
 
     public FlavorDto getFlavorById(String token, String id) {
-        JsonNode flavorDetail = computeWebClient.get()
-                .uri("/compute/v2.1/flavors/{id}", id)
+        JsonNode flavorDetail = instanceWebClient.get()
+                .uri("/instance/v2.1/flavors/{id}", id)
                 .header("X-Auth-Token", token)
                 .retrieve()
                 .bodyToMono(JsonNode.class)

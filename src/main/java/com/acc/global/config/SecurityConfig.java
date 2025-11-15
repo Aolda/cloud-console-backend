@@ -62,7 +62,6 @@ public class SecurityConfig {
                                 "/api/v1/auth/login/refresh",
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
-                                "/api/v1/computes/**",
                                 "/api/v1/images/**",
                                 "/api/v1/projects",
                                 "/api/v1/quick-setting/**",
