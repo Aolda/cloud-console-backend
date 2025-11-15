@@ -1,11 +1,8 @@
-package com.acc.local.dto.auth;
+package com.acc.local.dto.project;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-
 
 @Builder
 public record UserPermissionResponse (

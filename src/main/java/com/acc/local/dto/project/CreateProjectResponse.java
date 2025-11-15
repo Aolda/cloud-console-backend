@@ -1,4 +1,4 @@
-package com.acc.local.dto.auth;
+package com.acc.local.dto.project;
 
 import com.acc.local.domain.model.auth.KeystoneProject;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.Map;
 
 @Builder
-public record GetProjectResponse(
+public record CreateProjectResponse(
     String id,
     String name,
     String description,
@@ -17,15 +17,14 @@ public record GetProjectResponse(
     Map<String, Object> options,
     Map<String, Object> links
 ) {
-    public static GetProjectResponse from(KeystoneProject project) {
-        return GetProjectResponse.builder()
+    public static CreateProjectResponse from(KeystoneProject project) {
+        return CreateProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())
                 .description(project.getDescription())
                 .domainId(project.getDomainId())
                 .enabled(project.getEnabled())
                 .isDomain(project.getIsDomain())
-                .parentId(project.getParentId())
                 .options(project.getOptions())
                 .links(project.getLinks())
                 .build();

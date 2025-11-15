@@ -1,6 +1,12 @@
 package com.acc.local.controller;
 
 import com.acc.global.security.jwt.JwtInfo;
+import com.acc.local.dto.project.CreateProjectRequest;
+import com.acc.local.dto.project.CreateProjectResponse;
+import com.acc.local.dto.project.GetProjectResponse;
+import com.acc.local.dto.project.UpdateProjectRequest;
+import com.acc.local.dto.project.UpdateProjectResponse;
+import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.jwt.JwtUtils;
