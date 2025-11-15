@@ -2,6 +2,12 @@ package com.acc.local.service.ports;
 
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.dto.auth.*;
+import com.acc.local.dto.project.CreateProjectRequest;
+import com.acc.local.dto.project.CreateProjectResponse;
+import com.acc.local.dto.project.GetProjectResponse;
+import com.acc.local.dto.project.UpdateProjectRequest;
+import com.acc.local.dto.project.UpdateProjectResponse;
+import com.acc.local.dto.project.UserPermissionResponse;
 
 public interface AuthServicePort {
     String authenticateAndGenerateJwt(String keycloakToken);
