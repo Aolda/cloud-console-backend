@@ -43,7 +43,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_NAME);
                 }
 
-                if (!networkUtil.validateSubnetCidr(subnet.getCidr())) {
+                if (!networkUtil.validateCidr(subnet.getCidr())) {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_CIDR);
                 }
             }
