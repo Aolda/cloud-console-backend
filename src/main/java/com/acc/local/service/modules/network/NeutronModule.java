@@ -3,6 +3,7 @@ package com.acc.local.service.modules.network;
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.network.*;
 import com.acc.local.external.ports.*;
+import com.acc.local.service.modules.auth.AuthModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,9 @@ public class NeutronModule {
     private final NeutronRouterExternalPort neutronRouterExternalPort;
     private final NeutronPortExternalPort neutronPortExternalPort;
     private final NeutronFloatingIpExternalPort neutronFloatingIpExternalPort;
+    private final NeutronSecurityGroupExternalPort neutronSecurityGroupExternalPort;
+    private final NeutronSecurityRuleExternalPort neutronSecurityRuleExternalPort;
+    private final AuthModule authModule;
 
     public String createGeneralNetwork(CreateNetworkRequest request, String keystoneToken) {
         return neutronNetworkExternalPort.callCreateGeneralNetwork(keystoneToken,
@@ -97,5 +101,77 @@ public class NeutronModule {
 
     public PageResponse<ViewInterfacesResponse> listInterfaces(String keystoneToken, String projectId, String marker, String direction, int limit, String instanceId, String networkId) {
         return neutronPortExternalPort.callListPorts(keystoneToken, projectId, marker, direction, limit, instanceId, networkId);
+    }
+
+    /* --- Security Groups --- */
+    public void createSecurityGroup(String keystoneToken, String projectId, String securityGroupName, String description) {
+        neutronSecurityGroupExternalPort.callCreateSecurityGroup(keystoneToken, projectId, securityGroupName, description);
+    }
+
+    public PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(String keystoneToken, String projectId, String marker, String direction, int limit) {
+        return neutronSecurityGroupExternalPort.callListSecurityGroups(keystoneToken, projectId, marker, direction, limit);
+    }
+
+    public ViewSecurityGroupsResponse getSecurityGroupDetails(String keystoneToken, String securityGroupId, String marker, String direction, int limit) {
+        return neutronSecurityGroupExternalPort.callGetSecurityGroupById(keystoneToken, securityGroupId, marker, direction, limit);
+    }
+
+    public void deleteSecurityGroup(String keystoneToken, String securityGroupId) {
+        neutronSecurityGroupExternalPort.callDeleteSecurityGroup(keystoneToken, securityGroupId);
+    }
+
+    /* --- Security Rules --- */
+    public void createSecurityGroupRule(String keystoneToken, String sgId, String direction, String protocol, Integer port, String remoteGroupId, String remoteIpPrefix) {
+        neutronSecurityRuleExternalPort.callCreateSecurityRule(
+                keystoneToken,
+                sgId,
+                direction,
+                protocol,
+                port,
+                remoteGroupId,
+                remoteIpPrefix
+        );
+    }
+
+    public void deleteSecurityGroupRule(String keystoneToken, String srId) {
+        neutronSecurityRuleExternalPort.callDeleteSecurityRule(keystoneToken, srId);
+    }
+
+    public void setDefaultSecurityGroup(String keystoneToken, String projectId) {
+        ViewSecurityGroupsResponse defaultSg = neutronSecurityGroupExternalPort.callGetSecurityGroupByName(keystoneToken, projectId, "default");
+
+        neutronSecurityRuleExternalPort.callCreateSecurityRule(keystoneToken,
+                defaultSg.getSecurityGroupId(),
+                "ingress",
+                "tcp",
+                22,
+                null,
+                "0.0.0.0/0"
+                );
+
+        neutronSecurityRuleExternalPort.callCreateSecurityRule(keystoneToken,
+                defaultSg.getSecurityGroupId(),
+                "egress",
+                "tcp",
+                22,
+                null,
+                "0.0.0.0/0"
+        );
+
+        neutronSecurityRuleExternalPort.callCreateSecurityRule(keystoneToken,
+                defaultSg.getSecurityGroupId(),
+                "ingress",
+                "tcp",
+                80,
+                null,
+                "0.0.0.0/0");
+
+        neutronSecurityRuleExternalPort.callCreateSecurityRule(keystoneToken,
+                defaultSg.getSecurityGroupId(),
+                "ingress",
+                "tcp",
+                443,
+                null,
+                "0.0.0.0/0");
     }
 }

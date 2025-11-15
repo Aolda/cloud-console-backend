@@ -73,6 +73,8 @@ public class SecurityConfig {
                                 "/api/v1/routers/**",
                                 "/api/v1/keypairs/**",
                                 "/api/v1/interfaces/**",
+                                "/api/v1/security-groups/**",
+                                "/api/v1/security-rules/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 
                         ).permitAll()
