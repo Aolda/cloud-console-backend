@@ -1,26 +1,28 @@
 package com.acc.local.external.dto.nova.serverAction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UnshelveServerRequest {
-    private Unshelve unshelve;
+    private UnshelveInfo unshelve;
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class Unshelve {
+    public static class UnshelveInfo {
+        @JsonProperty("availability_zone")
+        private String availabilityZone;
+
         private String host;
-        private String availability_zone;
     }
 }
