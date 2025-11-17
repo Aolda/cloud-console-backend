@@ -6,7 +6,7 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateRouterRequest;
 import com.acc.local.dto.network.ViewRoutersResponse;
-import com.acc.local.external.modules.neutron.NeutronAPIUtil;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.ports.RouterServicePort;
@@ -21,10 +21,11 @@ public class RouterServiceAdapter implements RouterServicePort {
 
     private final NeutronModule neutronModule;
     private final NetworkUtil networkUtil;
+    private final AuthModule authModule;
 
     @Override
-    public void createRouter(CreateRouterRequest request, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void createRouter(CreateRouterRequest request, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (!networkUtil.validateResourceName(request.getRouterName())) {
             throw new NetworkException(NetworkErrorCode.INVALID_ROUTER_NAME);
@@ -37,18 +38,18 @@ public class RouterServiceAdapter implements RouterServicePort {
     }
 
     @Override
-    public void deleteRouter(String routerId, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void deleteRouter(String routerId, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         neutronModule.deleteRouter(token, routerId);
     }
 
     @Override
-    public PageResponse<ViewRoutersResponse> listRouters(PageRequest page, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public PageResponse<ViewRoutersResponse> listRouters(PageRequest page, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         return neutronModule.listRouters(token,
-                "project_id",
+                projectId,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit());
