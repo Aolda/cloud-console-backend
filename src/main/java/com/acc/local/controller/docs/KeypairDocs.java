@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/keypairs")
@@ -46,9 +47,8 @@ public interface KeypairDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true)
+            Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -96,9 +96,8 @@ public interface KeypairDocs {
     })
     @PostMapping
     ResponseEntity<CreateKeypairResponse> createKeypair(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true)
+            Authentication authentication,
             @RequestBody
             @Parameter(description = "키페어 생성 요청 정보", required = true)
             CreateKeypairRequest request);
@@ -137,9 +136,8 @@ public interface KeypairDocs {
     })
     @DeleteMapping
     ResponseEntity<Object> deleteKeypair(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true)
+            Authentication authentication,
             @RequestParam
             @Parameter(description = "삭제할 키페어의 ID (핑거프린트)", required = true)
             String keypairId);

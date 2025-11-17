@@ -8,7 +8,7 @@ import com.acc.local.dto.keypair.KeypairListResponse;
 
 public interface KeypairServicePort {
 
-    PageResponse<KeypairListResponse> getKeypairs(String token, PageRequest page);
-    CreateKeypairResponse createKeypair(String token, CreateKeypairRequest request);
-    void deleteKeypair(String token, String keypairId);
+    PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String projectId);
+    CreateKeypairResponse createKeypair(CreateKeypairRequest request, String userId, String projectId);
+    void deleteKeypair(String keypairId, String userId, String projectId);
 }
