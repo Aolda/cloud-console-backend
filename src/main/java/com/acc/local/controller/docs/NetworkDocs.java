@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/networks")
@@ -50,9 +51,7 @@ public interface NetworkDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<ViewNetworksResponse>> viewNetworks(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -90,9 +89,7 @@ public interface NetworkDocs {
     })
     @PostMapping
     ResponseEntity<Object> createNetwork(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestBody
             @Parameter(description = "네트워크 생성 요청 정보", required = true)
             CreateNetworkRequest request);
@@ -131,6 +128,6 @@ public interface NetworkDocs {
     })
     @DeleteMapping
     ResponseEntity<Object> deleteNetwork(
-            @RequestHeader("Authorization") String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam String networkId);
 }
