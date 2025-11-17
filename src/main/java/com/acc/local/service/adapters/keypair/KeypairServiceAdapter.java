@@ -7,6 +7,7 @@ import com.acc.global.exception.keypair.KeypairException;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
 import com.acc.local.dto.keypair.KeypairListResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.keypair.KeypairModule;
 import com.acc.local.service.modules.keypair.KeypairUtil;
 import com.acc.local.service.ports.KeypairServicePort;
@@ -21,10 +22,10 @@ public class KeypairServiceAdapter implements KeypairServicePort {
 
     private final KeypairModule keypairModule;
     private final KeypairUtil keypairUtil;
+    private final AuthModule authModule;
 
     @Override
-    public PageResponse<KeypairListResponse> getKeypairs(String token, PageRequest page) {
-        String projectId = "project-id";
+    public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String projectId) {
         return keypairModule.getKeypairs(
                 projectId,
                 page.getMarker(),
@@ -33,21 +34,18 @@ public class KeypairServiceAdapter implements KeypairServicePort {
     }
 
     @Override
-    public CreateKeypairResponse createKeypair(String token, CreateKeypairRequest request) {
+    public CreateKeypairResponse createKeypair(CreateKeypairRequest request, String userId, String projectId) {
+        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
         // TODO : Quota 검증
-
         if (!keypairUtil.validateKeypairName(request.getKeypairName())) {
             throw new KeypairException(KeypairErrorCode.INVALID_KEYPAIR_NAME);
         }
-        String keystoneToken = "keystone-token";
-        String projectId = "project-id";
-        return keypairModule.createKeypair(keystoneToken, projectId, request);
+        return keypairModule.createKeypair(request, keystoneToken, projectId);
     }
 
     @Override
-    public void deleteKeypair(String token, String keypairId) {
-        String keystoneToken = "keystone-token";
-        String projectId = "project-id";
-        keypairModule.deleteKeypair(keystoneToken, projectId, keypairId);
+    public void deleteKeypair(String keypairId, String userId, String projectId) {
+        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        keypairModule.deleteKeypair(keypairId, keystoneToken, projectId);
     }
 }
