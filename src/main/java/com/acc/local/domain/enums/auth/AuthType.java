@@ -12,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum AuthType {
     GOOGLE(0, "Google 인증"),
-    GITLAB(1, "GitLab 인증");
+    GITLAB(1, "GitLab 인증"),
+    ADMIN(2, "관리자 직접 생성");
 
     private final int code;
     private final String description;

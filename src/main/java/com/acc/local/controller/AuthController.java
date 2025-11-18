@@ -1,6 +1,7 @@
 package com.acc.local.controller;
 
 import com.acc.global.security.jwt.JwtInfo;
+import com.acc.local.controller.docs.AuthDocs;
 import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.CreateProjectResponse;
 import com.acc.local.dto.project.GetProjectResponse;
@@ -24,13 +25,14 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
-public class AuthController {
+public class AuthController implements AuthDocs {
 
 
     private final KeycloakProperties keycloakProperties;
     private final AuthServicePort authServicePort;
 
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
+    @Deprecated
     @GetMapping("/login")
     public ResponseEntity<Void> login() {
         String keycloakLoginUrl = keycloakProperties.getLoginUrl();
@@ -39,11 +41,14 @@ public class AuthController {
                 .build();
     }
 
+
+    @Deprecated
     @GetMapping("/login/authorize")
     public String authorize(@RequestHeader("Authorization") String authorization) {
         String keycloakToken = JwtUtils.extractTokenFromHeader(authorization);
         return authServicePort.authenticateAndGenerateJwt(keycloakToken);
     }
+
 
 
     @GetMapping("/permission")
@@ -59,6 +64,7 @@ public class AuthController {
     }
 
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
+    @Deprecated
     @PostMapping("/user")
     public ResponseEntity<CreateUserResponse> createKeystoneUser(
             @ModelAttribute @Validated CreateUserRequest request,
@@ -71,6 +77,7 @@ public class AuthController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @Deprecated
     @GetMapping("/user/{keystoneUserId}")
     public ResponseEntity<GetUserResponse> getUserDetail(
             @PathVariable String keystoneUserId,
@@ -83,6 +90,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Deprecated
     @PutMapping("/user/{keystoneUserId}")
     public ResponseEntity<UpdateUserResponse> updateUser(
             @PathVariable String keystoneUserId,
@@ -96,6 +104,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Deprecated
     @DeleteMapping("/user/{keystoneUserId}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable String keystoneUserId,
@@ -109,6 +118,7 @@ public class AuthController {
     }
 
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
+    @Deprecated
     @PostMapping("/project")
     public ResponseEntity<CreateProjectResponse> createKeystoneProject(
             @RequestBody @Validated CreateProjectRequest request,
@@ -121,6 +131,7 @@ public class AuthController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @Deprecated
     @GetMapping("/project/{keystoneProjectId}")
     public ResponseEntity<GetProjectResponse> getProjectDetail(
             @PathVariable String keystoneProjectId,
@@ -133,6 +144,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Deprecated
     @PatchMapping("/project/{keystoneProjectId}")
     public ResponseEntity<UpdateProjectResponse> updateProject(
             @PathVariable String keystoneProjectId,
@@ -146,6 +158,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Deprecated
     @DeleteMapping("/project/{keystoneProjectId}")
     public ResponseEntity<Void> deleteProject(
             @PathVariable String keystoneProjectId,
@@ -158,6 +171,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @Deprecated
     @GetMapping("/token/keystone/scoped")
     public ResponseEntity<String> issueProjectScopeToken(
             @RequestParam String projectId,
@@ -176,7 +190,7 @@ public class AuthController {
         return ResponseEntity.ok(jwtToken);
     }
 
-    @PostMapping("/login")
+    @Override
     public ResponseEntity<LoginResponse> login(
             @RequestBody @Validated KeystonePasswordLoginRequest request,
             HttpServletResponse response
@@ -197,7 +211,8 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/tokens/project")
+
+    @Override
     public ResponseEntity<ProjectTokenResponse> issueProjectToken(
             @RequestBody @Validated ProjectTokenRequest request,
             Authentication authentication
@@ -211,9 +226,9 @@ public class AuthController {
 
     @PostMapping("/login/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
-            @RequestBody @Validated RefreshTokenRequest request
+            @CookieValue("acc-refresh-token") String refreshToken
     ) {
-        LoginResponse loginResponse = authServicePort.refreshToken(request.refreshToken());
+        LoginResponse loginResponse = authServicePort.refreshToken(refreshToken);
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -221,6 +236,7 @@ public class AuthController {
     public ResponseEntity<SignupResponse> signup(
             @RequestBody @Validated SignupRequest request
     ) {
+
         SignupResponse response = authServicePort.signup(request);
 
         return ResponseEntity.ok(response);

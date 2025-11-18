@@ -1,10 +1,16 @@
 package com.acc.local.service.adapters.auth;
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
+import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.domain.model.auth.KeystoneProject;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.User;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
+import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.CreateProjectResponse;
 import com.acc.local.dto.project.GetProjectResponse;
@@ -24,6 +30,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceAdapter implements AuthServicePort {
     private final AuthModule authModule;
+    private final UserRepositoryPort userRepositoryPort;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -41,6 +48,7 @@ public class AuthServiceAdapter implements AuthServicePort {
         authModule.invalidateServiceTokensByUserId(userId);
     }
 
+    @Deprecated
     @Override
     public CreateUserResponse createUser(CreateUserRequest createUserRequest , String userId) {
 
@@ -50,7 +58,7 @@ public class AuthServiceAdapter implements AuthServicePort {
         User createdUser = authModule.createUser(user, userId);
         return CreateUserResponse.from(createdUser);
     }
-
+    @Deprecated
     @Override
     public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
@@ -58,7 +66,7 @@ public class AuthServiceAdapter implements AuthServicePort {
         User user = authModule.getUserDetail(targetUserId, requesterId);
         return GetUserResponse.from(user);
     }
-
+    @Deprecated
     @Override
     public UpdateUserResponse updateUser(String targetUserId, UpdateUserRequest updateUserRequest, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
@@ -67,7 +75,7 @@ public class AuthServiceAdapter implements AuthServicePort {
         User updatedUser = authModule.updateUser(targetUserId, user, requesterId);
         return UpdateUserResponse.from(updatedUser);
     }
-
+    @Deprecated
     @Override
     public void deleteUser(String targetUserId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
