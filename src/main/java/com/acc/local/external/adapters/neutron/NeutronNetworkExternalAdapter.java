@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,6 +131,31 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
                 "id", response.getBody().get("networks").get(0).get("id").asText(),
                 "name", response.getBody().get("networks").get(0).get("name").asText()
         );
+    }
+
+    @Override
+    public List<String> callListNetworksByNetworkName(String keystoneToken, String projectId, String networkName) {
+        try {
+            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(
+                    keystoneToken,
+                    Map.of("project_id", projectId,
+                            "name", networkName,
+                            "fields", "id")
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+            }
+
+            List<String> networkIds = new ArrayList<>();
+            for (JsonNode node : response.getBody().get("networks")) {
+                networkIds.add(node.get("id").asText());
+            }
+
+            return networkIds;
+        } catch (WebClientResponseException e) {
+            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+        }
     }
 
     private List<ViewNetworksResponse.Subnet> callListSubnetsByNetworkId(String keystoneToken, String networkId) {
