@@ -30,7 +30,8 @@ public class NetworkServiceAdapter implements NetworkServicePort {
         /* --- Quota 검증 --- */
 
         /* --- 네트워크 생성 --- */
-        if (!networkUtil.validateResourceName(request.getNetworkName())) {
+        if (!networkUtil.validateResourceName(request.getNetworkName()) ||
+        request.getNetworkName().equals("default-network")) {
             throw new NetworkException(NetworkErrorCode.INVALID_NETWORK_NAME);
         }
         if (!networkUtil.validateNetworkMtu(request.getMtu())) {

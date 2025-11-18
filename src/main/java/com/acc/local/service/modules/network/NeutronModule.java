@@ -23,6 +23,9 @@ public class NeutronModule {
     private final NeutronSecurityRuleExternalPort neutronSecurityRuleExternalPort;
     private final AuthModule authModule;
 
+    private final int DEFAULT_MTU = 1450;
+    private final String DEFAULT_CIDR = "192.168.0.0/24";
+
     public String createGeneralNetwork(CreateNetworkRequest request, String keystoneToken) {
         return neutronNetworkExternalPort.callCreateGeneralNetwork(keystoneToken,
                 request.getNetworkName(),
@@ -45,6 +48,34 @@ public class NeutronModule {
 
     public String getProviderNetworkId(String keystoneToken) {
         return neutronNetworkExternalPort.getProviderNetwork(keystoneToken).get("id");
+    }
+
+    public void createDefaultNetwork(String keystoneToken) {
+        String id = neutronNetworkExternalPort.callCreateGeneralNetwork(
+                keystoneToken,
+                "default-network",
+                null,
+                DEFAULT_MTU
+        );
+
+        createSubnet(
+                keystoneToken,
+                List.of(
+                        CreateNetworkRequest.Subnet.builder().
+                                cidr(DEFAULT_CIDR).
+                                subnetName("default-subnet").
+                                build()
+                ),
+                id
+        );
+    }
+
+    public String getDefaultNetworkId(String keystoneToken, String projectId) {
+        return neutronNetworkExternalPort.callListNetworksByNetworkName(
+                keystoneToken,
+                projectId,
+                "default-network"
+        ).getFirst();
     }
 
     public void createSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
