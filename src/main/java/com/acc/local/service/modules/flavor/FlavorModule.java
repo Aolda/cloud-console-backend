@@ -15,6 +15,7 @@ public class FlavorModule {
 
     private final WebClient instanceWebClient;
 
+    @Deprecated(since = "2025-09-24")
     public List<FlavorDto> getAllFlavors(String token) {
         JsonNode listResponse = instanceWebClient.get()
                 .uri("/instance/v2.1/flavors")
@@ -32,6 +33,7 @@ public class FlavorModule {
         return flavors;
     }
 
+    @Deprecated(since = "2025-09-24")
     public FlavorDto getFlavorById(String token, String id) {
         JsonNode flavorDetail = instanceWebClient.get()
                 .uri("/instance/v2.1/flavors/{id}", id)
@@ -44,6 +46,7 @@ public class FlavorModule {
         return parseFlavorDto(flavorDetail);
     }
 
+    @Deprecated(since = "2025-09-24")
     private FlavorDto parseFlavorDto(JsonNode node) {
         return new FlavorDto(
                 node.path("id").asText(),

@@ -64,17 +64,10 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/api/v1/images/**",
                                 "/api/v1/projects",
-                                "/api/v1/quick-setting/**",
                                 "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
                                 "/api/v1/snapshots/**",
-                                "/api/v1/networks/**",
-                                "/api/v1/routers/**",
                                 "/api/v1/keypairs/**",
-                                "/api/v1/interfaces/**",
-                                "/api/v1/security-groups/**",
-                                "/api/v1/security-rules/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 
                         ).permitAll()

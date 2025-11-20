@@ -168,6 +168,11 @@ public class NeutronModule {
         neutronSecurityRuleExternalPort.callDeleteSecurityRule(keystoneToken, srId);
     }
 
+    public String getDefaultSecurityGroupId(String keystoneToken, String projectId) {
+        ViewSecurityGroupsResponse defaultSg = neutronSecurityGroupExternalPort.callGetSecurityGroupByName(keystoneToken, projectId, "default");
+        return defaultSg.getSecurityGroupId();
+    }
+
     public void setDefaultSecurityGroup(String keystoneToken, String projectId) {
         ViewSecurityGroupsResponse defaultSg = neutronSecurityGroupExternalPort.callGetSecurityGroupByName(keystoneToken, projectId, "default");
 

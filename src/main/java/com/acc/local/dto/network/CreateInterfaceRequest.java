@@ -1,11 +1,13 @@
 package com.acc.local.dto.network;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@Builder
 public class CreateInterfaceRequest {
 
     @Schema(description = "인터페이스 이름", example = "my-interface")
