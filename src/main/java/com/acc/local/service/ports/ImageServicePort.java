@@ -1,22 +1,21 @@
 package com.acc.local.service.ports;
 
 import com.acc.local.dto.image.*;
-
 import java.io.InputStream;
 
 public interface ImageServicePort {
 
-    ImageListResponse getPrivateImages(String token, String projectId);
+    ImageListResponse getPrivateImages(String userId, String projectId);
 
-    ImageListResponse getPublicImages(String token);
+    ImageListResponse getPublicImages(String userId, String projectId);
 
-    ImageDetailResponse getImageDetail(String token, String imageId);
+    ImageDetailResponse getImageDetail(String userId, String projectId, String imageId);
 
-    ImageUploadAckResponse importImageByUrl(String token, ImageUrlImportRequest request);
+    ImageUploadAckResponse importImageByUrl(String userId, String projectId, ImageUrlImportRequest request);
 
-    ImageUploadAckResponse createImageMetadata(String token, ImageMetadataRequest req);
+    ImageUploadAckResponse createImageMetadata(String userId, String projectId, ImageMetadataRequest req);
 
-    void deleteImage(String token, String imageId);
+    void deleteImage(String userId, String projectId, String imageId);
 
-    void uploadFileStream(String token, String imageId, InputStream input, String contentType);
+    void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType);
 }

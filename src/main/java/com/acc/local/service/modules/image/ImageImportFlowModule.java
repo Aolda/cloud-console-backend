@@ -1,6 +1,7 @@
 package com.acc.local.service.modules.image;
 
-import com.acc.local.dto.image.ImageMetadataRequest;
+import com.acc.global.exception.image.ImageErrorCode;
+import com.acc.global.exception.image.ImageException;
 import com.acc.local.dto.image.ImageUploadAckResponse;
 import com.acc.local.dto.image.ImageUrlImportRequest;
 import com.acc.local.external.ports.GlanceExternalPort;
@@ -16,19 +17,23 @@ public class ImageImportFlowModule {
     private final GlanceExternalPort glanceExternalPort;
 
     public ImageUploadAckResponse executeUrlImport(String token, ImageUrlImportRequest req) {
+        try {
+            ResponseEntity<JsonNode> createRes = glanceExternalPort.createImageMetadata(token, req.metadata());
+            JsonNode body = createRes.getBody();
+            if (body == null || body.get("id") == null)
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
 
-        // 1) 메타데이터 생성
-        ResponseEntity<JsonNode> createRes = glanceExternalPort.createImageMetadata(token, req.metadata());
+            String imageId = body.get("id").asText();
 
-        String imageId = createRes.getBody().get("id").asText();
+            glanceExternalPort.importImageUrl(token, imageId, req.fileUrl());
 
-        // 2) URL import 실행
-        glanceExternalPort.importImageUrl(token, imageId, req.fileUrl());
+            return ImageUploadAckResponse.builder()
+                    .imageId(imageId)
+                    .message("Image import request accepted")
+                    .build();
 
-        // 3) 결과 Ack 반환
-        return ImageUploadAckResponse.builder()
-                .imageId(imageId)
-                .message("Image import request accepted")
-                .build();
+        } catch (Exception e) {
+            throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE, e);
+        }
     }
 }
