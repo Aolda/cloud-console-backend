@@ -1,22 +1,19 @@
 package com.acc.local.controller;
 
-import com.acc.local.dto.image.CreateImageRequestDto;
-import com.acc.local.dto.image.CreateImageResponseDto;
-import com.acc.local.dto.image.ImageResponse;
+import com.acc.global.security.jwt.JwtInfo;
+import com.acc.local.dto.image.*;
 import com.acc.local.service.ports.ImageServicePort;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import jdk.jfr.Description;
+import com.acc.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,39 +21,107 @@ import java.util.List;
 public class ImageController {
 
     private final ImageServicePort imageServicePort;
-    @Autowired
-    private ObjectMapper objectMapper;
     @GetMapping
-    public List<ImageResponse> getImages(@RequestHeader("X-Auth-Token") String token) {
-        return imageServicePort.getImages(token);
-    }
-
-    @GetMapping("/{id}")
-    public ImageResponse getImageDetail(@RequestHeader("X-Auth-Token") String token,
-                                        @PathVariable("id") String imageId) {
-        return imageServicePort.getImageDetail(token, imageId);
-    }
-
-    @GetMapping("/public")
-    public List<ImageResponse> getPublicImages(@RequestHeader("X-Auth-Token") String token) {
-        return imageServicePort.getPublicImages(token);
-    }
-
-    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public CreateImageResponseDto createImage(
-            @RequestHeader("X-Auth-Token") String token,
-            @Parameter(description = """
-        JSON 문자열 형태로 metadata를 전달해야 합니다.
-        """)
-            @RequestPart("metadata") String metadata,
-            @RequestPart("file") MultipartFile file
+    public ResponseEntity<ApiResponse<?>> getImages(
+            Authentication authentication,
+            @RequestParam(value = "image_id", required = false) String imageId
     ) {
-        return imageServicePort.createImage(token, metadata, file);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        if (imageId != null) {
+            ImageDetailResponse detail =
+                    imageServicePort.getImageDetail(userId, projectId, imageId);
+
+            return ResponseEntity.ok(
+                    ApiResponse.success("이미지 상세 조회 성공", detail)
+            );
+        }
+
+        ImageListResponse list =
+                imageServicePort.getPrivateImages(userId, projectId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("이미지 목록 조회 성공", list)
+        );
     }
+
+
+    @PostMapping("/import")
+    public ResponseEntity<ApiResponse<ImageUploadAckResponse>> importImageByUrl(
+            Authentication authentication,
+            @RequestBody ImageUrlImportRequest request
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        ImageUploadAckResponse res =
+                imageServicePort.importImageByUrl(userId, projectId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("이미지 URL Import 요청 성공", res)
+        );
+    }
+
+    @PostMapping("/metadata")
+    public ResponseEntity<ApiResponse<ImageUploadAckResponse>> createImageMetadata(
+            Authentication authentication,
+            @RequestBody ImageMetadataRequest request
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        ImageUploadAckResponse res =
+                imageServicePort.createImageMetadata(userId, projectId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("이미지 메타데이터 생성 성공", res)
+        );
+    }
+
+    @PostMapping(value = "/{imageId}/file", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<ApiResponse<Void>> uploadImageFileStream(
+            Authentication authentication,
+            @PathVariable String imageId,
+            HttpServletRequest request
+    ) throws IOException {
+
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        String contentType = request.getContentType();
+        InputStream bodyStream = request.getInputStream(); // 핵심: 프록시 스트림
+
+        imageServicePort.uploadFileStream(
+                userId,
+                projectId,
+                imageId,
+                bodyStream,
+                contentType
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success("이미지 파일 스트림 업로드 성공")
+        );
+    }
+
     @DeleteMapping("/{imageId}")
-    public ResponseEntity<Void> deleteProjectImage(@RequestHeader("X-Auth-Token") String token,
-                                                   @PathVariable String imageId) {
-        imageServicePort.deleteProjectImage(token, imageId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteImage(
+            Authentication authentication,
+            @PathVariable String imageId
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        imageServicePort.deleteImage(userId, projectId, imageId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("이미지 삭제 성공")
+        );
     }
 }
