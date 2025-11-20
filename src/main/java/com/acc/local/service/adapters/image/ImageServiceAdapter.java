@@ -9,11 +9,7 @@ import com.acc.local.service.modules.image.ImageServiceModule;
 import com.acc.local.service.ports.ImageServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,11 +28,7 @@ public class ImageServiceAdapter implements ImageServicePort {
     }
 
     @Override
-    public PageResponse<GlanceImageSummary> getImagesWithPagination(
-            String userId,
-            String projectId,
-            PageRequest req
-    ) {
+    public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req) {
         String token = acquireProjectScopedToken(userId, projectId);
 
         try {
