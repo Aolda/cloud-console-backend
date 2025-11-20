@@ -1,13 +1,13 @@
 package com.acc.local.service.ports;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.local.dto.image.*;
 import java.io.InputStream;
 
 public interface ImageServicePort {
 
-    ImageListResponse getPrivateImages(String userId, String projectId);
-
-    ImageListResponse getPublicImages(String userId, String projectId);
+    PageResponse<ImageListResponse.GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest pageRequest);
 
     ImageDetailResponse getImageDetail(String userId, String projectId, String imageId);
 
