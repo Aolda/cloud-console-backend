@@ -1,16 +1,22 @@
 package com.acc.local.service.ports;
 
-import com.acc.local.dto.image.CreateImageRequestDto;
-import com.acc.local.dto.image.CreateImageResponseDto;
-import com.acc.local.dto.image.ImageResponse;
-import org.springframework.web.multipart.MultipartFile;
+import com.acc.local.dto.image.*;
 
-import java.util.List;
+import java.io.InputStream;
 
 public interface ImageServicePort {
-    List<ImageResponse> getImages(String token);
-    ImageResponse getImageDetail(String token, String imageId);
-    List<ImageResponse> getPublicImages(String token);
-    void deleteProjectImage(String token, String imageId);
-    CreateImageResponseDto createImage(String token, String metadata, MultipartFile file);
+
+    ImageListResponse getPrivateImages(String token, String projectId);
+
+    ImageListResponse getPublicImages(String token);
+
+    ImageDetailResponse getImageDetail(String token, String imageId);
+
+    ImageUploadAckResponse importImageByUrl(String token, ImageUrlImportRequest request);
+
+    ImageUploadAckResponse createImageMetadata(String token, ImageMetadataRequest req);
+
+    void deleteImage(String token, String imageId);
+
+    void uploadFileStream(String token, String imageId, InputStream input, String contentType);
 }
