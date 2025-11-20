@@ -12,7 +12,9 @@ public enum ImageErrorCode implements ErrorCode {
     IMAGE_UPLOAD_FAILURE(500, "ACC-IMAGE-UPLOAD-FAILURE", "이미지 파일 업로드 중 오류가 발생하였습니다."),
     IMAGE_DELETE_FAILURE(502, "ACC-IMAGE-DELETE-FAILURE", "이미지 삭제 중 오류가 발생하였습니다."),
     INVALID_IMAGE_METADATA(400, "ACC-IMAGE-METADATA-INVALID", "이미지 메타데이터 형식이 올바르지 않습니다."),
-    IMAGE_LIST_FETCH_FAILURE(502, "ACC-IMAGE-FETCH-LIST-FAILURE", "이미지 목록 조회 중 오류가 발생했습니다.");
+    IMAGE_LIST_FETCH_FAILURE(502, "ACC-IMAGE-FETCH-LIST-FAILURE", "이미지 목록 조회 중 오류가 발생했습니다."),
+    IMAGE_FILE_UPLOAD_FAILURE(502, "ACC-IMAGE-UPLOAD-FAILURE", "이미지 파일 업로드 중 오류가 발생했습니다.");
+
     private final int status;
     private final String code;
     private final String message;
