@@ -45,7 +45,8 @@ public interface VolumeDocs {
             @Parameter(description = "인증 토큰", required = true, example = "Bearer {access_token}")
             @RequestHeader("Authorization") String token,
             @Parameter(description = "페이지 정보", required = false)
-            PageRequest page);
+            PageRequest page,
+            org.springframework.security.core.Authentication authentication);
 
     @Operation(
             summary = "볼륨 상세 조회",
@@ -66,7 +67,8 @@ public interface VolumeDocs {
             @Parameter(description = "인증 토큰 (ACC Token)", required = true)
             @RequestHeader("Authorization") String token,
             @Parameter(description = "조회할 볼륨 ID", required = true)
-            @PathVariable String volumeId
+            @PathVariable String volumeId,
+            org.springframework.security.core.Authentication authentication
     );
 
     @Operation(
@@ -115,7 +117,8 @@ public interface VolumeDocs {
             @Parameter(description = "인증 토큰 (ACC Token)", required = true, example = "Bearer {access_token}")
             @RequestHeader("Authorization") String token,
             @Parameter(description = "삭제할 볼륨 ID", required = true, example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-            @PathVariable String volumeId
+            @PathVariable String volumeId,
+            org.springframework.security.core.Authentication authentication
     );
 
     @Operation(
@@ -159,6 +162,7 @@ public interface VolumeDocs {
             @Parameter(description = "인증 토큰 (ACC Token)", required = true)
             @RequestHeader("Authorization") String token,
             @Parameter(description = "생성할 볼륨 정보", required = true)
-            @RequestBody VolumeRequest request
+            @RequestBody VolumeRequest request,
+            org.springframework.security.core.Authentication authentication
     );
 }

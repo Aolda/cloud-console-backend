@@ -9,15 +9,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
 
 @Tag(name = "Volume Snapshot", description = "볼륨 스냅샷 API")
 @RequestMapping("/api/v1/snapshots")
-@SecurityRequirement(name = "access-token")
 public interface VolumeSnapshotDocs {
 
     @Operation(
@@ -42,11 +39,13 @@ public interface VolumeSnapshotDocs {
                     content = @Content()
             )
     })
-    @GetMapping(params="!snapshotId")
+    @GetMapping
     ResponseEntity<PageResponse<VolumeSnapshotResponse>> getSnapshots(
-            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(description = "인증 토큰", required = true, example = "Bearer {access_token}")
+            @RequestHeader("Authorization") String token,
             @Parameter(description = "페이지 정보", required = false)
-            PageRequest page);
+            PageRequest page,
+            org.springframework.security.core.Authentication authentication);
 
 
 
@@ -65,11 +64,14 @@ public interface VolumeSnapshotDocs {
             @ApiResponse(responseCode = "404", description = "스냅샷을 찾을 수 없음", content = @Content())
     })
 
-    @GetMapping(params = "snapshotId")
+    //@GetMapping(params = "snapshotId")
+    @GetMapping("/{snapshotId}")
     ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
-            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(description = "인증 토큰 (ACC Token)", required = true)
+            @RequestHeader("Authorization") String token,
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
-            @RequestParam String snapshotId
+            @PathVariable String snapshotId,
+            org.springframework.security.core.Authentication authentication
     );
 
 
@@ -117,9 +119,11 @@ public interface VolumeSnapshotDocs {
     })
     @DeleteMapping(params ="snapshotId")
     ResponseEntity<Void> deleteSnapshot(
-            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(description = "인증 토큰 (ACC Token)", required = true, example = "Bearer {access_token}")
+            @RequestHeader("Authorization") String token,
             @Parameter(description = "삭제할 볼륨 스냅샷 ID", required = true, example = "92f53cf1-ae3e-4cc2-b5b7-462201a2d847")
-            @RequestParam String snapshotId
+            @RequestParam String snapshotId,
+            org.springframework.security.core.Authentication authentication
     );
 
 
@@ -136,33 +140,35 @@ public interface VolumeSnapshotDocs {
             @ApiResponse(
                     responseCode = "400",
                     description = "잘못된 요청 - (예: 볼륨 ID 누락, 유효하지 않은 볼륨 상태)",
-                    content = @Content()
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - 유효하지 않은 토큰",
-                    content = @Content()
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "권한 없음",
-                    content = @Content()
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "충돌 - (예: 볼륨이 사용 중, 스냅샷 생성 불가능 상태)",
-                    content = @Content()
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "서버 내부 오류 (Cinder API 실패)",
-                    content = @Content()
+                    content = @Content
             )
     })
     @PostMapping
     ResponseEntity<VolumeSnapshotResponse> createSnapshot(
-            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(description = "인증 토큰 (ACC Token)", required = true)
+            @RequestHeader("Authorization") String token,
             @Parameter(description = "스냅샷을 생성할 원본 볼륨 정보", required = true)
-            @RequestBody VolumeSnapshotRequest request
+            @RequestBody VolumeSnapshotRequest request,
+            org.springframework.security.core.Authentication authentication
     );
 }

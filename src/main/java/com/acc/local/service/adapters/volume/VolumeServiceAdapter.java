@@ -23,34 +23,34 @@ public class VolumeServiceAdapter implements VolumeServicePort {
     private final VolumeUtil volumeUtil;
 
     @Override
-    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String token) {
-        return volumeModule.getVolumes(page, "project-id", token);
+    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String projectId, String keystoneToken) {
+        return volumeModule.getVolumes(page, projectId, keystoneToken);
     }
 
     @Override
-    public VolumeResponse getVolumeDetails(String token, String volumeId) {
+    public VolumeResponse getVolumeDetails(String projectId, String keystoneToken, String volumeId) {
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
-        return volumeModule.getVolumeDetails(token, "project-id", volumeId);
+        return volumeModule.getVolumeDetails(keystoneToken, projectId, volumeId);
     }
 
     @Override
-    public ResponseEntity<Void> deleteVolume(String token, String volumeId) {
+    public ResponseEntity<Void> deleteVolume(String projectId, String keystoneToken, String volumeId) {
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
-        return volumeModule.deleteVolume(token, "project-id", volumeId);
+        return volumeModule.deleteVolume(keystoneToken, projectId, volumeId);
     }
 
     @Override
-    public VolumeResponse createVolume(String token, VolumeRequest request) {
+    public VolumeResponse createVolume(String projectId, String keystoneToken, VolumeRequest request) {
         if (!volumeUtil.validateVolumeSize(request.getSize())) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_SIZE);
         }
         if (!volumeUtil.validateVolumeName(request.getName())) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_NAME);
         }
-        return volumeModule.createVolume(token, "project-id", request);
+        return volumeModule.createVolume(keystoneToken, projectId, request);
     }
 }

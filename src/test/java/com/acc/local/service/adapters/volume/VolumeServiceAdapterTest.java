@@ -40,7 +40,8 @@ class VolumeServiceAdapterTest {
     @DisplayName("볼륨 목록을 페이징하여 조회할 수 있다")
     void givenPageRequest_whenGetVolumes_thenReturnPageResponse() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         PageRequest pageRequest = new PageRequest();
         pageRequest.setLimit(10);
         pageRequest.setMarker(null);
@@ -67,25 +68,26 @@ class VolumeServiceAdapterTest {
                 .last(true)
                 .build();
 
-        when(volumeModule.getVolumes(eq(pageRequest), eq("project-id"), eq(token)))
+        when(volumeModule.getVolumes(eq(pageRequest), eq(projectId), eq(keystoneToken)))
                 .thenReturn(expectedResponse);
 
         // when
-        PageResponse<VolumeResponse> actualResponse = volumeServiceAdapter.getVolumes(pageRequest, token);
+        PageResponse<VolumeResponse> actualResponse = volumeServiceAdapter.getVolumes(pageRequest, projectId, keystoneToken);
 
         // then
         assertNotNull(actualResponse);
         assertEquals(2, actualResponse.getSize());
         assertEquals("volume-1", actualResponse.getContents().get(0).getVolumeId());
         assertEquals("volume-2", actualResponse.getContents().get(1).getVolumeId());
-        verify(volumeModule).getVolumes(eq(pageRequest), eq("project-id"), eq(token));
+        verify(volumeModule).getVolumes(eq(pageRequest), eq(projectId), eq(keystoneToken));
     }
 
     @Test
     @DisplayName("유효한 볼륨 ID로 볼륨 상세 정보를 조회할 수 있다")
     void givenValidVolumeId_whenGetVolumeDetails_thenReturnVolumeResponse() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         String volumeId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
         VolumeResponse expectedVolume = VolumeResponse.builder()
@@ -101,11 +103,11 @@ class VolumeServiceAdapterTest {
                 .build();
 
         when(volumeUtil.validateVolumeId(volumeId)).thenReturn(true);
-        when(volumeModule.getVolumeDetails(eq(token), eq("project-id"), eq(volumeId)))
+        when(volumeModule.getVolumeDetails(eq(keystoneToken), eq(projectId), eq(volumeId)))
                 .thenReturn(expectedVolume);
 
         // when
-        VolumeResponse actualVolume = volumeServiceAdapter.getVolumeDetails(token, volumeId);
+        VolumeResponse actualVolume = volumeServiceAdapter.getVolumeDetails(projectId, keystoneToken, volumeId);
 
         // then
         assertNotNull(actualVolume);
@@ -113,21 +115,22 @@ class VolumeServiceAdapterTest {
         assertEquals("test-volume", actualVolume.getName());
         assertEquals(10, actualVolume.getSize());
         verify(volumeUtil).validateVolumeId(volumeId);
-        verify(volumeModule).getVolumeDetails(eq(token), eq("project-id"), eq(volumeId));
+        verify(volumeModule).getVolumeDetails(eq(keystoneToken), eq(projectId), eq(volumeId));
     }
 
     @Test
     @DisplayName("유효하지 않은 볼륨 ID로 조회 시 예외가 발생한다")
     void givenInvalidVolumeId_whenGetVolumeDetails_thenThrowException() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         String invalidVolumeId = "invalid-id";
 
         when(volumeUtil.validateVolumeId(invalidVolumeId)).thenReturn(false);
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeServiceAdapter.getVolumeDetails(token, invalidVolumeId);
+            volumeServiceAdapter.getVolumeDetails(projectId, keystoneToken, invalidVolumeId);
         });
 
         assertEquals(VolumeErrorCode.INVALID_VOLUME_ID, exception.getErrorCode());
@@ -139,7 +142,8 @@ class VolumeServiceAdapterTest {
     @DisplayName("유효한 요청으로 볼륨을 생성할 수 있다")
     void givenValidRequest_whenCreateVolume_thenReturnCreatedVolume() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         VolumeRequest request = new VolumeRequest();
         request.setName("new-volume");
         request.setSize(10);
@@ -157,11 +161,11 @@ class VolumeServiceAdapterTest {
 
         when(volumeUtil.validateVolumeSize(10)).thenReturn(true);
         when(volumeUtil.validateVolumeName("new-volume")).thenReturn(true);
-        when(volumeModule.createVolume(eq(token), eq("project-id"), eq(request)))
+        when(volumeModule.createVolume(eq(keystoneToken), eq(projectId), eq(request)))
                 .thenReturn(expectedVolume);
 
         // when
-        VolumeResponse actualVolume = volumeServiceAdapter.createVolume(token, request);
+        VolumeResponse actualVolume = volumeServiceAdapter.createVolume(projectId, keystoneToken, request);
 
         // then
         assertNotNull(actualVolume);
@@ -170,14 +174,15 @@ class VolumeServiceAdapterTest {
         assertEquals(10, actualVolume.getSize());
         verify(volumeUtil).validateVolumeSize(10);
         verify(volumeUtil).validateVolumeName("new-volume");
-        verify(volumeModule).createVolume(eq(token), eq("project-id"), eq(request));
+        verify(volumeModule).createVolume(eq(keystoneToken), eq(projectId), eq(request));
     }
 
     @Test
     @DisplayName("유효하지 않은 크기로 볼륨 생성 시 예외가 발생한다")
     void givenInvalidSize_whenCreateVolume_thenThrowException() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         VolumeRequest request = new VolumeRequest();
         request.setName("new-volume");
         request.setSize(0);
@@ -186,7 +191,7 @@ class VolumeServiceAdapterTest {
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeServiceAdapter.createVolume(token, request);
+            volumeServiceAdapter.createVolume(projectId, keystoneToken, request);
         });
 
         assertEquals(VolumeErrorCode.INVALID_VOLUME_SIZE, exception.getErrorCode());
@@ -198,7 +203,8 @@ class VolumeServiceAdapterTest {
     @DisplayName("유효하지 않은 이름으로 볼륨 생성 시 예외가 발생한다")
     void givenInvalidName_whenCreateVolume_thenThrowException() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         VolumeRequest request = new VolumeRequest();
         request.setName("!invalid-name");
         request.setSize(10);
@@ -208,7 +214,7 @@ class VolumeServiceAdapterTest {
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeServiceAdapter.createVolume(token, request);
+            volumeServiceAdapter.createVolume(projectId, keystoneToken, request);
         });
 
         assertEquals(VolumeErrorCode.INVALID_VOLUME_NAME, exception.getErrorCode());
@@ -221,35 +227,37 @@ class VolumeServiceAdapterTest {
     @DisplayName("유효한 볼륨 ID로 볼륨을 삭제할 수 있다")
     void givenValidVolumeId_whenDeleteVolume_thenReturnSuccessResponse() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         String volumeId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
         when(volumeUtil.validateVolumeId(volumeId)).thenReturn(true);
-        when(volumeModule.deleteVolume(eq(token), eq("project-id"), eq(volumeId)))
+        when(volumeModule.deleteVolume(eq(keystoneToken), eq(projectId), eq(volumeId)))
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
 
         // when
-        ResponseEntity<Void> response = volumeServiceAdapter.deleteVolume(token, volumeId);
+        ResponseEntity<Void> response = volumeServiceAdapter.deleteVolume(projectId, keystoneToken, volumeId);
 
         // then
         assertNotNull(response);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         verify(volumeUtil).validateVolumeId(volumeId);
-        verify(volumeModule).deleteVolume(eq(token), eq("project-id"), eq(volumeId));
+        verify(volumeModule).deleteVolume(eq(keystoneToken), eq(projectId), eq(volumeId));
     }
 
     @Test
     @DisplayName("유효하지 않은 볼륨 ID로 삭제 시 예외가 발생한다")
     void givenInvalidVolumeId_whenDeleteVolume_thenThrowException() {
         // given
-        String token = "test-token";
+        String projectId = "test-project-id";
+        String keystoneToken = "test-keystone-token";
         String invalidVolumeId = "invalid-id";
 
         when(volumeUtil.validateVolumeId(invalidVolumeId)).thenReturn(false);
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeServiceAdapter.deleteVolume(token, invalidVolumeId);
+            volumeServiceAdapter.deleteVolume(projectId, keystoneToken, invalidVolumeId);
         });
 
         assertEquals(VolumeErrorCode.INVALID_VOLUME_ID, exception.getErrorCode());
