@@ -2,8 +2,7 @@ package com.acc.local.external.modules.keystone;
 
 import com.acc.local.domain.enums.auth.KeystoneTokenType;
 import com.acc.local.domain.enums.auth.ProjectPermission;
-import com.acc.local.domain.model.auth.KeystoneProject;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.*;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 
@@ -192,6 +191,124 @@ public class KeystoneAPIUtils {
         }
     }
 
+    public static Role parseKeystoneRoleResponse(ResponseEntity<JsonNode> response) {
+        JsonNode body = validateAndExtractBody(response);
+
+        if (!body.has("role")) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
+                "Response body에 'role' 필드가 존재하지 않습니다."
+            );
+        }
+
+        try {
+            JsonNode roleObject = body.get("role");
+            return Role.builder()
+                    .id(roleObject.has("id") ? roleObject.get("id").asText() : null)
+                    .name(roleObject.has("name") ? roleObject.get("name").asText() : null)
+                    .description(roleObject.has("description") ? roleObject.get("description").asText(null) : null)
+                    .domainId(roleObject.has("domain_id") ? roleObject.get("domain_id").asText(null) : null)
+                    .build();
+        } catch (Exception e) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
+                "Role 정보 파싱 중 오류가 발생했습니다.",
+                e
+            );
+        }
+    }
+
+    public static RoleListResponse parseKeystoneRoleListResponse(ResponseEntity<JsonNode> response) {
+        JsonNode body = validateAndExtractBody(response);
+
+        if (!body.has("roles")) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
+                "Response body에 'roles' 필드가 존재하지 않습니다."
+            );
+        }
+
+        try {
+            JsonNode rolesNode = body.get("roles");
+            JsonNode linksNode = body.get("links");
+
+            List<Role> roles = new ArrayList<>();
+            if (rolesNode != null && rolesNode.isArray()) {
+                for (JsonNode roleNode : rolesNode) {
+                    Role role = Role.builder()
+                            .id(roleNode.has("id") ? roleNode.get("id").asText() : null)
+                            .name(roleNode.has("name") ? roleNode.get("name").asText() : null)
+                            .description(roleNode.has("description") ? roleNode.get("description").asText(null) : null)
+                            .domainId(roleNode.has("domain_id") ? roleNode.get("domain_id").asText(null) : null)
+                            .build();
+                    roles.add(role);
+                }
+            }
+
+            String nextMarker = extractMarkerFromLink(linksNode, "next");
+            String prevMarker = extractMarkerFromLink(linksNode, "previous");
+
+            return RoleListResponse.builder()
+                    .roles(roles)
+                    .nextMarker(nextMarker)
+                    .prevMarker(prevMarker)
+                    .build();
+        } catch (Exception e) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
+                "Role 목록 파싱 중 오류가 발생했습니다.",
+                e
+            );
+        }
+    }
+
+    public static UserListResponse parseKeystoneUserListResponse(ResponseEntity<JsonNode> response) {
+        JsonNode body = validateAndExtractBody(response);
+
+        if (!body.has("users")) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
+                "Response body에 'users' 필드가 존재하지 않습니다."
+            );
+        }
+
+        try {
+            JsonNode usersNode = body.get("users");
+            JsonNode linksNode = body.get("links");
+
+            List<User> users = new ArrayList<>();
+            if (usersNode != null && usersNode.isArray()) {
+                for (JsonNode userNode : usersNode) {
+                    User user = User.builder()
+                            .id(userNode.has("id") ? userNode.get("id").asText() : null)
+                            .name(userNode.has("name") ? userNode.get("name").asText() : null)
+                            .domainId(userNode.has("domain_id") ? userNode.get("domain_id").asText() : null)
+                            .defaultProjectId(userNode.has("default_project_id") ? userNode.get("default_project_id").asText() : null)
+                            .enabled(userNode.has("enabled") ? userNode.get("enabled").asBoolean() : false)
+                            .email(userNode.has("email") ? userNode.get("email").asText() : null)
+                            .description(userNode.has("description") ? userNode.get("description").asText() : null)
+                            .build();
+                    users.add(user);
+                }
+            }
+
+            String nextMarker = extractMarkerFromLink(linksNode, "next");
+            String prevMarker = extractMarkerFromLink(linksNode, "previous");
+
+            return UserListResponse.builder()
+                    .users(users)
+                    .nextMarker(nextMarker)
+                    .prevMarker(prevMarker)
+                    .build();
+        } catch (Exception e) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
+                "User 목록 파싱 중 오류가 발생했습니다.",
+                e
+            );
+        }
+    }
+
     // TODO: resquest, response 생성 및 파서 관리 유틸을 나눌 것인지 확인 필요
     // --  Request DTO 생성 메서드 ---//
 
@@ -216,6 +333,9 @@ public class KeystoneAPIUtils {
         }
         if (user.getEmail() != null) {
             userObject.put("email", user.getEmail());
+        }
+        if (user.getPassword() != null) {
+            userObject.put("password", user.getPassword());
         }
         if (user.getDescription() != null) {
             userObject.put("description", user.getDescription());
@@ -403,6 +523,24 @@ public class KeystoneAPIUtils {
         }
 
         return (T) (current != null ? current.asText() : null);
+    }
+
+    private static String extractMarkerFromLink(JsonNode linksNode, String linkType) {
+        if (linksNode == null || !linksNode.has(linkType)) {
+            return null;
+        }
+
+        String link = linksNode.get(linkType).asText(null);
+        if (link == null || !link.contains("marker=")) {
+            return null;
+        }
+
+        String marker = link.substring(link.indexOf("marker=") + 7);
+        if (marker.contains("&")) {
+            marker = marker.substring(0, marker.indexOf("&"));
+        }
+
+        return marker;
     }
 
 }

@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StopServerRequest {
     @JsonProperty("os-stop")
-    private Object osStop = null;
+    private String osStop = null;
 }

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class RevertResizeRequest {
-    private Object revertResize = null;
+    private String revertResize = null;
 }

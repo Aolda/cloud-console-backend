@@ -35,7 +35,7 @@ public class KeypairModule {
     }
 
     @Transactional
-    public CreateKeypairResponse createKeypair(String keystoneToken, String projectId, CreateKeypairRequest request) {
+    public CreateKeypairResponse createKeypair(CreateKeypairRequest request, String keystoneToken, String projectId) {
         CreateKeypairResponse response = keypairExternalPort.createKeypair(keystoneToken, request);
 
         // DB 에서 프로젝트 존재 여부를 먼저 확인
@@ -65,8 +65,7 @@ public class KeypairModule {
     }
 
     @Transactional
-    public void deleteKeypair(String keystoneToken, String projectId, String keypairId) {
-
+    public void deleteKeypair(String keypairId, String keystoneToken, String projectId) {
         KeypairProjectId keypairProjectId = new KeypairProjectId(keypairId, projectId);
         KeypairEntity keypair = keypairRepositoryPort.findById(keypairProjectId)
                 .orElseThrow(() -> new KeypairException(KeypairErrorCode.DB_KEYPAIR_NOT_FOUND));

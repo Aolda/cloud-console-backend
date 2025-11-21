@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ForceDeleteServerRequest {
-    private Object forceDelete = null;
+    private String forceDelete = null;
 }

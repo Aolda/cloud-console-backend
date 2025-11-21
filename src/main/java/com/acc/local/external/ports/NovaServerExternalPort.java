@@ -6,6 +6,6 @@ import com.acc.local.dto.instance.InstanceResponse;
 
 public interface NovaServerExternalPort {
 
-    PageResponse<InstanceResponse> callListInstances(String token, String projectId, String marker, String direction, int limit);
-    void callCreateInstance(String token, String projectId, InstanceCreateRequest request);
+    PageResponse<InstanceResponse> callListInstances(String keystoneToken, String projectId, String marker, String direction, int limit);
+    void callCreateInstance(String keystoneToken, String projectId, InstanceCreateRequest request);
 }

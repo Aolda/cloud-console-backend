@@ -6,6 +6,7 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.ports.NetworkServicePort;
@@ -20,15 +21,17 @@ public class NetworkServiceAdapter implements NetworkServicePort {
 
     private final NeutronModule neutronModule;
     private final NetworkUtil networkUtil;
+    private final AuthModule authModule;
 
     @Override
-    public void createNetwork(CreateNetworkRequest request, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void createNetwork(CreateNetworkRequest request, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         /* --- Quota 검증 --- */
 
         /* --- 네트워크 생성 --- */
-        if (!networkUtil.validateResourceName(request.getNetworkName())) {
+        if (!networkUtil.validateResourceName(request.getNetworkName()) ||
+        request.getNetworkName().equals("default-network")) {
             throw new NetworkException(NetworkErrorCode.INVALID_NETWORK_NAME);
         }
         if (!networkUtil.validateNetworkMtu(request.getMtu())) {
@@ -43,7 +46,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_NAME);
                 }
 
-                if (!networkUtil.validateSubnetCidr(subnet.getCidr())) {
+                if (!networkUtil.validateCidr(subnet.getCidr())) {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_CIDR);
                 }
             }
@@ -53,8 +56,8 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     }
 
     @Override
-    public void deleteNetwork(String networkId, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void deleteNetwork(String networkId, String userId, String projectID) {
+        String token = authModule.issueProjectScopeToken(projectID, userId);
 
 
         if (!neutronModule.canDeleteNetwork(token, networkId)) {
@@ -65,12 +68,12 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     }
 
     @Override
-    public PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String token) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         /* --- 네트워크 리스트 조회 --- */
         return neutronModule.listNetworks(token,
-                "test-project-id",
+                projectId,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit());

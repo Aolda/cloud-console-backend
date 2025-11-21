@@ -44,7 +44,7 @@ public class UserTokenEntity {
 
     @Builder
     private UserTokenEntity(String userId, String jwtToken, String keystoneUnscopedToken,
-                            LocalDateTime keystoneExpiresAt) {
+                            LocalDateTime keystoneExpiresAt , LocalDateTime expiresAt, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isActive ) {
         LocalDateTime now = LocalDateTime.now();
 
         this.userId = userId;
@@ -82,5 +82,10 @@ public class UserTokenEntity {
 
     public boolean isMappingUnscopedTokenExpired() {
         return LocalDateTime.now().isAfter(keystoneExpiresAt);
+    }
+
+    public void setInvalid() {
+        this.isActive = false;
+        this.updatedAt = LocalDateTime.now();
     }
 }

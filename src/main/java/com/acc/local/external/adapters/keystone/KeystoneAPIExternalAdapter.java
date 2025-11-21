@@ -2,6 +2,9 @@ package com.acc.local.external.adapters.keystone;
 
 import java.util.Map;
 
+import com.acc.local.domain.model.auth.Role;
+import com.acc.local.domain.model.auth.RoleListResponse;
+import com.acc.local.domain.model.auth.UserListResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -200,8 +203,11 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public ResponseEntity<JsonNode> updateUser(String userId, String token, Map<String, Object> userRequest) {
 		try {
+			log.info("Keystone updateUser 요청 - userId: {}, request: {}", userId, userRequest);
 			return keystoneUserAPIModule.updateUser(userId, token, userRequest);
 		} catch (WebClientResponseException e) {
+			log.error("Keystone updateUser 실패 - userId: {}, status: {}, response: {}",
+					userId, e.getStatusCode(), e.getResponseBodyAsString());
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
 				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
@@ -232,6 +238,24 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 				throw new KeystoneException(AuthErrorCode.USER_NOT_FOUND, e);
 			} else if (status == HttpStatus.CONFLICT) {
 				throw new KeystoneException(AuthErrorCode.CONFLICT, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public UserListResponse listUsers(String token, String marker, Integer limit) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneUserAPIModule.listUsers(token, marker, limit);
+			return KeystoneAPIUtils.parseKeystoneUserListResponse(response);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
 			}
 			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
 		}
@@ -334,6 +358,44 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		}
 	}
 
+	@Override
+	public Role createRole(String token, Map<String, Object> roleRequest) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.createRole(token, roleRequest);
+			return KeystoneAPIUtils.parseKeystoneRoleResponse(response);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			} else if (status == HttpStatus.CONFLICT) {
+				throw new KeystoneException(AuthErrorCode.CONFLICT, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public RoleListResponse listRoles(String token, String marker, Integer limit, String name) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.listRoles(token, marker, limit, name);
+			return KeystoneAPIUtils.parseKeystoneRoleListResponse(response);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
 	// ----- Private Methods -----
 
 	private ResponseEntity<JsonNode> requestKeystoneTokenInfo(String keystoneToken) {
@@ -415,12 +477,10 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	private ResponseEntity<JsonNode> authenticateKeystoneWithSystemPrivilege(String unscopedTokenString) {
 		try {
 			Map<String, Object> systemAdminTokenRequest = KeystoneAPIUtils.createSystemAdminTokenRequest(unscopedTokenString);
-            log.info("System Admin Token Request: {}", systemAdminTokenRequest);
 			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(systemAdminTokenRequest);
 			if (tokenResponse == null) {
 				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
 			}
-            log.info("System Admin Token tokenResponse: {}", tokenResponse);
 			return tokenResponse;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();

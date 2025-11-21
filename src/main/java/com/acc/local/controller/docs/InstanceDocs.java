@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/instances")
@@ -46,9 +47,7 @@ public interface InstanceDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<InstanceResponse>> getInstances(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page
     );
@@ -96,9 +95,7 @@ public interface InstanceDocs {
     })
     @PostMapping
     ResponseEntity<Object> createInstance(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            Authentication authentication,
             @RequestBody
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
             InstanceCreateRequest request
@@ -178,9 +175,7 @@ public interface InstanceDocs {
     })
     @PostMapping("/action")
     ResponseEntity<Object> controlInstance(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            Authentication authentication,
             @RequestParam("instanceId")
             @Parameter(description = "인스턴스 고유 ID", required = true, example = "vm-uuid-1234-5678")
             String instanceId,

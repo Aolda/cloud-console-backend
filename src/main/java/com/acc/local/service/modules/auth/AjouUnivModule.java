@@ -5,9 +5,6 @@ import java.util.Optional;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-
-import com.acc.local.domain.enums.UnivAccountType;
-import com.acc.local.domain.enums.UnivDepartStatus;
 import com.acc.local.dto.auth.UserDepartDto;
 import com.acc.local.entity.UnivDepartInfoEntity;
 import com.acc.local.external.dto.google.GoogleDepartResponse;
@@ -15,7 +12,9 @@ import com.acc.local.external.modules.google.GooglePeopleModule;
 import com.acc.local.repository.ports.UnivDepartmentRepositoryPort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AjouUnivModule {

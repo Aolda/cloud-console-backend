@@ -23,37 +23,6 @@ public class InstanceUtil {
         return hasKey ^ hasPass; // 인증 방식은 '키페어' 또는 '패스워드' 중 하나 (XOR)
     }
 
-    public boolean validateActionWithStatus(InstanceStatus rawStatus, String action) {
-
-        return switch (action) {
-            // [ 'ACTIVE' 상태로 만드는 동작 ]
-            case "start" -> rawStatus == InstanceStatus.SHUTOFF;
-            case "unpause" -> rawStatus == InstanceStatus.PAUSED;
-            case "unshelve" -> rawStatus == InstanceStatus.SHELVED || rawStatus == InstanceStatus.SHELVED_OFFLOADED;
-            case "resume" -> rawStatus == InstanceStatus.SUSPENDED;
-
-            // [ 'ACTIVE' 상태에서 수행하는 동작 ]
-            case "stop" -> rawStatus == InstanceStatus.ACTIVE;
-            case "pause" -> rawStatus == InstanceStatus.ACTIVE;
-            case "suspend" -> rawStatus == InstanceStatus.ACTIVE;
-            case "reboot" -> rawStatus == InstanceStatus.ACTIVE || rawStatus == InstanceStatus.ERROR;
-            case "hard_reboot" ->
-                    rawStatus == InstanceStatus.ACTIVE || rawStatus == InstanceStatus.SHUTOFF || rawStatus == InstanceStatus.ERROR;
-
-            // [ 상태 변경 동작 ]
-            case "shelve" -> rawStatus == InstanceStatus.ACTIVE || rawStatus == InstanceStatus.SHUTOFF;
-            case "rebuild", "rescue", "changePassword" ->
-                    rawStatus == InstanceStatus.ACTIVE || rawStatus == InstanceStatus.SHUTOFF;
-            case "resize" -> rawStatus == InstanceStatus.ACTIVE || rawStatus == InstanceStatus.SHUTOFF;
-            case "confirmResize" -> rawStatus == InstanceStatus.VERIFY_RESIZE;
-            case "revertResize" -> rawStatus == InstanceStatus.VERIFY_RESIZE;
-
-            // [ 삭제 동작 ]
-            case "delete" -> rawStatus != InstanceStatus.DELETED && rawStatus != InstanceStatus.REVERT_RESIZE;
-            default -> false;
-        };
-    }
-
     public void validateInstanceActionRequest(InstanceActionRequest request) {
         switch (request.getAction()) {
             case REMOVE_SECURITY_GROUP:

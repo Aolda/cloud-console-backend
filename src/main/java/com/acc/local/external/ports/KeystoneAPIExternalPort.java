@@ -1,6 +1,9 @@
 package com.acc.local.external.ports;
 
 import com.acc.global.exception.AccBaseException;
+import com.acc.local.domain.model.auth.Role;
+import com.acc.local.domain.model.auth.RoleListResponse;
+import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,6 +47,8 @@ public interface KeystoneAPIExternalPort {
 
 	ResponseEntity<JsonNode> deleteUser(String userId, String token);
 
+	UserListResponse listUsers(String token, String marker, Integer limit);
+
 	// ----- Project -----
 
 	ResponseEntity<JsonNode> createProject(String token, Map<String, Object> projectRequest);
@@ -57,4 +62,8 @@ public interface KeystoneAPIExternalPort {
 	// ----- Role -----
 
 	ResponseEntity<JsonNode> getAccountPermissionList(String userId, String token);
+
+	Role createRole(String token, Map<String, Object> roleRequest);
+
+	RoleListResponse listRoles(String token, String marker, Integer limit, String name);
 }

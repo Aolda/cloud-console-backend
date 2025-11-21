@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UnlockServerRequest {
-    private Object unlock = null;
+    private String unlock = null;
 }

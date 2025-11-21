@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UnrescueServerRequest {
-    private Object unrescue = null;
+    private String unrescue = null;
 }

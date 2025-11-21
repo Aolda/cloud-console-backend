@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class RestoreServerRequest {
-    private Object restore = null;
+    private String restore = null;
 }

@@ -4,6 +4,7 @@ import com.acc.local.domain.enums.auth.AuthType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 회원가입 요청 DTO
@@ -13,6 +14,7 @@ public record SignupRequest(
     String username,
 
     @NotBlank(message = "이메일은 필수입니다")
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@ajou\\.ac\\.kr$", message = "이메일은 @ajou.ac.kr 도메인이어야 합니다")
     @Email(message = "올바른 이메일 형식이어야 합니다")
     String email,
 

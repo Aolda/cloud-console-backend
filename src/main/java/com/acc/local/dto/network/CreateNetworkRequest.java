@@ -1,6 +1,7 @@
 package com.acc.local.dto.network;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class CreateNetworkRequest {
     List<Subnet> subnets;
 
     @Getter
+    @Builder
     public static class Subnet {
 
         @Schema(description = "서브넷 CIDR", example = "192.168.0.0/24")

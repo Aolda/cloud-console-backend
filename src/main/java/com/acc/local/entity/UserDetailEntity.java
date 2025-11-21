@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "user_detail")
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserDetailEntity {
@@ -37,10 +37,17 @@ public class UserDetailEntity {
     @Column(name = "user_name", nullable = false)
     private String userName;
 
+    @Builder.Default
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.isDeleted == null) {
+            this.isDeleted = false;
+        }
     }
 
     @PreUpdate

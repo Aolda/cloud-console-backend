@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ResumeServerRequest {
-    private Object resume = null;
+    private String resume = null;
 }

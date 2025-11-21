@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,6 +38,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public Optional<UserAuthDetailEntity> findUserAuthById(String userId) {
         return userAuthDetailJpaRepository.findById(userId);
+    }
+
+    @Override
+    public List<UserDetailEntity> findUserDetailsByIds(List<String> userIds) {
+        return userDetailJpaRepository.findAllById(userIds);
+    }
+
+    @Override
+    public List<UserAuthDetailEntity> findUserAuthsByIds(List<String> userIds) {
+        return userAuthDetailJpaRepository.findAllById(userIds);
     }
 
     @Override

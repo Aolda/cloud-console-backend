@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UnpauseServerRequest {
-    private Object unpause = null;
+    private String unpause = null;
 }

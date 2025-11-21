@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PageRequest {
-
     private String marker;
     private Direction direction = Direction.next;
     private Integer limit = 10;

@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StartServerRequest {
     @JsonProperty("os-start")
-    private Object osStart = null;
+    private String osStart = null;
 }

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ShelveServerRequest {
-    private Object shelve = null;
+    private String shelve = null;
 }

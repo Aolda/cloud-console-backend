@@ -1,8 +1,11 @@
 package com.acc.local.service.modules.auth;
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
+import com.acc.local.dto.auth.*;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.global.properties.OpenstackProperties;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
@@ -18,9 +21,6 @@ import com.acc.local.entity.UserTokenEntity;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
-import com.acc.local.dto.auth.KeystoneToken;
-import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
-import com.acc.local.dto.auth.SignupRequest;
 import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.entity.UserAuthDetailEntity;
 import com.acc.local.domain.model.auth.UserDetail;
@@ -474,7 +474,7 @@ public class AuthModule {
 
         // 5. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
-
+        UserToken existingUserToken = UserToken.from(existingTokenEntity);
         // 6. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
@@ -486,14 +486,11 @@ public class AuthModule {
         // 7. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 8. 기존 UserToken 비활성화
-        userTokenRepositoryPort.deactivateAllByUserId(userId);
-
         // 9. 새로운 JWT Access Token 발급 (projectId 없이)
         String newAccessToken = jwtUtils.generateToken(userId);
 
         // 10. 새로운 UserToken 생성 및 저장
-        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(userId,newKeystoneToken,newAccessToken);
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, userId,newKeystoneToken,newAccessToken, jwtUtils.calculateExpirationDateTime());
 
         userTokenRepositoryPort.save(newUserToken.toEntity());
 

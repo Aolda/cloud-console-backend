@@ -16,16 +16,16 @@ public class InstanceModule {
     private final NovaServerExternalPort novaServerExternalPort;
     private final NovaServerActionExternalPort novaServerActionExternalPort;
 
-    public PageResponse<InstanceResponse> listInstances(String token, String projectId, String marker, String direction, int limit) {
-        return novaServerExternalPort.callListInstances(token, projectId, marker, direction, limit);
+    public PageResponse<InstanceResponse> listInstances(String keystoneToken, String projectId, String marker, String direction, int limit) {
+        return novaServerExternalPort.callListInstances(keystoneToken, projectId, marker, direction, limit);
     }
 
-    public void createInstance(String token, String projectId, InstanceCreateRequest request) {
-        novaServerExternalPort.callCreateInstance(token, projectId, request);
+    public void createInstance(String keystoneToken, String projectId, InstanceCreateRequest request) {
+        novaServerExternalPort.callCreateInstance(keystoneToken, projectId, request);
     }
 
-    public void controlInstance(String token, String projectId, String instanceId, InstanceActionRequest request) {
-        novaServerActionExternalPort.callControlInstance(token, projectId, instanceId, request);
+    public void controlInstance(String keystoneToken, String projectId, String instanceId, InstanceActionRequest request) {
+        novaServerActionExternalPort.callControlInstance(keystoneToken, projectId, instanceId, request);
     }
 }
 
