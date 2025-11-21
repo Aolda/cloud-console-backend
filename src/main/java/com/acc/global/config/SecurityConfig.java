@@ -9,11 +9,13 @@ import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -46,6 +48,12 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 인증 실패(401)나 권한 부족(403) 시 로그인 페이지로 리다이렉트(302)하는 것을 방지
+                .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .userService(oAuth2CustomUserService))
@@ -57,24 +65,18 @@ public class SecurityConfig {
                                 "/api/v1/google/**",
                                 "/api/v1/auth/token",
                                 "/api/v1/auth/login/general",
-                                "/api/v1/instances/**",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/signup",
                                 "/api/v1/auth/login/refresh",
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
-                                "/api/v1/computes/**",
                                 "/api/v1/images/**",
                                 "/api/v1/projects",
-                                "/api/v1/quick-setting/**",
                                 "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
                                 "/api/v1/snapshots/**",
-                                "/api/v1/networks/**",
-                                "/api/v1/routers/**",
                                 "/api/v1/keypairs/**",
-                                "/api/v1/interfaces/**"
+                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -96,7 +98,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://script.google.com",
-                "https://script.googleusercontent.com"
+                "https://script.googleusercontent.com",
+                "https://console.aoldacloud.com",
+                "https://acc.jalju.com"
         ));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
