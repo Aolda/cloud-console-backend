@@ -130,4 +130,13 @@ public class OpenstackAPICallModule {
                 .toBodilessEntity()
                 .block();
     }
+
+    public ResponseEntity<Void> callDeleteAPINoBody(String uri, Map<String, String> headers, int port) {
+        return openstackWebClient.delete()
+                .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
 }
