@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Collections;
+import java.util.Vector;
 
 @Component
 @RequiredArgsConstructor
@@ -49,9 +50,9 @@ public class GlanceImageAPIModule {
     }
 
     // Import Image (외부 URL로 import)
-    public ResponseEntity<JsonNode> importImage(String token, String imageId, ImportImageRequest request) {
+    public ResponseEntity<Void> importImage(String token, String imageId, ImportImageRequest request) {
         String uri = "/v2/images/" + imageId + "/import";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPINoBody(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     // Update Image (메타데이터 수정)

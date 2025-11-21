@@ -121,4 +121,13 @@ public class OpenstackAPICallModule {
                 .block();
     }
 
+    public ResponseEntity<Void> callPostAPINoBody(String uri, Map<String, String> headers, Object requestBody, int port) {
+        return openstackWebClient.post()
+                .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                .bodyValue(requestBody)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
 }
