@@ -31,7 +31,19 @@ public enum VolumeErrorCode implements ErrorCode {
     VOLUME_QUOTA_EXCEEDED(409, "ACC-STORAGE-VOLUME-QUOTA-EXCEEDED", "볼륨 생성 쿼터를 초과했습니다."),
 
     // 500 Internal Server Error
-    CINDER_API_FAILURE(500, "ACC-STORAGE-CINDER-API-FAILURE", "OpenStack Cinder API 통신 중 오류가 발생하였습니다.");
+    CINDER_API_FAILURE(500, "ACC-STORAGE-CINDER-API-FAILURE", "OpenStack Cinder API 통신 중 오류가 발생하였습니다."),
+
+    // 400 Bad Request - Snapshot Policy
+    INVALID_POLICY_ID(400, "ACC-STORAGE-POLICY-ID-INVALID", "정책 ID 형식이 유효하지 않습니다."),
+    INVALID_POLICY_NAME(400, "ACC-STORAGE-POLICY-NAME-INVALID", "정책 이름은 1~100자여야 합니다."),
+    INVALID_INTERVAL_TYPE(400, "ACC-STORAGE-INTERVAL-TYPE-INVALID", "간격 타입은 DAILY, WEEKLY, MONTHLY 중 하나여야 합니다."),
+    INVALID_SCHEDULE_PARAMETER(400, "ACC-STORAGE-SCHEDULE-PARAM-INVALID", "간격 타입에 맞는 스케줄 파라미터가 필요합니다."),
+
+    // 404 Not Found - Snapshot Policy
+    POLICY_NOT_FOUND(404, "ACC-STORAGE-POLICY-NOT-FOUND", "요청한 스냅샷 수명관리자 정책을 찾을 수 없습니다."),
+
+    // 409 Conflict - Snapshot Policy
+    POLICY_ALREADY_EXISTS(409, "ACC-STORAGE-POLICY-EXISTS", "동일한 볼륨에 대한 정책이 이미 존재합니다.");
 
     private final int status;
     private final String code;
