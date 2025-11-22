@@ -37,6 +37,7 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
         String defaultInterfaceId = null;
         String serverPort = null;
         String networkId = neutronModule.getDefaultNetworkId(token, projectId);
+        String sgId = neutronModule.getDefaultSecurityGroupId(token, projectId);
 
         /* --- dto 검증 --- */
         if (!instanceUtil.validateInstanceName(request.getInstanceName())) {
@@ -44,7 +45,6 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
         }
 
         /* --- network 생성 --- */
-        String sgId = neutronModule.getDefaultSecurityGroupId(token, projectId);
         if (request.getIsExternal()) {
             try {
             defaultInterfaceId = neutronModule.createInterface(
@@ -78,7 +78,7 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
                 .password(request.getPassword());
 
         if (request.getIsExternal()) {
-            instanceBuilder.networkIds(List.of(networkId));
+            instanceBuilder.interfaceIds(List.of(defaultInterfaceId));
         } else {
             instanceBuilder.networkIds(List.of(networkId));
             instanceBuilder.securityGroupIds(List.of(sgId));
