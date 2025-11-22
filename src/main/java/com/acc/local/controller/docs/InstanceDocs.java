@@ -47,6 +47,7 @@ public interface InstanceDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<InstanceResponse>> getInstances(
+            @Parameter(hidden = true)
             Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page
@@ -95,6 +96,7 @@ public interface InstanceDocs {
     })
     @PostMapping
     ResponseEntity<Object> createInstance(
+            @Parameter(hidden = true)
             Authentication authentication,
             @RequestBody
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
@@ -175,6 +177,7 @@ public interface InstanceDocs {
     })
     @PostMapping("/action")
     ResponseEntity<Object> controlInstance(
+            @Parameter(hidden = true)
             Authentication authentication,
             @RequestParam("instanceId")
             @Parameter(description = "인스턴스 고유 ID", required = true, example = "vm-uuid-1234-5678")
