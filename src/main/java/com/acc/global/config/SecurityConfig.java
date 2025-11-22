@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 "/api/v1/images/**",
                                 "/api/v1/projects",
                                 "/api/v1/flavors/**",
+                                "/api/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
                                 "/api/v1/keypairs/**",
