@@ -44,12 +44,12 @@ public class UserToken {
 
     public UserTokenEntity toEntity() {
         return UserTokenEntity.builder()
+                .id(this.id)
                 .userId(this.userId)
                 .jwtToken(this.jwtToken)
                 .keystoneUnscopedToken(this.keystoneUnscopedToken)
                 .keystoneExpiresAt(this.keystoneExpiresAt)
                 .isActive(this.isActive)
-                .keystoneExpiresAt(this.keystoneExpiresAt)
                 .expiresAt(this.expiresAt)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)

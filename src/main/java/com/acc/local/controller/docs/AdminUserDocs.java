@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/admin/users")
 @Tag(name = "Admin Users", description = "관리자 사용자 관리 API")
+@SecurityRequirement(name = "access-token")
 public interface AdminUserDocs {
 
     @Operation(
