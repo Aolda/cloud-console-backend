@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/interfaces")
 @Tag(name = "Interface", description = "인터페이스 API")
+@SecurityRequirement(name = "access-token")
 public interface InterfaceDocs {
 
     @Operation(
