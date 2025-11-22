@@ -1,6 +1,8 @@
 package com.acc.local.dto.instance;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +10,8 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class InstanceCreateRequest {
 
     @Schema(description = "인스턴스 이름", example = "my-vm-server")
@@ -37,3 +41,4 @@ public class InstanceCreateRequest {
     @Schema(description = "키페어 이름 (password와 택1)", example = "my-keypair-name")
     String keypairId;
 }
+
