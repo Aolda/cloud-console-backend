@@ -41,6 +41,10 @@ public class RouterServiceAdapter implements RouterServicePort {
     public void deleteRouter(String routerId, String userId, String projectId) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
 
+        if (!neutronModule.canDeleteRouter(token, routerId)) {
+            throw new NetworkException(NetworkErrorCode.CAN_NOT_DELETE_ROUTER);
+        }
+
         neutronModule.deleteRouter(token, routerId);
     }
 

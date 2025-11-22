@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +22,7 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
 
     private final NeutronSubnetsAPIModule subnetsAPIModule;
 
-    public void callCreateSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
+    public List<Map<String, String>> callCreateSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
         ResponseEntity<JsonNode> response = subnetsAPIModule.bulkCreateSubnets(keystoneToken,
                 BulkCreateSubnetRequest.builder()
                         .subnets(
@@ -37,5 +39,13 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_CREATION_FAILED);
         }
+        List<Map<String, String>> sub = new ArrayList<>();
+        for (JsonNode node : response.getBody().get("subnets")) {
+            sub.add(
+                    Map.of("id", node.get("id").asText(),
+                            "name", node.get("name").asText())
+            );
+        }
+        return sub;
     }
 }

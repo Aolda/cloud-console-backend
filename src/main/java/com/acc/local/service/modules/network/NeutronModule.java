@@ -58,7 +58,7 @@ public class NeutronModule {
                 DEFAULT_MTU
         );
 
-        createSubnet(
+        String subnetId = createSubnet(
                 keystoneToken,
                 List.of(
                         CreateNetworkRequest.Subnet.builder().
@@ -67,7 +67,11 @@ public class NeutronModule {
                                 build()
                 ),
                 id
-        );
+        ).getFirst().get("id");
+
+        String routerId = createRouter(keystoneToken, "default-router", true);
+        connectRouterToSubnet(keystoneToken, routerId, subnetId);
+
     }
 
     public String getDefaultNetworkId(String keystoneToken, String projectId) {
@@ -78,8 +82,8 @@ public class NeutronModule {
         ).getFirst();
     }
 
-    public void createSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
-        neutronSubnetExternalPort.callCreateSubnet(keystoneToken, subnets, networkId);
+    public List<Map<String, String>> createSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
+        return neutronSubnetExternalPort.callCreateSubnet(keystoneToken, subnets, networkId);
     }
 
     /* --- Routers --- */
@@ -91,12 +95,21 @@ public class NeutronModule {
         neutronRouterExternalPort.callDeleteRouter(keystoneToken, routerId);
     }
 
-    public void createRouter(String keystoneToken, String routerName, boolean isExternal) {
+    public String createRouter(String keystoneToken, String routerName, boolean isExternal) {
         String networkId = null;
         if (isExternal) {
             networkId = getProviderNetworkId(keystoneToken);
         }
-        neutronRouterExternalPort.callCreateRouter(keystoneToken, routerName, networkId);
+        return neutronRouterExternalPort.callCreateRouter(keystoneToken, routerName, networkId);
+    }
+
+    public String connectRouterToSubnet(String keystoneToken, String routerId, String subnetId) {
+        return neutronRouterExternalPort.callAddRouterInterface(keystoneToken, routerId, subnetId);
+    }
+
+    public boolean canDeleteRouter(String keystoneToken, String routerId) {
+        Map<String, String> router = neutronRouterExternalPort.getRouterNameAndId(keystoneToken, routerId);
+        return !router.get("name").equals("default-router");
     }
 
     /* --- External IPs --- */
