@@ -5,6 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.exception.image.ImageException;
 import com.acc.global.security.jwt.JwtInfo;
+import com.acc.local.controller.docs.ImageDocs;
 import com.acc.local.dto.image.*;
 import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import com.acc.local.service.ports.ImageServicePort;
@@ -15,13 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import java.io.IOException;
 import java.io.InputStream;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/images")
-public class ImageController {
+public class ImageController implements ImageDocs {
 
     private final ImageServicePort imageServicePort;
 
@@ -30,7 +30,7 @@ public class ImageController {
             Authentication authentication,
             @RequestParam(value = "image_id", required = false) String imageId,
             @RequestParam(value = "scope", required = false) String scope,
-            PageRequest pageRequest
+            @ModelAttribute PageRequest pageRequest
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
@@ -75,7 +75,7 @@ public class ImageController {
         String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
         try {
-            String contentType = request.getContentType();
+            String contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
             InputStream bodyStream = request.getInputStream();
             imageServicePort.uploadFileStream(userId, projectId, imageId, bodyStream, contentType);
             return ResponseEntity.ok(ApiResponse.success("이미지 파일 스트림 업로드 성공"));
