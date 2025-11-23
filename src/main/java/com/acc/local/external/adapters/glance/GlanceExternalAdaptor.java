@@ -35,6 +35,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
 
             return glanceImageAPIModule.fetchImageList(token, param);
         } catch (Exception e) {
+//            System.out.println("fetchPrivateImageList error");
             throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
         }
     }
@@ -51,6 +52,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
 
             return glanceImageAPIModule.fetchImageList(token, param);
         } catch (Exception e) {
+//            System.out.println("fetchPublicImageList error");
             throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
         }
     }
@@ -60,6 +62,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
         try {
             return glanceImageAPIModule.fetchImage(token, imageId);
         } catch (Exception e) {
+//            System.out.println("fetchImageDetail error");
             throw new ImageException(ImageErrorCode.IMAGE_DETAIL_FETCH_FAILURE, e);
         }
     }
@@ -78,6 +81,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
 
             return glanceImageAPIModule.createImage(token, createReq);
         } catch (Exception e) {
+//            System.out.println("createImageMetadata error");
             throw new ImageException(ImageErrorCode.IMAGE_METADATA_CREATE_FAILURE, e);
         }
     }
@@ -89,18 +93,15 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
                     .method(ImportImageRequest.Method.builder()
                             .name("web-download")
                             .uri(fileUrl)
-                            .glanceImageId(imageId)
-                            .glanceRegion("ToeHak")
-                            .glanceServiceInterface("public")
                             .build())
                     .allStores(true)
                     .allStoresMustSucceed(false)
-                    .stores(List.of())
                     .build();
-
             glanceImageAPIModule.importImage(token, imageId, importReq);
         } catch (Exception e) {
-            throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE, e);
+//            System.out.println("importImageUrl error");
+//            System.out.println(e.getMessage());
+            throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE);
         }
     }
 
@@ -108,6 +109,11 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
     public void uploadImageProxyStream(String token, String imageId, InputStream body, String contentType) {
         try {
             InputStreamResource resource = new InputStreamResource(body) {
+                @Override
+                public long contentLength() {
+                    return -1;
+                }
+
                 @Override
                 public String getFilename() {
                     return null;
@@ -125,6 +131,8 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
         try {
             glanceImageAPIModule.deleteImage(token, imageId);
         } catch (Exception e) {
+//            System.out.println("deleteImage error");
+//            System.out.println(e.getMessage());
             throw new ImageException(ImageErrorCode.IMAGE_DELETE_FAILURE, e);
         }
     }
