@@ -1,7 +1,5 @@
 package com.acc.local.service.modules.auth;
-import com.acc.global.common.PageRequest;
-import com.acc.global.common.PageResponse;
-import com.acc.global.exception.ErrorCode;
+
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
@@ -11,8 +9,7 @@ import com.acc.global.properties.OpenstackProperties;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.acc.global.security.jwt.JwtUtils;
-import com.acc.local.domain.enums.auth.ProjectPermission;
-import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.User;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.UserToken;
@@ -22,7 +19,6 @@ import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.entity.UserDetailEntity;
-import com.acc.local.entity.UserAuthDetailEntity;
 import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserAuthDetail;
 
@@ -99,7 +95,7 @@ public class AuthModule {
         return issueACCToken(tokenInfo);
     }
 
-    public ProjectPermission getProjectPermission(String projectId, String userId) {
+    public ProjectRole getProjectPermission(String projectId, String userId) {
         String keystoneToken = getUnscopedTokenByUserId(userId);
 
         ResponseEntity<JsonNode> tokenInfoResponse = keystoneAPIExternalPort.getTokenInfo(keystoneToken);
@@ -112,9 +108,9 @@ public class AuthModule {
         if (permissionResponse == null) {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_AUTHENTICATION_FAILED);
         }
-        Map<String, ProjectPermission> permissionMap = KeystoneAPIUtils.createUserPermissionMap(permissionResponse);
+        Map<String, ProjectRole> permissionMap = KeystoneAPIUtils.createUserPermissionMap(permissionResponse);
 
-        return permissionMap.getOrDefault(projectId, ProjectPermission.NONE);
+        return permissionMap.getOrDefault(projectId, ProjectRole.NONE);
     }
 
     public boolean validateJwtToken(String jwtToken) {
@@ -248,48 +244,6 @@ public class AuthModule {
         return false;
     }
 
-    @Transactional
-    public KeystoneProject createProject(KeystoneProject project, String userId) {
-        String keystoneToken = getUnscopedTokenByUserId(userId);
-
-        Map<String, Object> projectRequest = KeystoneAPIUtils.createKeystoneProjectRequest(project);
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createProject(keystoneToken, projectRequest);
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_CREATION_FAILED, "프로젝트 생성 응답이 null입니다.");
-        }
-        return KeystoneAPIUtils.parseKeystoneProjectResponse(response);
-    }
-
-    @Transactional
-    public KeystoneProject getProjectDetail(String projectId, String requesterId) {
-        String keystoneToken = getUnscopedTokenByUserId(requesterId);
-
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getProjectDetail(projectId, keystoneToken);
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");
-        }
-        return KeystoneAPIUtils.parseKeystoneProjectResponse(response);
-    }
-
-    @Transactional
-    public KeystoneProject updateProject(String projectId, KeystoneProject project, String requesterId) {
-        String keystoneToken = getUnscopedTokenByUserId(requesterId);
-
-        Map<String, Object> projectRequest = KeystoneAPIUtils.createKeystoneUpdateProjectRequest(project);
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.updateProject(projectId, keystoneToken, projectRequest);
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_UPDATE_FAILED, "프로젝트 업데이트 응답이 null입니다.");
-        }
-        return KeystoneAPIUtils.parseKeystoneProjectResponse(response);
-    }
-
-    @Transactional
-    public void deleteProject(String projectId, String requesterId) {
-        String keystoneToken = getUnscopedTokenByUserId(requesterId);
-
-        keystoneAPIExternalPort.deleteProject(projectId, keystoneToken);
-    }
-
     public String issueProjectScopeToken(String projectId, String userId) {
         String unscopedToken = getUnscopedTokenByUserId(userId);
         KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
@@ -297,7 +251,7 @@ public class AuthModule {
         return scopedToken.token();
     }
 
-    private String getUnscopedTokenByUserId(String userId) {
+    protected String getUnscopedTokenByUserId(String userId) {
         UserTokenEntity userToken = getAvailUserTokenEntities(userId).getFirst();
         checkUnscopedTokenExpired(userToken);
 
@@ -324,7 +278,6 @@ public class AuthModule {
      * @param userId 요청하는 사용자ID
      * @return 시스템 관리자 토큰
      */
-    @Transactional
     public String issueSystemAdminToken(String userId) {
         // TODO: 추후 응답구조 변경을 통한 폐기 프로세스 자동화 필요
 
@@ -335,6 +288,25 @@ public class AuthModule {
         );
 
         KeystoneToken adminToken = keystoneAPIExternalPort.getAdminToken(systemAdminLoginRequest);
+
+        return adminToken.token();
+    }
+
+    /**
+     * 시스템 관리자 권한 계정을 'admin project scope'로 발행합니다. 사용 직후 `invalidateUserToken()`을 통해 즉시폐기 바랍니다.
+     * @param userId 요청하는 사용자ID
+     * @return 시스템 관리자 토큰
+     */
+    public String issueSystemAdminTokenWithAdminProjectScope(String userId) {
+        // TODO: 추후 응답구조 변경을 통한 폐기 프로세스 자동화 필요
+
+        KeystonePasswordLoginRequest systemAdminLoginRequest = new KeystonePasswordLoginRequest(
+            openstackProperties.getSaUsername(),
+            openstackProperties.getSaPassword(),
+            "Default"
+        );
+
+        KeystoneToken adminToken = keystoneAPIExternalPort.getAdminTokenWithAdminProjectScope(systemAdminLoginRequest);
 
         return adminToken.token();
     }
@@ -397,8 +369,6 @@ public class AuthModule {
 
         return UserToken.from(savedEntity);
     }
-
-
 
     private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {
         String accessToken = jwtUtils.generateToken(userId);
@@ -536,5 +506,4 @@ public class AuthModule {
             invalidateSystemAdminToken(adminToken);
         }
     }
-
 }

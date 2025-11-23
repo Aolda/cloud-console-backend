@@ -1,10 +1,12 @@
 package com.acc.local.dto.project;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 
 import java.util.List;
 import java.util.Map;
 
+@Builder
 public record UpdateProjectRequest(
         @Schema(description = "프로젝트 이름") String name,
         @Schema(description = "도메인 역할 여부") Boolean isDomain,

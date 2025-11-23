@@ -1,6 +1,8 @@
 package com.acc.local.external.ports;
 
+import com.acc.global.common.PageRequest;
 import com.acc.global.exception.AccBaseException;
+import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.domain.model.auth.Role;
 import com.acc.local.domain.model.auth.RoleListResponse;
 import com.acc.local.domain.model.auth.UserListResponse;
@@ -22,6 +24,8 @@ public interface KeystoneAPIExternalPort {
 	KeystoneToken getScopedToken(String projectId, String unscopedToken) throws AccBaseException;
 
 	KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException;
+
+	KeystoneToken getAdminTokenWithAdminProjectScope(KeystonePasswordLoginRequest loginRequest) throws AccBaseException;
 
 	void revokeToken(String keystoneToken) throws AccBaseException;
 
@@ -66,4 +70,6 @@ public interface KeystoneAPIExternalPort {
 	Role createRole(String token, Map<String, Object> roleRequest);
 
 	RoleListResponse listRoles(String token, String marker, Integer limit, String name);
+
+	ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String adminToken);
 }

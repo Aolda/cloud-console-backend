@@ -73,3 +73,6 @@ oauth:
 
 apm:
     server-url: ${APM_SERVER_URL}
+logging:
+  level:
+    reactor.netty.http.client: TRACE

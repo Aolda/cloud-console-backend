@@ -1,5 +1,6 @@
 package com.acc.local.external.adapters.keystone;
 
+import java.util.List;
 import java.util.Map;
 
 import com.acc.local.domain.model.auth.Role;
@@ -11,12 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.acc.global.common.PageRequest;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.JwtAuthenticationException;
 import com.acc.global.exception.auth.KeystoneException;
+import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
+import com.acc.local.external.dto.OpenstackPagination;
+import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.modules.keystone.KeystoneAuthAPIModule;
 import com.acc.local.external.modules.keystone.KeystoneProjectAPIModule;
@@ -60,6 +65,14 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	public KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
 		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
 		ResponseEntity<JsonNode> systemAdminTokenResponse = authenticateKeystoneWithSystemPrivilege(unscopedToken.token());
+		return KeystoneAPIUtils.extractKeystoneToken(systemAdminTokenResponse);
+	}
+
+	@Override
+	public KeystoneToken getAdminTokenWithAdminProjectScope(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
+		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
+		String adminProjectId = getAdminProjectId(unscopedToken.token());
+		ResponseEntity<JsonNode> systemAdminTokenResponse = authenticateKeystoneWithAdminProjectPrivilege(unscopedToken.token(), adminProjectId);
 		return KeystoneAPIUtils.extractKeystoneToken(systemAdminTokenResponse);
 	}
 
@@ -279,6 +292,58 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 				throw new KeystoneException(AuthErrorCode.CONFLICT, e);
 			}
 			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_CREATION_FAILED, e);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private String getAdminProjectId(String token) {
+		try {
+			ResponseEntity<JsonNode> accessableProjects = keystoneProjectAPIModule.getAccessableProjects(token);
+			return KeystoneAPIUtils.extractAdminProjectId(accessableProjects);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			} else if (status == HttpStatus.CONFLICT) {
+				throw new KeystoneException(AuthErrorCode.CONFLICT, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_CREATION_FAILED, e);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
+	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String adminToken) {
+		try {
+			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+				keyword,
+				pageRequest.getMarker(), pageRequest.getLimit()
+			);
+			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjects(
+				adminToken,
+				keystoneListProjectRequest
+			);
+
+			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
+			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
+
+			return ProjectListDto.from(keystoneProjects, projectsPagination);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.NOT_FOUND) {
+				throw new KeystoneException(AuthErrorCode.PROJECT_NOT_FOUND, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, e);
 		}
 	}
 
@@ -477,10 +542,35 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	private ResponseEntity<JsonNode> authenticateKeystoneWithSystemPrivilege(String unscopedTokenString) {
 		try {
 			Map<String, Object> systemAdminTokenRequest = KeystoneAPIUtils.createSystemAdminTokenRequest(unscopedTokenString);
+            log.trace("System Admin Token Request: {}", systemAdminTokenRequest);
 			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(systemAdminTokenRequest);
 			if (tokenResponse == null) {
 				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
 			}
+            log.trace("System Admin Token tokenResponse: {}", tokenResponse);
+			return tokenResponse;
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, e);
+		}
+	}
+
+	private ResponseEntity<JsonNode> authenticateKeystoneWithAdminProjectPrivilege(String unscopedTokenString, String adminProjectId) {
+		try {
+			Map<String, Object> systemAdminTokenRequest = KeystoneAPIUtils.createSystemAdminProjectScopeTokenRequest(unscopedTokenString, adminProjectId);
+            log.trace("System Admin Token Request: {}", systemAdminTokenRequest);
+			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(systemAdminTokenRequest);
+			if (tokenResponse == null) {
+				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, "프로젝트 스코프 토큰 발급 응답이 null입니다.");
+			}
+            log.trace("System Admin Token tokenResponse: {}", tokenResponse);
 			return tokenResponse;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();

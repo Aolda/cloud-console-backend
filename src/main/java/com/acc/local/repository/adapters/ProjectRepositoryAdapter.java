@@ -18,4 +18,9 @@ public class ProjectRepositoryAdapter implements ProjectRepositoryPort {
     public Optional<ProjectEntity> findById(String projectId) {
         return projectJpaRepository.findById(projectId);
     }
+
+    @Override
+    public void save(ProjectEntity projectEntity) {
+        projectJpaRepository.save(projectEntity);
+    }
 }

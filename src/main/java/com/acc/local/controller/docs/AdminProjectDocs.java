@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectCreationResponse;
-import com.acc.local.dto.project.DecideProjectCreationRequest;
+import com.acc.local.dto.project.CreateProjectResponse;
+import com.acc.local.dto.project.DecideProjectRequestRequest;
 import com.acc.local.dto.auth.ProjectRoleResponse;
+import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +45,7 @@ public interface AdminProjectDocs {
 	@GetMapping
 	ResponseEntity<PageResponse<ProjectResponse>> getProjects(
 		@Parameter(hidden = true) Authentication authentication,
+		@Parameter(description = "검색어; 프로젝트 제목만 검색가능", required = false) String keyword,
 		@Parameter(description = "페이징 정보", required = false) PageRequest page
 	);
 
@@ -59,7 +61,7 @@ public interface AdminProjectDocs {
 		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
 	@PostMapping
-	ResponseEntity<ProjectResponse> createProject(
+	ResponseEntity<CreateProjectResponse> createProject(
 		@Parameter(hidden = true) Authentication authentication,
 		@RequestBody CreateProjectRequest request
 	);
@@ -94,8 +96,9 @@ public interface AdminProjectDocs {
 		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
 	@GetMapping("/request")
-	ResponseEntity<PageResponse<CreateProjectCreationResponse>> getProjectCreationRequests(
+	ResponseEntity<PageResponse<ProjectRequestResponse>> getProjectRequests(
 		@Parameter(hidden = true) Authentication authentication,
+		@Parameter(description = "검색 키워드; 현재는 프로젝트 제목만 지원") String keyword,
 		@Parameter(description = "페이지 정보", required = false) PageRequest pageable
 	);
 
@@ -112,8 +115,8 @@ public interface AdminProjectDocs {
 		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
 	@PostMapping("/request")
-	ResponseEntity<Void> handleProjectCreationRequest(
+	ResponseEntity<Void> decideProjectRequest(
 		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody DecideProjectCreationRequest request
+		@RequestBody DecideProjectRequestRequest request
 	);
 }
