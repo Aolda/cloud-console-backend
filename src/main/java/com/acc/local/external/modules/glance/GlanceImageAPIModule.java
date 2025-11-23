@@ -72,7 +72,7 @@ public class GlanceImageAPIModule {
     }
 
     //file Upload
-    public ResponseEntity<JsonNode> uploadImageFileStream(String token, String imageId, InputStreamResource resource, String contentType) {
+    public ResponseEntity<Void> uploadImageFileStream(String token, String imageId, InputStreamResource resource, String contentType) {
         String uri = "/v2/images/" + imageId + "/file";
         return openstackAPICallModule.callPutBinaryStreamAPI(
                 uri,
