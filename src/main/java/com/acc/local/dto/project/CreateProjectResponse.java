@@ -1,32 +1,24 @@
 package com.acc.local.dto.project;
 
-import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Builder
 public record CreateProjectResponse(
-    String id,
-    String name,
-    String description,
-    String domainId,
-    Boolean enabled,
-    Boolean isDomain,
-    String parentId,
-    Map<String, Object> options,
-    Map<String, Object> links
+    String projectId,
+    String projectName,
+    ProjectQuotaDto quota,
+    String createdAt
 ) {
-    public static CreateProjectResponse from(KeystoneProject project) {
+    public static CreateProjectResponse from(KeystoneProject project, ProjectQuotaDto quota) {
         return CreateProjectResponse.builder()
-                .id(project.getId())
-                .name(project.getName())
-                .description(project.getDescription())
-                .domainId(project.getDomainId())
-                .enabled(project.getEnabled())
-                .isDomain(project.getIsDomain())
-                .options(project.getOptions())
-                .links(project.getLinks())
-                .build();
+            .projectId(project.getId())
+            .projectName(project.getName())
+            .quota(quota)
+            .createdAt(LocalDateTime.now().toString())
+            .build();
     }
 }

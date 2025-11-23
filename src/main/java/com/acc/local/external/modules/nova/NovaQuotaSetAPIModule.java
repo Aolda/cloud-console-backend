@@ -1,5 +1,6 @@
 package com.acc.local.external.modules.nova;
 
+import com.acc.local.external.dto.nova.UpdateNovaQuotaRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class NovaQuotaSetAPIModule extends NovaAPIUtil {
     public ResponseEntity<JsonNode> showQuota(String token, String tenantId) {
         String uri = "/v2.1/os-quota-sets/" + tenantId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+    }
+
+    public ResponseEntity<JsonNode> updateQuota(String token, String tenantId, UpdateNovaQuotaRequest request) {
+        String uri = "/v2.1/os-quota-sets/" + tenantId;
+        return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     public ResponseEntity<JsonNode> showDefaultQuota(String token, String tenantId) {

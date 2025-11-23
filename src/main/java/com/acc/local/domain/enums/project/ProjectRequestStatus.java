@@ -1,6 +1,5 @@
-package com.acc.local.domain.enums.auth;
+package com.acc.local.domain.enums.project;
 
-import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthEntityException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ProjectStatus {
+public enum ProjectRequestStatus {
     PENDING("PENDING", "대기중"),
     APPROVED("APPROVED", "승인됨"),
     REJECTED("REJECTED", "반려됨"),
@@ -20,8 +19,8 @@ public enum ProjectStatus {
     private final String code;
     private final String description;
 
-    public static ProjectStatus fromCode(String code) {
-        for (ProjectStatus status : values()) {
+    public static ProjectRequestStatus fromCode(String code) {
+        for (ProjectRequestStatus status : values()) {
             if (status.getCode().equals(code)) {
                 return status;
             }

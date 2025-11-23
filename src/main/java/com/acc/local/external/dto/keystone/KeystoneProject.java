@@ -1,5 +1,6 @@
-package com.acc.local.domain.model.auth;
+package com.acc.local.external.dto.keystone;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class KeystoneProject {
 
     private String id; // keystone projectId
@@ -20,9 +22,11 @@ public class KeystoneProject {
     private Boolean isDomain;
     private List<String> tags;
 
-    private Map<String, Object> links;
-    private Map<String, Object> options;
-
+    @Builder
+    public KeystoneProject(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 
     @Override
     public boolean equals(Object obj) {

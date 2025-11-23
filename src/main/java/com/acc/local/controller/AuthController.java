@@ -1,13 +1,8 @@
 package com.acc.local.controller;
 
 import com.acc.global.security.jwt.JwtInfo;
-import com.acc.local.controller.docs.AuthDocs;
-import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.GetProjectResponse;
-import com.acc.local.dto.project.UpdateProjectRequest;
-import com.acc.local.dto.project.UpdateProjectResponse;
 import com.acc.local.dto.project.UserPermissionResponse;
+import com.acc.local.controller.docs.AuthDocs;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.jwt.JwtUtils;
@@ -113,60 +108,6 @@ public class AuthController implements AuthDocs {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String requesterId = jwtInfo.getUserId();
         authServicePort.deleteUser(keystoneUserId, requesterId);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
-    @Deprecated
-    @PostMapping("/project")
-    public ResponseEntity<CreateProjectResponse> createKeystoneProject(
-            @RequestBody @Validated CreateProjectRequest request,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        CreateProjectResponse response = authServicePort.createProject(request, userId);
-
-        return ResponseEntity.status(201).body(response);
-    }
-
-    @Deprecated
-    @GetMapping("/project/{keystoneProjectId}")
-    public ResponseEntity<GetProjectResponse> getProjectDetail(
-            @PathVariable String keystoneProjectId,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-        GetProjectResponse response = authServicePort.getProjectDetail(keystoneProjectId, requesterId);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Deprecated
-    @PatchMapping("/project/{keystoneProjectId}")
-    public ResponseEntity<UpdateProjectResponse> updateProject(
-            @PathVariable String keystoneProjectId,
-            @RequestBody @Validated UpdateProjectRequest request,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-        UpdateProjectResponse response = authServicePort.updateProject(keystoneProjectId, request, requesterId);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Deprecated
-    @DeleteMapping("/project/{keystoneProjectId}")
-    public ResponseEntity<Void> deleteProject(
-            @PathVariable String keystoneProjectId,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-        authServicePort.deleteProject(keystoneProjectId, requesterId);
 
         return ResponseEntity.noContent().build();
     }
