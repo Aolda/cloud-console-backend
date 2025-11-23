@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,17 +17,20 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/interfaces")
 @Tag(name = "Interface", description = "인터페이스 API")
+@SecurityRequirement(name = "access-token")
 public interface InterfaceDocs {
 
     @Operation(
-            summary = "인터페이스 목록 조회",
-            description = "프로젝트에 속한 인터페이스 목록을 조회합니다."
+            summary = "인터페이스 조회",
+            description = "프로젝트에 속한 인터페이스를 조회합니다.<br>"+
+            "interfaceId를 통해 특정 인터페이스를 조회하거나, page를 통해 페이지 정보를 전달하여 인터페이스 목록을 조회할 수 있습니다.<br>" +
+            "instanceId와 networkId를 제공하면 특정 인스턴스 혹은 네트워크에 속한 인터페이스를 조회합니다.<br>" +
+            "interfaceId를 통한 상세 조회는 추후 구현할 예정입니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "인터페이스 목록 조회 성공",
-                    content = @Content()
+                    description = "인터페이스 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "400",

@@ -18,18 +18,18 @@ public class CinderQuotasModule extends CinderAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> getQuotaClassSet(String token, String adminProjectId, String quotaClassName) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-class-sets/" + quotaClassName;
+    public ResponseEntity<JsonNode> getQuotaClassSet(String token, String quotaClassName) {
+        String uri = "/v3/os-quota-class-sets/" + quotaClassName;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> getQuotaSet(String token, String adminProjectId, String projectId) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-sets/" + projectId;
+    public ResponseEntity<JsonNode> getQuotaSet(String token, String projectId) {
+        String uri = "/v3/os-quota-sets/" + projectId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> getQuotaUsage(String token, String adminProjectId, String projectId, boolean usage) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-sets/" + projectId;
+    public ResponseEntity<JsonNode> getQuotaUsage(String token, String projectId, boolean usage) {
+        String uri = "/v3/os-quota-sets/" + projectId;
         Map<String, String> queryParams = new HashMap<>();
         if (usage) {
             queryParams.put("usage", "True");
@@ -37,23 +37,23 @@ public class CinderQuotasModule extends CinderAPIUtil {
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
-    public ResponseEntity<JsonNode> updateProjectQuota(String token, String adminProjectId, String projectId, UpdateQuotaRequest request) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-sets/" + projectId;
+    public ResponseEntity<JsonNode> updateQuota(String token, String projectId, UpdateQuotaRequest request) {
+        String uri = "/v3/os-quota-sets/" + projectId;
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> getQuotaDefaults(String token, String adminProjectId, String projectId) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-sets/" + projectId + "/defaults";
+    public ResponseEntity<JsonNode> getQuotaDefaults(String token, String projectId) {
+        String uri = "/v3/os-quota-sets/" + projectId + "/defaults";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> updateQuotaClass(String token, String adminProjectId, String quotaClassName, UpdateQuotaClassRequest request) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-class-sets/" + quotaClassName;
+    public ResponseEntity<JsonNode> updateQuotaClass(String token, String quotaClassName, UpdateQuotaClassRequest request) {
+        String uri = "/v3/os-quota-class-sets/" + quotaClassName;
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> deleteQuotaSet(String token, String adminProjectId, String projectId) {
-        String uri = "/v3/" + adminProjectId + "/os-quota-sets/" + projectId;
+    public ResponseEntity<JsonNode> deleteQuotaSet(String token, String projectId) {
+        String uri = "/v3/os-quota-sets/" + projectId;
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }

@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface ProjectRepositoryPort {
     Optional<ProjectEntity> findById(String projectId);
+
+    void save(ProjectEntity projectEntity);
 }

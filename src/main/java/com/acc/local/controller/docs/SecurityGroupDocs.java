@@ -2,14 +2,16 @@ package com.acc.local.controller.docs;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.CreateSecurityGroupRequest;
-import com.acc.local.dto.network.ViewNetworksResponse;
+import com.acc.local.dto.network.ViewSecurityGroupsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,17 +19,61 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/security-groups")
 @Tag(name = "Security Group", description = "보안 그룹 API")
+@SecurityRequirement(name = "access-token")
 public interface SecurityGroupDocs {
+
+    @Schema(name = "보안 그룹 페이지", description = "보안 그룹 페이지 응답")
+    class SecurityGroupPageResponse extends PageResponse<ViewSecurityGroupsResponse> {}
 
     @Operation(
             summary = "보안그룹 조회",
-            description = "보안 그룹 목록이나 보안 그룹의 상세 정보를 조회합니다."
+            description = "보안 그룹 목록이나 보안 그룹의 상세 정보(보안 규칙)를 조회합니다. <br>" +
+            "sgId를 제공하면 특정 보안 그룹에 속한 규칙을 조회하며, 제공하지 않을 시 보안 그룹 목록을 조회합니다. <br>" +
+            "page는 sgId 제공 여부 상관없이 사용 가능합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "보안 그룹 조회 성공",
-                    content = @Content()
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                @ExampleObject(
+                                        name = "보안 그룹 페이지",
+                                        value = "{\"contents\": [" +
+                                                "{\"securityGroupId\": \"123e4567-e89b-12d3-a456-426614174000\", " +
+                                                "\"securityGroupName\": \"my-security-group\", " +
+                                                "\"description\": \"This is my security group\", " +
+                                                "\"createdAt\": \"2021-01-01T00:00:00Z\"}" +
+                                                "], " +
+                                                "\"nextMarker\": \"123e4567-e89b-12d3-a456-426614174001\", " +
+                                                "\"prevMarker\": \"123e4567-e89b-12d3-a456-426614174000\", " +
+                                                "\"last\": false, " +
+                                                "\"first\": false, " +
+                                                "\"size\": 10}"),
+                                @ExampleObject(
+                                        name = "보안 그룹 상세 정보",
+                                        value = "{\"securityGroupId\": \"123e4567-e89b-12d3-a456-426614174000\", " +
+                                                "\"securityGroupName\": \"my-security-group\", " +
+                                                "\"description\": \"This is my security group\", " +
+                                                "\"createdAt\": \"2021-01-01T00:00:00Z\", " +
+                                                "\"rules\": {" +
+                                                "\"contents\": [" +
+                                                "{\"ruleId\": \"123e4567-e89b-12d3-a456-426614174001\", " +
+                                                "\"direction\": \"ingress\", " +
+                                                "\"protocol\": \"tcp\", " +
+                                                "\"portRange\": \"80:80\", " +
+                                                "\"groupId\": \"123e4567-e89b-12d3-a456-426614174000\", " +
+                                                "\"prefix\": \"192.168.0.0/24\"}" +
+                                                "], " +
+                                                "\"first\": true, " +
+                                                "\"last\": true, " +
+                                                "\"size\": 1, " +
+                                                "\"nextMarker\": null, " +
+                                                "\"prevMarker\": null}}")
+                            },
+                        schema = @Schema(oneOf = {ViewSecurityGroupsResponse.class, SecurityGroupPageResponse.class})
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",

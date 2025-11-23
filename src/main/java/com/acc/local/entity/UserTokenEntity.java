@@ -43,20 +43,31 @@ public class UserTokenEntity {
     private LocalDateTime updatedAt;
 
     @Builder
-    private UserTokenEntity(String userId, String jwtToken, String keystoneUnscopedToken,
-                            LocalDateTime keystoneExpiresAt , LocalDateTime expiresAt, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isActive ) {
+    private UserTokenEntity(Long id, String userId, String jwtToken, String keystoneUnscopedToken,
+                            LocalDateTime keystoneExpiresAt, LocalDateTime expiresAt, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isActive) {
         LocalDateTime now = LocalDateTime.now();
 
+        this.id = id;
         this.userId = userId;
         this.jwtToken = jwtToken;
-        this.isActive = true;
-
         this.keystoneUnscopedToken = keystoneUnscopedToken;
         this.keystoneExpiresAt = keystoneExpiresAt;
 
-        this.expiresAt = now.plusSeconds(2 * 60 * 60);
-        this.createdAt = now;
-        this.updatedAt = now;
+        // id가 있으면 기존 엔티티 업데이트 (전달된 값 사용)
+        // id가 없으면 새 엔티티 생성 (기본값 사용)
+        if (id != null) {
+            // 업데이트 모드: 전달된 값 사용
+            this.isActive = isActive;
+            this.expiresAt = (expiresAt != null) ? expiresAt : now.plusSeconds(2 * 60 * 60);
+            this.createdAt = (createdAt != null) ? createdAt : now;
+            this.updatedAt = (updatedAt != null) ? updatedAt : now;
+        } else {
+            // 생성 모드: 기본값 사용
+            this.isActive = true;
+            this.expiresAt = now.plusSeconds(2 * 60 * 60);
+            this.createdAt = now;
+            this.updatedAt = now;
+        }
     }
 
     public void deactivate() {

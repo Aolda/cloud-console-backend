@@ -1,6 +1,6 @@
 package com.acc.local.dto.project;
 
-import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 
 import java.util.Map;
@@ -26,8 +26,6 @@ public record GetProjectResponse(
                 .enabled(project.getEnabled())
                 .isDomain(project.getIsDomain())
                 .parentId(project.getParentId())
-                .options(project.getOptions())
-                .links(project.getLinks())
                 .build();
     }
 }

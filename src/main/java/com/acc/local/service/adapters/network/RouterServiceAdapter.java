@@ -30,11 +30,11 @@ public class RouterServiceAdapter implements RouterServicePort {
         if (!networkUtil.validateResourceName(request.getRouterName())) {
             throw new NetworkException(NetworkErrorCode.INVALID_ROUTER_NAME);
         }
-        if (!networkUtil.validateGateway(request.getGateway())) {
+        if (!networkUtil.validateGateway(request.getIsExternal())) {
             throw new NetworkException(NetworkErrorCode.INVALID_ROUTER_GATEWAY);
         }
 
-        neutronModule.createRouter(token, request.getRouterName(), request.getGateway());
+        neutronModule.createRouter(token, request.getRouterName(), request.getIsExternal());
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.acc.local.dto.project;
 
-import com.acc.local.domain.model.auth.KeystoneProject;
+import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 
 import java.util.List;
@@ -15,9 +15,7 @@ public record UpdateProjectResponse(
     Boolean enabled,
     Boolean isDomain,
     String parentId,
-    List<String> tags,
-    Map<String, Object> options,
-    Map<String, Object> links
+    List<String> tags
 ) {
     public static UpdateProjectResponse from(KeystoneProject project) {
         return UpdateProjectResponse.builder()
@@ -29,8 +27,6 @@ public record UpdateProjectResponse(
                 .isDomain(project.getIsDomain())
                 .parentId(project.getParentId())
                 .tags(project.getTags())
-                .options(project.getOptions())
-                .links(project.getLinks())
                 .build();
     }
 }

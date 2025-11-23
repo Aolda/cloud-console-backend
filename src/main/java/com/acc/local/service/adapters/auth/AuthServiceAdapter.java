@@ -1,22 +1,12 @@
 package com.acc.local.service.adapters.auth;
-import com.acc.global.common.PageRequest;
-import com.acc.global.common.PageResponse;
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
-import com.acc.local.domain.enums.auth.ProjectPermission;
-import com.acc.local.domain.model.auth.KeystoneProject;
+
+import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
-import com.acc.local.entity.UserDetailEntity;
-import com.acc.local.repository.ports.UserRepositoryPort;
-import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.GetProjectResponse;
-import com.acc.local.dto.project.UpdateProjectRequest;
-import com.acc.local.dto.project.UpdateProjectResponse;
 import com.acc.local.dto.project.UserPermissionResponse;
+import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +19,7 @@ import org.springframework.stereotype.Service;
 @Primary
 @RequiredArgsConstructor
 public class AuthServiceAdapter implements AuthServicePort {
+
     private final AuthModule authModule;
     private final UserRepositoryPort userRepositoryPort;
 
@@ -54,26 +45,26 @@ public class AuthServiceAdapter implements AuthServicePort {
 
         // TODO: userid 를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 
-        User user = User.from(createUserRequest);
-        User createdUser = authModule.createUser(user, userId);
-        return CreateUserResponse.from(createdUser);
+        KeystoneUser keystoneUser = KeystoneUser.from(createUserRequest);
+        KeystoneUser createdKeystoneUser = authModule.createUser(keystoneUser, userId);
+        return CreateUserResponse.from(createdKeystoneUser);
     }
     @Deprecated
     @Override
     public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        User user = authModule.getUserDetail(targetUserId, requesterId);
-        return GetUserResponse.from(user);
+        KeystoneUser keystoneUser = authModule.getUserDetail(targetUserId, requesterId);
+        return GetUserResponse.from(keystoneUser);
     }
     @Deprecated
     @Override
     public UpdateUserResponse updateUser(String targetUserId, UpdateUserRequest updateUserRequest, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        User user = User.from(updateUserRequest);
-        User updatedUser = authModule.updateUser(targetUserId, user, requesterId);
-        return UpdateUserResponse.from(updatedUser);
+        KeystoneUser keystoneUser = KeystoneUser.from(updateUserRequest);
+        KeystoneUser updatedKeystoneUser = authModule.updateUser(targetUserId, keystoneUser, requesterId);
+        return UpdateUserResponse.from(updatedKeystoneUser);
     }
     @Deprecated
     @Override
@@ -84,70 +75,18 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public ProjectPermission getProjectPermission(String projectId, String userid) {
+    public ProjectRole getProjectPermission(String projectId, String userid) {
         return authModule.getProjectPermission(projectId, userid);
     }
 
     @Override
     public UserPermissionResponse getUserPermission(String keystoneProjectId, String userId) {
-        ProjectPermission permission = authModule.getProjectPermission(keystoneProjectId, userId);
+        ProjectRole permission = authModule.getProjectPermission(keystoneProjectId, userId);
 
         return UserPermissionResponse.builder()
                 .projectPermission(permission.name().toLowerCase())
                 .projectId(keystoneProjectId)
                 .build();
-    }
-
-    @Override
-    public CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String userId) {
-
-        // TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
-
-        KeystoneProject project = KeystoneProject.builder()
-                .name(createProjectRequest.name())
-                .description(createProjectRequest.description())
-                .domainId(createProjectRequest.domainId())
-                .enabled(createProjectRequest.enabled() != null ? createProjectRequest.enabled() : true)
-                .isDomain(createProjectRequest.isDomain() != null ? createProjectRequest.isDomain() : false)
-                .parentId(createProjectRequest.parentId())
-                .tags(createProjectRequest.tags())
-                .options(createProjectRequest.options())
-                .build();
-
-        KeystoneProject createdProject = authModule.createProject(project, userId);
-        return CreateProjectResponse.from(createdProject);
-    }
-
-    @Override
-    public GetProjectResponse getProjectDetail(String projectId, String requesterId) {
-        // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-
-        KeystoneProject project = authModule.getProjectDetail(projectId, requesterId);
-        return GetProjectResponse.from(project);
-    }
-
-    @Override
-    public UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId) {
-        // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-
-        KeystoneProject project = KeystoneProject.builder()
-                .name(updateProjectRequest.name())
-                .description(updateProjectRequest.description())
-                .domainId(updateProjectRequest.domainId())
-                .enabled(updateProjectRequest.enabled())
-                .isDomain(updateProjectRequest.isDomain())
-                .tags(updateProjectRequest.tags())
-                .options(updateProjectRequest.options())
-                .build();
-
-        KeystoneProject updatedProject = authModule.updateProject(projectId, project, requesterId);
-        return UpdateProjectResponse.from(updatedProject);
-    }
-
-    @Override
-    public void deleteProject(String projectId, String requesterId) {
-        // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-        authModule.deleteProject(projectId, requesterId);
     }
 
     @Override

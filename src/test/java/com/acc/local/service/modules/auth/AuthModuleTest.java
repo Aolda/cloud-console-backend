@@ -4,9 +4,9 @@ import com.acc.global.properties.OpenstackProperties;
 import com.acc.local.domain.enums.auth.AuthType;
 import com.acc.local.domain.enums.auth.KeystoneTokenType;
 import com.acc.global.security.jwt.JwtUtils;
-import com.acc.local.domain.model.auth.KeystoneProject;
 import com.acc.local.domain.model.auth.RefreshToken;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.dto.project.UpdateProjectRequest;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
@@ -15,6 +15,7 @@ import com.acc.local.entity.RefreshTokenEntity;
 import com.acc.local.entity.UserAuthDetailEntity;
 import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.entity.UserTokenEntity;
+import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
@@ -36,7 +37,6 @@ import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,6 +69,9 @@ class AuthModuleTest {
 
     @InjectMocks
     private AuthModule authModule;
+
+    @InjectMocks
+    private ProjectModule projectModule;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -207,7 +210,7 @@ class AuthModuleTest {
     @DisplayName("관리자는 ACC 요청자의 개인정보와 keystone 토큰을 이용해 Keystone의 사용자 계정을 생성하고 ACC DB에 저장할 수 있다.")
     void givenDomainUserAndKeystoneToken_whenCreateKeystoneUser_thenReturnKeystoneUserInfoAndSaveToAccDB() throws Exception {
         // given
-        User user = User.builder()
+        KeystoneUser keystoneUser = KeystoneUser.builder()
                 .name("testUser")
                 .email("test@example.com")
                 .enabled(true)
@@ -228,15 +231,15 @@ class AuthModuleTest {
         ResponseEntity<JsonNode> mockResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
         when(keystoneAPIExternalPort.createUser(eq(keystoneToken), any())).thenReturn(mockResponse);
         // when
-        User createdUser = authModule.createUser(user, userId);
+        KeystoneUser createdKeystoneUser = authModule.createUser(keystoneUser, userId);
 
         // then
-        assertEquals(createdUserId, createdUser.getId());
-        assertEquals("testUser", createdUser.getName());
-        assertEquals("test@example.com", createdUser.getEmail());
-        assertTrue(createdUser.isEnabled());
-        assertEquals("컴퓨터공학과", createdUser.getDepartment());
-        assertEquals("010-1234-5678", createdUser.getPhoneNumber());
+        assertEquals(createdUserId, createdKeystoneUser.getId());
+        assertEquals("testUser", createdKeystoneUser.getName());
+        assertEquals("test@example.com", createdKeystoneUser.getEmail());
+        assertTrue(createdKeystoneUser.isEnabled());
+        assertEquals("컴퓨터공학과", createdKeystoneUser.getDepartment());
+        assertEquals("010-1234-5678", createdKeystoneUser.getPhoneNumber());
         verify(keystoneAPIExternalPort).createUser(eq(keystoneToken), any());
         }
 
@@ -264,14 +267,14 @@ class AuthModuleTest {
         when(keystoneAPIExternalPort.getUserDetail(targetUserId, keystoneToken)).thenReturn(mockResponse);
         
         // when
-        User userDetail = authModule.getUserDetail(targetUserId, requesterId);
+        KeystoneUser keystoneUserDetail = authModule.getUserDetail(targetUserId, requesterId);
 
         // then
-        assertEquals(targetUserId, userDetail.getId());
-        assertEquals("testUser", userDetail.getName());
-        assertEquals("test@example.com", userDetail.getEmail());
-        assertEquals("test description", userDetail.getDescription());
-        assertTrue(userDetail.isEnabled());
+        assertEquals(targetUserId, keystoneUserDetail.getId());
+        assertEquals("testUser", keystoneUserDetail.getName());
+        assertEquals("test@example.com", keystoneUserDetail.getEmail());
+        assertEquals("test description", keystoneUserDetail.getDescription());
+        assertTrue(keystoneUserDetail.isEnabled());
         verify(keystoneAPIExternalPort).getUserDetail(targetUserId, keystoneToken);
        }
 
@@ -281,7 +284,7 @@ class AuthModuleTest {
         // given
         String targetUserId = "target-user-id";
         String requesterId = "requester-id";
-        User user = User.builder()
+        KeystoneUser keystoneUser = KeystoneUser.builder()
                 .name("updatedUser")
                 .email("updated@example.com")
                 .description("updated description")
@@ -304,16 +307,16 @@ class AuthModuleTest {
         );
         ResponseEntity<JsonNode> mockResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
         when(keystoneAPIExternalPort.updateUser(eq(targetUserId), eq(keystoneToken), any())).thenReturn(mockResponse);
-        User updatedUser = authModule.updateUser(targetUserId, user, requesterId);
+        KeystoneUser updatedKeystoneUser = authModule.updateUser(targetUserId, keystoneUser, requesterId);
 
         // then
-        assertEquals(targetUserId, updatedUser.getId());
-        assertEquals("updatedUser", updatedUser.getName());
-        assertEquals("updated@example.com", updatedUser.getEmail());
-        assertEquals("updated description", updatedUser.getDescription());
-        assertTrue(updatedUser.isEnabled());
-        assertEquals("전자공학과", updatedUser.getDepartment());
-        assertEquals("010-9876-5432", updatedUser.getPhoneNumber());
+        assertEquals(targetUserId, updatedKeystoneUser.getId());
+        assertEquals("updatedUser", updatedKeystoneUser.getName());
+        assertEquals("updated@example.com", updatedKeystoneUser.getEmail());
+        assertEquals("updated description", updatedKeystoneUser.getDescription());
+        assertTrue(updatedKeystoneUser.isEnabled());
+        assertEquals("전자공학과", updatedKeystoneUser.getDepartment());
+        assertEquals("010-9876-5432", updatedKeystoneUser.getPhoneNumber());
         verify(keystoneAPIExternalPort).updateUser(eq(targetUserId), eq(keystoneToken), any());
     }
 
@@ -379,7 +382,8 @@ class AuthModuleTest {
         when(keystoneAPIExternalPort.createProject(eq(keystoneToken), any())).thenReturn(mockResponse);
 
         // when
-        KeystoneProject createdProject = authModule.createProject(project, userId);
+        KeystoneProject createdProject = projectModule.createProject(keystoneToken, any(), userId);
+        // KeystoneProject createdProject = authModule.createProject(keystoneToken, project, userId);
 
         // then
         assertEquals(createdProjectId, createdProject.getId());
@@ -413,7 +417,7 @@ class AuthModuleTest {
         when(keystoneAPIExternalPort.getProjectDetail(projectId, keystoneToken)).thenReturn(mockResponse);
 
         // when
-        KeystoneProject projectDetail = authModule.getProjectDetail(projectId, requesterId);
+        KeystoneProject projectDetail = projectModule.getProjectDetail(projectId, requesterId);
 
         // then
         assertEquals(projectId, projectDetail.getId());
@@ -430,12 +434,10 @@ class AuthModuleTest {
         // given
         String projectId = "test-project-id";
         String requesterId = "requester-id";
-        KeystoneProject project = KeystoneProject.builder()
-                .name("updatedProject")
-                .description("updated project description")
-                .enabled(true)
-                .isDomain(false)
-                .build();
+        UpdateProjectRequest updatedProjectRequeest = UpdateProjectRequest.builder()
+            .name("updatedProject")
+            .description("updated project description")
+            .build();
         String keystoneToken = "test-keystone-token";
 
         UserTokenEntity mockUserToken = mock(UserTokenEntity.class);
@@ -453,7 +455,7 @@ class AuthModuleTest {
         when(keystoneAPIExternalPort.updateProject(eq(projectId), eq(keystoneToken), any())).thenReturn(mockResponse);
 
         // when
-        KeystoneProject updatedProject = authModule.updateProject(projectId, project, requesterId);
+        KeystoneProject updatedProject = projectModule.updateProject(projectId, updatedProjectRequeest, requesterId);
 
         // then
         assertEquals(projectId, updatedProject.getId());
@@ -478,7 +480,7 @@ class AuthModuleTest {
 
         // when & then
         assertDoesNotThrow(() -> {
-            authModule.deleteProject(projectId, requesterId);
+            projectModule.deleteProject(projectId, requesterId);
         });
 
         verify(keystoneAPIExternalPort).deleteProject(projectId, keystoneToken);
@@ -770,6 +772,7 @@ class AuthModuleTest {
 
         UserAuthDetailEntity savedUserAuthDetail = UserAuthDetailEntity.builder()
                 .userId(createdUserId)
+                // .user(savedUserDetail)
                 .department("컴퓨터공학과")
                 .studentId("2024123456")
                 .authType(0) // GOOGLE

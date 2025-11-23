@@ -1,6 +1,6 @@
 package com.acc.local.dto.auth;
 
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import lombok.Builder;
 
 @Builder
@@ -18,20 +18,15 @@ public record UpdateUserResponse(
     String phoneNumber,
     Integer projectLimit
 ) {
-    public static UpdateUserResponse from(User user) {
+    public static UpdateUserResponse from(KeystoneUser keystoneUser) {
         return UpdateUserResponse.builder()
-                .userId(user.getId())
-                .name(user.getName())
-                .domainId(user.getDomainId())
-                .defaultProjectId(user.getDefaultProjectId())
-                .enabled(user.isEnabled())
-                .email(user.getEmail())
-                .description(user.getDescription())
-                // ACC 내부 정보
-                .department(user.getDepartment())
-                .phoneNumber(user.getPhoneNumber())
-                // TODO: API 개발 시, 확인 필요
-                //.projectLimit(user.getProjectLimit())
+                .userId(keystoneUser.getId())
+                .name(keystoneUser.getName())
+                .domainId(keystoneUser.getDomainId())
+                .defaultProjectId(keystoneUser.getDefaultProjectId())
+                .enabled(keystoneUser.isEnabled())
+                .email(keystoneUser.getEmail())
+                .description(keystoneUser.getDescription())
                 .build();
     }
 }

@@ -4,7 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserAuthDetail;
 import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserListResponse;
@@ -44,13 +44,13 @@ public class UserModule {
     @Transactional
     public String adminCreateUser(AdminCreateUserRequest request, String adminToken) {
         // 1. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
-        User newUser = User.builder()
+        KeystoneUser newKeystoneUser = KeystoneUser.builder()
                 .name(request.email()) // email을 name(아이디)로 사용
                 .password(request.password())
                 .enabled(request.isEnabled())
                 .build();
 
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newUser);
+        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newKeystoneUser);
 
         ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
 
@@ -59,8 +59,8 @@ public class UserModule {
         }
 
         // 2. Keystone 응답에서 userId 추출
-        User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
-        String userId = createdUser.getId();
+        KeystoneUser createdKeystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+        String userId = createdKeystoneUser.getId();
 
         // 3. UserDetail 도메인 모델 생성 및 저장
         UserDetail userDetail = UserDetail.createForAdmin(userId, request);
@@ -82,13 +82,13 @@ public class UserModule {
 
 
         // 1. Keystone 사용자 업데이트
-        User updateUser = User.builder()
+        KeystoneUser updateKeystoneUser = KeystoneUser.builder()
                 .name(request.email() != null ? request.email() : null) // email을 name(아이디)로 사용
                 .password(request.password())
                 .enabled(request.isEnabled())
                 .build();
 
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUpdateUserRequest(updateUser);
+        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUpdateUserRequest(updateKeystoneUser);
         ResponseEntity<JsonNode> response = keystoneAPIExternalPort.updateUser(userId, adminToken, userRequest);
 
         if (response == null) {
@@ -140,7 +140,7 @@ public class UserModule {
         if (response == null) {
             throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
-        User keystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+        KeystoneUser keystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
 
         // 2. ACC DB에서 추가 정보 조회
         UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
@@ -179,8 +179,8 @@ public class UserModule {
         );
 
         // 2. 모든 userId 추출
-        List<String> userIds = userListResponse.getUsers().stream()
-                .map(User::getId)
+        List<String> userIds = userListResponse.getKeystoneUsers().stream()
+                .map(KeystoneUser::getId)
                 .toList();
 
         // 3. ACC DB에서 모든 사용자 정보 bulk 조회
@@ -196,7 +196,7 @@ public class UserModule {
         // 5. User 모델 리스트를 DTO 리스트로 변환 및 ACC DB 정보 병합
         List<AdminListUsersResponse> userList = new ArrayList<>();
 
-        for (User keystoneUser : userListResponse.getUsers()) {
+        for (KeystoneUser keystoneUser : userListResponse.getKeystoneUsers()) {
             String userId = keystoneUser.getId();
             String keystoneName = keystoneUser.getName();
             boolean enabled = keystoneUser.isEnabled();

@@ -1,6 +1,8 @@
 package com.acc.local.entity;
 
-import com.acc.local.domain.enums.auth.ProjectStatus;
+import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.domain.enums.project.ProjectRequestType;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,11 +13,12 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "project_requests")
-@Getter
+@Getter @Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProjectRequestEntity {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "project_request_id", length = 64, nullable = false)
     private String projectRequestId;
 
@@ -26,14 +29,17 @@ public class ProjectRequestEntity {
     private String projectName;
 
     @Column(name = "project_type", length = 255, nullable = false)
-    private String projectType;
+    private ProjectRequestType projectType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 255, nullable = false)
-    private ProjectStatus status;
+    private ProjectRequestStatus status;
 
     @Column(name = "project_description", columnDefinition = "TEXT")
     private String projectDescription;
+
+    @Column(name = "reject_reason", columnDefinition = "TEXT")
+    private String rejectReason;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
