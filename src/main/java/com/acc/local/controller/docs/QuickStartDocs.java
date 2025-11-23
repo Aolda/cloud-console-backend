@@ -1,6 +1,7 @@
 package com.acc.local.controller.docs;
 
 import com.acc.local.dto.quickstart.QuickStartRequest;
+import com.acc.local.dto.quickstart.QuickStartResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,8 +28,7 @@ public interface QuickStartDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "인스턴스 생성 성공",
-                    content = @Content()
+                    description = "인스턴스 생성 성공"
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -61,7 +61,7 @@ public interface QuickStartDocs {
                     content = @Content()
             )
     })
-    ResponseEntity<Object> create(
+    ResponseEntity<QuickStartResponse> create(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
             @RequestBody QuickStartRequest request);
