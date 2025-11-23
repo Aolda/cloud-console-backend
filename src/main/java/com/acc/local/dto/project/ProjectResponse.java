@@ -4,9 +4,7 @@ import java.util.List;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
-import com.acc.local.domain.model.auth.User;
-import com.acc.local.entity.ProjectParticipantEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.domain.model.auth.KeystoneUser;
 
 import lombok.Builder;
 
@@ -21,7 +19,7 @@ public record ProjectResponse(
 	ProjectQuotaDto projectBrief,
 	List<ProjectParticipantDto> participants
 ) {
-	public static ProjectResponse from(ProjectServiceDto projectServiceDto, User owner, List<ProjectParticipantDto> participants) {
+	public static ProjectResponse from(ProjectServiceDto projectServiceDto, KeystoneUser owner, List<ProjectParticipantDto> participants) {
 		return ProjectResponse.builder()
 			.projectId(projectServiceDto.projectId())
 			.projectName(projectServiceDto.projectName())
