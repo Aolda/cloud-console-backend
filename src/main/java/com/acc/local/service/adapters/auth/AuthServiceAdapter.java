@@ -1,15 +1,10 @@
 package com.acc.local.service.adapters.auth;
-import com.acc.global.common.PageRequest;
-import com.acc.global.common.PageResponse;
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.domain.model.auth.KeystoneProject;
 import com.acc.local.domain.model.auth.RefreshToken;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.CreateProjectResponse;
@@ -54,26 +49,26 @@ public class AuthServiceAdapter implements AuthServicePort {
 
         // TODO: userid 를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 
-        User user = User.from(createUserRequest);
-        User createdUser = authModule.createUser(user, userId);
-        return CreateUserResponse.from(createdUser);
+        KeystoneUser keystoneUser = KeystoneUser.from(createUserRequest);
+        KeystoneUser createdKeystoneUser = authModule.createUser(keystoneUser, userId);
+        return CreateUserResponse.from(createdKeystoneUser);
     }
     @Deprecated
     @Override
     public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        User user = authModule.getUserDetail(targetUserId, requesterId);
-        return GetUserResponse.from(user);
+        KeystoneUser keystoneUser = authModule.getUserDetail(targetUserId, requesterId);
+        return GetUserResponse.from(keystoneUser);
     }
     @Deprecated
     @Override
     public UpdateUserResponse updateUser(String targetUserId, UpdateUserRequest updateUserRequest, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        User user = User.from(updateUserRequest);
-        User updatedUser = authModule.updateUser(targetUserId, user, requesterId);
-        return UpdateUserResponse.from(updatedUser);
+        KeystoneUser keystoneUser = KeystoneUser.from(updateUserRequest);
+        KeystoneUser updatedKeystoneUser = authModule.updateUser(targetUserId, keystoneUser, requesterId);
+        return UpdateUserResponse.from(updatedKeystoneUser);
     }
     @Deprecated
     @Override

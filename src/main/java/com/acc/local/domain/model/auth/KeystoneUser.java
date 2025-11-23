@@ -2,7 +2,6 @@ package com.acc.local.domain.model.auth;
 
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.SignupRequest;
-import com.acc.local.dto.auth.SignupResponse;
 import com.acc.local.dto.auth.UpdateUserRequest;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class User {
+public class KeystoneUser {
 
     // Keystone 필드
     private String id;
@@ -34,52 +33,34 @@ public class User {
     private String description;
     private Map<String, Object> options;
 
-    // ACC 내부 정보
-    private String phoneNumber;
-    private Boolean isAdmin;
-    private String department;
-    private String studentId;
-    private Integer authType;
-
-
-    public static User from(CreateUserRequest request) {
+    public static KeystoneUser from(CreateUserRequest request) {
         if (request == null) {
             return null;
         }
 
-        return User.builder()
+        return KeystoneUser.builder()
                 .name(request.userName())
                 .email(request.userEmail())
                 .enabled(true)
-                // ACC 내부 정보
-                .department(request.department())
-                .phoneNumber(request.phoneNumber())
-                // TODO: API 개발 시, 확인 필요
-                //.projectLimit(request.projectLimit())
                 .build();
     }
 
-    public static User from(UpdateUserRequest request) {
+    public static KeystoneUser from(UpdateUserRequest request) {
         if (request == null) {
             return null;
         }
 
-        return User.builder()
+        return KeystoneUser.builder()
                 .name(request.userName())
                 .email(request.userEmail())
                 .description(request.description())
                 .defaultProjectId(request.defaultProjectId())
                 .enabled(request.enabled() != null ? request.enabled() : true)
-                // ACC 내부 정보
-                .department(request.department())
-                .phoneNumber(request.phoneNumber())
-                // TODO: API 개발 시, 확인 필요
-                //.projectLimit(request.projectLimit())
                 .build();
     }
 
-    public static User from(SignupRequest request) {
-        return User.builder()
+    public static KeystoneUser from(SignupRequest request) {
+        return KeystoneUser.builder()
                 .name(request.email()) // email을 name(아이디)로 사용
                 .email(request.email())
                 .password(request.password())
@@ -90,8 +71,8 @@ public class User {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        User user = (User) obj;
-        return Objects.equals(id, user.id);
+        KeystoneUser keystoneUser = (KeystoneUser) obj;
+        return Objects.equals(id, keystoneUser.id);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.acc.local.dto.auth;
 
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import lombok.Builder;
 
 import java.util.List;
@@ -25,22 +25,22 @@ public record GetUserResponse(
     String phoneNumber,
     Integer projectLimit
 ) {
-    public static GetUserResponse from(User user) {
+    public static GetUserResponse from(KeystoneUser keystoneUser) {
         return GetUserResponse.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .domainId(user.getDomainId())
-                .defaultProjectId(user.getDefaultProjectId())
-                .enabled(user.isEnabled())
-                .federated(user.getFederated())
-                .links(user.getLinks())
-                .passwordExpiresAt(user.getPasswordExpiresAt())
-                .email(user.getEmail())
-                .description(user.getDescription())
-                .options(user.getOptions())
+                .id(keystoneUser.getId())
+                .name(keystoneUser.getName())
+                .domainId(keystoneUser.getDomainId())
+                .defaultProjectId(keystoneUser.getDefaultProjectId())
+                .enabled(keystoneUser.isEnabled())
+                .federated(keystoneUser.getFederated())
+                .links(keystoneUser.getLinks())
+                .passwordExpiresAt(keystoneUser.getPasswordExpiresAt())
+                .email(keystoneUser.getEmail())
+                .description(keystoneUser.getDescription())
+                .options(keystoneUser.getOptions())
                 // ACC 내부 정보
-                .department(user.getDepartment())
-                .phoneNumber(user.getPhoneNumber())
+                .department(keystoneUser.getDepartment())
+                .phoneNumber(keystoneUser.getPhoneNumber())
                 // TODO: API 개발 시, 확인 필요
                 //.projectLimit(user.getProjectLimit())
                 .build();

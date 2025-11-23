@@ -5,6 +5,7 @@ import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.OAuth2Exception;
 import com.acc.global.properties.OAuth2Properties;
 import com.acc.global.security.oauth.dto.OAuth2UserInfo;
+import com.acc.local.domain.enums.UnivAccountType;
 import com.acc.local.dto.auth.UserDepartDto;
 import com.acc.local.service.modules.auth.AjouUnivModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,8 +23,10 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -39,9 +42,28 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException, ServletException {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        UserDepartDto userDepartDto = ajouUnivModule.getUserDepartInfo(oAuth2User)
-                .orElseThrow(() -> new OAuth2Exception(AuthErrorCode.AJOU_STUDENT_VERIFICATION_FAILED, "아주대 학생 정보를 찾을 수 없습니다."));
-        OAuth2UserInfo userInfo = OAuth2UserInfo.create(oAuth2User , userDepartDto);
+        Optional<UserDepartDto> userDepartDtoOpt = ajouUnivModule.getUserDepartInfo(oAuth2User);
+
+        // 학적정보가 있는 경우, UNDERGRADUATE(재학생)인지 검증
+        if (userDepartDtoOpt.isPresent()) {
+            UserDepartDto userDepartDto = userDepartDtoOpt.get();
+
+            // UNDERGRADUATE가 아닌 경우 에러 처리
+            if (userDepartDto.univAccountType() != UnivAccountType.UNDERGRADUATE) {
+                log.warn("OAuth2 인증 실패 - 재학생이 아님: {}, Type: {}",
+                        oAuth2User.getAttribute("email"), userDepartDto.univAccountType());
+
+                String errorCode = AuthErrorCode.ONLY_UNDERGRADUATE_ALLOWED.getCode();
+                String redirectUrl = oAuth2Properties.getFailure().getRedirectUrl()
+                        + "?error=" + URLEncoder.encode(errorCode, StandardCharsets.UTF_8);
+
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+        }
+
+        // 학적정보 유무와 관계없이 from 메서드 사용 (null 허용)
+        OAuth2UserInfo userInfo = OAuth2UserInfo.from(oAuth2User);
 
         log.info("OAuth2 인증 성공 - Email: {}", userInfo.email());
 

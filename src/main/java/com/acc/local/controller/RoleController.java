@@ -23,6 +23,7 @@ public class RoleController implements RoleDocs {
 
     @Override
     @PostMapping("")
+    @Deprecated // IAM 로직 생성 시 , 진행
     public ResponseEntity<CreateRoleResponse> createRole(
             @RequestBody @Validated CreateRoleRequest request,
             Authentication authentication
@@ -37,6 +38,7 @@ public class RoleController implements RoleDocs {
 
     @Override
     @GetMapping("")
+    @Deprecated // IAM 로직 생성 시, 진행
     public ResponseEntity<PageResponse<ListRolesResponse>> listRoles(
             PageRequest page,
             String name,
