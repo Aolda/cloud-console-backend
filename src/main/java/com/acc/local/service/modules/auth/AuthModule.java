@@ -10,7 +10,7 @@ import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.entity.RefreshTokenEntity;
@@ -155,33 +155,28 @@ public class AuthModule {
     }
 
     @Transactional
-    public User createUser(User user, String userId) {
+    public KeystoneUser createUser(KeystoneUser keystoneUser, String userId) {
         String keystoneToken = getUnscopedTokenByUserId(userId);
 
         // Keystone에 사용자 생성
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(user);
+        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(keystoneUser);
         ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(keystoneToken, userRequest);
         if (response == null) {
             throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
         }
-        User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+        KeystoneUser createdKeystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
 
-        // TODO: API 개발 시, 확인 필요 - UserDetailEntity와 UserAuthDetailEntity로 분리하여 저장
-        // ACC 내부 정보 설정 (Keystone 응답에서 받은 정보 + 추가 정보)
-        createdUser.setDepartment(user.getDepartment());
-        createdUser.setPhoneNumber(user.getPhoneNumber());
-        //createdUser.setProjectLimit(user.getProjectLimit());
 
         // ACC DB에 사용자 정보 저장
         // TODO: API 개발 시, 확인 필요 - UserDetailEntity와 UserAuthDetailEntity로 분리하여 저장
         // userRepositoryPort.saveUserDetail(...);
         // userRepositoryPort.saveUserAuth(...);
 
-        return createdUser;
+        return createdKeystoneUser;
     }
 
     @Transactional
-    public User getUserDetail(String targetUserId, String requesterId) {
+    public KeystoneUser getUserDetail(String targetUserId, String requesterId) {
         String keystoneToken = getUnscopedTokenByUserId(requesterId);
 
         // Keystone에서 사용자 정보 조회
@@ -189,7 +184,7 @@ public class AuthModule {
         if (response == null) {
             throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 조회 응답이 null입니다.");
         }
-        User keystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+        KeystoneUser keystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
 
         // TODO: API 개발 시, 확인 필요 - UserDetailEntity와 UserAuthDetailEntity에서 조회
         // ACC DB에서 추가 정보 조회 및 병합
@@ -200,29 +195,23 @@ public class AuthModule {
     }
 
     @Transactional
-    public User updateUser(String targetUserId, User user, String requesterId) {
+    public KeystoneUser updateUser(String targetUserId, KeystoneUser keystoneUser, String requesterId) {
         String keystoneToken = getUnscopedTokenByUserId(requesterId);
 
         // Keystone 사용자 업데이트
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUpdateUserRequest(user);
+        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUpdateUserRequest(keystoneUser);
         ResponseEntity<JsonNode> response = keystoneAPIExternalPort.updateUser(targetUserId, keystoneToken, userRequest);
         if (response == null) {
             throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 업데이트 응답이 null입니다.");
         }
-        User updatedUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
-
-        // TODO: API 개발 시, 확인 필요 - UserDetailEntity와 UserAuthDetailEntity로 분리하여 업데이트
-        // ACC 내부 정보 설정
-        updatedUser.setDepartment(user.getDepartment());
-        updatedUser.setPhoneNumber(user.getPhoneNumber());
-        //updatedUser.setProjectLimit(user.getProjectLimit());
+        KeystoneUser updatedKeystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
 
         // ACC DB에 사용자 정보 업데이트
         // TODO: API 개발 시, 확인 필요 - UserDetailEntity와 UserAuthDetailEntity로 분리하여 업데이트
         // userRepositoryPort.saveUserDetail(...);
         // userRepositoryPort.saveUserAuth(...);
 
-        return updatedUser;
+        return updatedKeystoneUser;
     }
 
     @Transactional
@@ -476,9 +465,9 @@ public class AuthModule {
         try {
 
             // 2. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
-            User newUser = User.from(request);
+            KeystoneUser newKeystoneUser = KeystoneUser.from(request);
 
-            Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newUser);
+            Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newKeystoneUser);
 
             ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
 
@@ -487,8 +476,8 @@ public class AuthModule {
             }
 
             // 3. Keystone 응답에서 userId 추출
-            User createdUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
-            String userId = createdUser.getId();
+            KeystoneUser createdKeystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+            String userId = createdKeystoneUser.getId();
 
             // 4. UserDetail 도메인 모델 생성 및 저장
             UserDetail userDetail = UserDetail.createForSignup(userId,request);

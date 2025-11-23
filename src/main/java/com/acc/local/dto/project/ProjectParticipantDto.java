@@ -1,9 +1,7 @@
 package com.acc.local.dto.project;
 
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.User;
 import com.acc.local.entity.ProjectParticipantEntity;
-import com.acc.local.entity.UserDetailEntity;
 
 import lombok.Builder;
 

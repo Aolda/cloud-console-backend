@@ -5,7 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.auth.AuthType;
-import com.acc.local.domain.model.auth.User;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.AdminCreateUserRequest;
 import com.acc.local.dto.auth.AdminGetUserResponse;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
-class UserModuleTest {
+class KeystoneUserModuleTest {
 
     @Mock
     private KeystoneAPIExternalPort keystoneAPIExternalPort;
@@ -85,7 +85,7 @@ class UserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(User.builder()
+                    .thenReturn(KeystoneUser.builder()
                             .id(newUserId)
                             .name("hong@ajou.ac.kr")
                             .enabled(true)
@@ -191,7 +191,7 @@ class UserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(User.builder()
+                    .thenReturn(KeystoneUser.builder()
                             .id("uid-1")
                             .name("user@ajou.ac.kr")
                             .enabled(true)
@@ -246,7 +246,7 @@ class UserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(User.builder()
+                    .thenReturn(KeystoneUser.builder()
                             .id("uid-x")
                             .name("aaa@ajou.ac.kr")
                             .enabled(true)
@@ -276,11 +276,11 @@ class UserModuleTest {
         req.setMarker(null);
         req.setLimit(10);
 
-        User u1 = User.builder().id("u1").name("user1@ajou.ac.kr").enabled(true).defaultProjectId("p1").build();
-        User u2 = User.builder().id("u2").name("user2@ajou.ac.kr").enabled(false).build();
+        KeystoneUser u1 = KeystoneUser.builder().id("u1").name("user1@ajou.ac.kr").enabled(true).defaultProjectId("p1").build();
+        KeystoneUser u2 = KeystoneUser.builder().id("u2").name("user2@ajou.ac.kr").enabled(false).build();
 
         UserListResponse list = UserListResponse.builder()
-                .users(List.of(u1, u2))
+                .keystoneUsers(List.of(u1, u2))
                 .nextMarker("u2")
                 .prevMarker(null)
                 .build();

@@ -23,6 +23,7 @@ public class RoleController implements RoleDocs {
 
     @Override
     @PostMapping("")
+    @Deprecated
     public ResponseEntity<CreateRoleResponse> createRole(
             @RequestBody @Validated CreateRoleRequest request,
             Authentication authentication
@@ -37,6 +38,7 @@ public class RoleController implements RoleDocs {
 
     @Override
     @GetMapping("")
+    @Deprecated
     public ResponseEntity<PageResponse<ListRolesResponse>> listRoles(
             PageRequest page,
             String name,
