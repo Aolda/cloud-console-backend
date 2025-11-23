@@ -21,14 +21,15 @@ import org.springframework.web.bind.annotation.*;
 public interface RouterDocs {
 
     @Operation(
-            summary = "라우터 목록 조회",
-            description = "프로젝트에 속한 라우터 목록을 조회합니다."
+            summary = "라우터 조회",
+            description = "프로젝트에 속한 라우터를 조회합니다.<br>"+
+            "routerId를 통해 특정 라우터를 조회하거나, page를 통해 페이지 정보를 전달하여 라우터 목록을 조회할 수 있습니다.<br>" +
+            "routerId를 통한 상세 조회는 추후 구현할 예정입니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "라우터 목록 조회 성공",
-                    content = @Content()
+                    description = "라우터 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "400",

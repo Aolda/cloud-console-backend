@@ -3,6 +3,7 @@ package com.acc.local.controller;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.QuickStartDocs;
 import com.acc.local.dto.quickstart.QuickStartRequest;
+import com.acc.local.dto.quickstart.QuickStartResponse;
 import com.acc.local.service.ports.QuickStartServicePort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +23,7 @@ public class QuickStartController implements QuickStartDocs {
     private final QuickStartServicePort quickStartServicePort;
 
     @Override
-    public ResponseEntity<Object> create(
+    public ResponseEntity<QuickStartResponse> create(
             Authentication authentication,
             QuickStartRequest request) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();

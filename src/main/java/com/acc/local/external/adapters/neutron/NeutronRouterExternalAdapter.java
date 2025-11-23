@@ -149,7 +149,7 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
                     .routerId(routerNode.get("id").asText())
                     .routerName(routerNode.get("name").asText())
                     .status(routerNode.get("status").asText())
-                    .gateway(isGateway)
+                    .isExternal(isGateway)
                     .externalIp(isGateway ? routerNode.get("external_gateway_info").get("external_fixed_ips").get(0).get("ip_address").asText() : null)
                     .createdAt(routerNode.get("created_at").asText())
                     .build());

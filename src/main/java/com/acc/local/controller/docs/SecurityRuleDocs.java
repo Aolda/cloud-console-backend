@@ -21,7 +21,8 @@ public interface SecurityRuleDocs {
 
     @Operation(
             summary = "보안 규칙 생성",
-            description = "새로운 보안 규칙을 생성합니다."
+            description = "새로운 보안 규칙을 생성합니다. <br>" +
+                    "remoteSecurityGroupId와 cidr 둘 중 하나만 제공할 수 있으며, 둘 다 제공하지 않을 수는 없습니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
