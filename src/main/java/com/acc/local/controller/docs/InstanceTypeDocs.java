@@ -85,7 +85,7 @@ public interface InstanceTypeDocs {
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보 (Marker 기반)", required = false)
             PageRequest page,
-            @Parameter(description = "아키텍처 필터 (예: X86)", required = true)
+            @Parameter(description = "아키텍처 필터 (예: X86)", required = false)
             @RequestParam(required = true) String architect);
 
 
