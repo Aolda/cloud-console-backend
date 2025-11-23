@@ -45,14 +45,14 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_SECURITY_GROUP_IDS);
         }
 
-        if (networkUtil.isNullOrEmpty(request.getExternal())) {
+        if (networkUtil.isNullOrEmpty(request.getIsExternal())) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_EXTERNAL);
         }
 
         String interfaceId = neutronModule.createInterface(token, request);
 
         /* --- 외부 네트워크 연결 시, Floating IP 할당 --- */
-        if (request.getExternal()) {
+        if (request.getIsExternal()) {
             String providerNetworkId = neutronModule.getProviderNetworkId(token);
 
             /* --- Floating IP 할당 실패 시, 생성된 인터페이스 삭제 처리 --- */
