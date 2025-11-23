@@ -110,14 +110,14 @@ public class OpenstackAPICallModule {
                 .block();
     }
 
-    public ResponseEntity<JsonNode> callPutBinaryStreamAPI(String uri, Map<String, String> headers, InputStreamResource resource, String contentType, int port) {
+    public ResponseEntity<Void> callPutBinaryStreamAPI(String uri, Map<String, String> headers, InputStreamResource resource, String contentType, int port) {
         return openstackWebClient.put()
                 .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                 .headers(httpHeaders -> headers.forEach(httpHeaders::add))
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(BodyInserters.fromResource(resource))
                 .retrieve()
-                .toEntity(JsonNode.class)
+                .toBodilessEntity()
                 .block();
     }
 
