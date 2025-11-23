@@ -82,10 +82,7 @@ public class ImageServiceAdapter implements ImageServicePort {
     @Override
     public void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType) {
         String token = acquireProjectScopedToken(userId, projectId);
-        try {
-            imageServiceModule.uploadFileStream(token, imageId, input, contentType);
-        } finally {
-            invalidateTokens(userId);
-        }
+        imageServiceModule.uploadFileStream(token, imageId, input, contentType);
+        invalidateTokens(userId);
     }
 }
