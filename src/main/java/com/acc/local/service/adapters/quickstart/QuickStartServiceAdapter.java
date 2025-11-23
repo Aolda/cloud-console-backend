@@ -53,7 +53,7 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
                     token,
                     CreateInterfaceRequest.builder()
                             .interfaceName("default-interface")
-                            .external(true)
+                            .isExternal(true)
                             .networkId(networkId)
                             .securityGroupIds(List.of(sgId))
                             .build()
