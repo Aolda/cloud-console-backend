@@ -12,9 +12,6 @@ public record CreateUserResponse(
     String email,
     boolean enabled,
 
-    // ACC 내부 정보
-    String department,
-    String phoneNumber,
     Integer projectLimit
 ) {
     public static CreateUserResponse from(KeystoneUser keystoneUser) {
@@ -26,8 +23,6 @@ public record CreateUserResponse(
                 .email(keystoneUser.getEmail())
                 .enabled(keystoneUser.isEnabled())
                 // ACC 내부 정보
-                .department(keystoneUser.getDepartment())
-                .phoneNumber(keystoneUser.getPhoneNumber())
                 // TODO: API 개발 시, 확인 필요
                 //.projectLimit(user.getProjectLimit())
                 .build();

@@ -21,8 +21,6 @@ public record GetUserResponse(
     Map<String, Object> options,
 
     // ACC 내부 정보
-    String department,
-    String phoneNumber,
     Integer projectLimit
 ) {
     public static GetUserResponse from(KeystoneUser keystoneUser) {
@@ -38,9 +36,6 @@ public record GetUserResponse(
                 .email(keystoneUser.getEmail())
                 .description(keystoneUser.getDescription())
                 .options(keystoneUser.getOptions())
-                // ACC 내부 정보
-                .department(keystoneUser.getDepartment())
-                .phoneNumber(keystoneUser.getPhoneNumber())
                 // TODO: API 개발 시, 확인 필요
                 //.projectLimit(user.getProjectLimit())
                 .build();

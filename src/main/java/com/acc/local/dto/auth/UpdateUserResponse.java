@@ -13,9 +13,6 @@ public record UpdateUserResponse(
     String email,
     String description,
 
-    // ACC 내부 정보
-    String department,
-    String phoneNumber,
     Integer projectLimit
 ) {
     public static UpdateUserResponse from(KeystoneUser keystoneUser) {
@@ -27,9 +24,6 @@ public record UpdateUserResponse(
                 .enabled(keystoneUser.isEnabled())
                 .email(keystoneUser.getEmail())
                 .description(keystoneUser.getDescription())
-                // ACC 내부 정보
-                .department(keystoneUser.getDepartment())
-                .phoneNumber(keystoneUser.getPhoneNumber())
                 // TODO: API 개발 시, 확인 필요
                 //.projectLimit(user.getProjectLimit())
                 .build();
