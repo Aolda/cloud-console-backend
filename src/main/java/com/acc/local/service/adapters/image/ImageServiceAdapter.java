@@ -19,70 +19,62 @@ public class ImageServiceAdapter implements ImageServicePort {
     private final ImageServiceModule imageServiceModule;
     private final AuthModule authModule;
 
-    private String acquireProjectScopedToken(String userId, String projectId) {
-        return authModule.issueProjectScopeToken(userId, projectId);
-    }
-
-    private void invalidateTokens(String userId) {
-        authModule.invalidateServiceTokensByUserId(userId);
-    }
-
     @Override
     public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
 
         try {
             List<GlanceImageSummary> combined = imageServiceModule.fetchCombinedSortedList(token, projectId);
             return imageServiceModule.paginate(combined, req);
         } finally {
-            invalidateTokens(userId);
+            authModule.invalidateServiceTokensByUserId(userId);
         }
     }
 
     @Override
     public ImageDetailResponse getImageDetail(String userId, String projectId, String imageId) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
         try {
             return imageServiceModule.getImageDetail(token, imageId);
         } finally {
-            invalidateTokens(userId);
+            authModule.invalidateServiceTokensByUserId(userId);
         }
     }
 
     @Override
     public ImageUploadAckResponse importImageByUrl(String userId, String projectId, ImageUrlImportRequest request) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
         try {
             return imageServiceModule.importImageByUrl(token, request);
         } finally {
-            invalidateTokens(userId);
+            authModule.invalidateServiceTokensByUserId(userId);
         }
     }
 
     @Override
     public ImageUploadAckResponse createImageMetadata(String userId, String projectId, ImageMetadataRequest req) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
         try {
             return imageServiceModule.createImageMetadata(token, req);
         } finally {
-            invalidateTokens(userId);
+            authModule.invalidateServiceTokensByUserId(userId);
         }
     }
 
     @Override
     public void deleteImage(String userId, String projectId, String imageId) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
         try {
             imageServiceModule.deleteImage(token, imageId);
         } finally {
-            invalidateTokens(userId);
+            authModule.invalidateServiceTokensByUserId(userId);
         }
     }
 
     @Override
     public void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType) {
-        String token = acquireProjectScopedToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(userId, projectId);
         imageServiceModule.uploadFileStream(token, imageId, input, contentType);
-        invalidateTokens(userId);
+        authModule.invalidateServiceTokensByUserId(userId);
     }
 }
