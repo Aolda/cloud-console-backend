@@ -11,7 +11,6 @@ import com.acc.local.service.modules.type.InstanceTypeModule;
 import com.acc.local.service.modules.type.InstanceTypeUtil;
 import com.acc.local.service.ports.InstanceTypeServicePort;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.service.GenericResponseService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +22,14 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
     private final AuthModule authModule;
     private final InstanceTypeModule instanceTypeModule;
     private final InstanceTypeUtil instanceTypeUtil;
-    private final GenericResponseService responseBuilder;
 
     @Override
-    public PageResponse<InstanceTypeResponse> listInstanceTypes(String userId, String projectId, PageRequest page) {
+    public PageResponse<InstanceTypeResponse> listUserInstanceTypes(String userId, String projectId, String architect, PageRequest page) {
         String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
 
-        return instanceTypeModule.listInstanceTypes(
+        return instanceTypeModule.listInstanceTypesByArchitect(
                 keystoneToken,
+                architect,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit());

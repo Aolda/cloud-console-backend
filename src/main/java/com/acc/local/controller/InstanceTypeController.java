@@ -19,9 +19,9 @@ public class InstanceTypeController implements InstanceTypeDocs {
     private final InstanceTypeServicePort instanceTypeServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<InstanceTypeResponse>> getInstanceTypes(Authentication authentication, PageRequest page) {
+    public ResponseEntity<PageResponse<InstanceTypeResponse>> getUserInstanceTypes(Authentication authentication, PageRequest page, String architect) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(instanceTypeServicePort.listInstanceTypes(jwtInfo.getUserId(), jwtInfo.getProjectId(), page));
+        return ResponseEntity.ok(instanceTypeServicePort.listUserInstanceTypes(jwtInfo.getUserId(), jwtInfo.getProjectId(), architect, page));
     }
 
     @Override

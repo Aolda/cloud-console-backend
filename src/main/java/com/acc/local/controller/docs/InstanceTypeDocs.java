@@ -61,7 +61,7 @@ public interface InstanceTypeDocs {
 
     @Operation(
             summary = "[관리자] 인스턴스 타입 목록 조회",
-            description = "관리자가 아키텍처 필터링으로 인스턴스 타입 목록을 조회합니다. 상세 정보(IOPS, Bandwidth 등)가 포함됩니다."
+            description = "관리자가 아키텍처 필터링으로 인스턴스 타입 목록을 조회합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -86,7 +86,7 @@ public interface InstanceTypeDocs {
             @Parameter(description = "페이지 정보 (Marker 기반)", required = false)
             PageRequest page,
             @Parameter(description = "아키텍처 필터 (예: X86)", required = false)
-            @RequestParam(required = true) String architect);
+            @RequestParam(required = false) String architect);
 
 
     @Operation(
@@ -106,8 +106,10 @@ public interface InstanceTypeDocs {
             )
     })
     @GetMapping("/api/v1/types")
-    ResponseEntity<PageResponse<InstanceTypeResponse>> getInstanceTypes(
+    ResponseEntity<PageResponse<InstanceTypeResponse>> getUserInstanceTypes(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보 (Marker 기반)", required = false)
-            PageRequest page);
+            PageRequest page,
+            @Parameter(description = "아키텍처 필터 (예: X86)", required = false)
+            @RequestParam(required = false) String architect);
 }

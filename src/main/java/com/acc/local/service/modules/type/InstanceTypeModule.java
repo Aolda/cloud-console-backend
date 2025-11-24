@@ -13,10 +13,6 @@ public class InstanceTypeModule {
 
     private final NovaFlavorExternalPort novaFlavorExternalPort;
 
-    public PageResponse<InstanceTypeResponse> listInstanceTypes(String keystoneToken, String marker, String direction, int limit) {
-        return novaFlavorExternalPort.callListFlavors(keystoneToken, null, marker, direction, limit);
-    }
-
     public PageResponse<InstanceTypeResponse> listInstanceTypesByArchitect(String keystoneToken, String architect, String marker, String direction, int limit) {
         return novaFlavorExternalPort.callListFlavors(keystoneToken, architect, marker, direction, limit);
     }
