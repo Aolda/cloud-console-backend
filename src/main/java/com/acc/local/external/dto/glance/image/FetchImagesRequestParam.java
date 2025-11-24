@@ -20,6 +20,7 @@ public class FetchImagesRequestParam {
     private String status;       // active|queued|saving
     private String owner;
     private Boolean deleteProtected; // maps to "protected"
+    private Boolean hidden;
 
     private List<String> tags;
 
@@ -46,6 +47,7 @@ public class FetchImagesRequestParam {
         if (status != null) map.put("status", status);
         if (owner != null) map.put("owner", owner);
         if (deleteProtected != null) map.put("protected", String.valueOf(deleteProtected));
+        if (hidden != null) map.put("hidden", String.valueOf(hidden));
         if (tags != null && !tags.isEmpty()) map.put("tag", String.join(",", tags));
         if (containerFormat != null) map.put("container_format", containerFormat);
         if (diskFormat != null) map.put("disk_format", diskFormat);
