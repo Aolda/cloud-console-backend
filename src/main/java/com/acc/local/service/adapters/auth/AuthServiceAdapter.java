@@ -135,9 +135,19 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public SignupResponse signup(SignupRequest request) {
+    public SignupResponse signup(SignupRequest request, String verificationToken) {
+        // 1. OAuth 검증 토큰 확인 및 사용 처리
+        authModule.verifyAndUseOAuthToken(request.email(), verificationToken);
+        log.info("OAuth 검증 토큰 검증 완료 - Email: {}", request.email());
+
+        // 2. 회원가입 진행
         String adminToken = authModule.issueSystemAdminToken("signup-process");
-        String userId = authModule.signup(request, adminToken);
-        return SignupResponse.from(userId);
+        try {
+            String userId = authModule.signup(request, adminToken);
+            return SignupResponse.from(userId);
+        } finally {
+            // 3. 어드민 토큰 revoke (성공/실패 여부와 관계없이 항상 실행)
+            authModule.invalidateSystemAdminToken(adminToken);
+        }
     }
 }

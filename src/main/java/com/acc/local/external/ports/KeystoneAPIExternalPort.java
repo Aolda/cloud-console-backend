@@ -2,6 +2,7 @@ package com.acc.local.external.ports;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.exception.AccBaseException;
+import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.domain.model.auth.Role;
 import com.acc.local.domain.model.auth.RoleListResponse;
@@ -70,6 +71,8 @@ public interface KeystoneAPIExternalPort {
 	Role createRole(String token, Map<String, Object> roleRequest);
 
 	RoleListResponse listRoles(String token, String marker, Integer limit, String name);
+
+	RoleAssignmentListResponse listRoleAssignments(String token, Map<String, String> filters);
 
 	ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String adminToken);
 }

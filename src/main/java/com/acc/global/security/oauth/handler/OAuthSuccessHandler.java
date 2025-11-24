@@ -8,6 +8,7 @@ import com.acc.global.security.oauth.dto.OAuth2UserInfo;
 import com.acc.local.domain.enums.UnivAccountType;
 import com.acc.local.dto.auth.UserDepartDto;
 import com.acc.local.service.modules.auth.AjouUnivModule;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -36,6 +37,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final ObjectMapper objectMapper;
     private final OAuth2Properties oAuth2Properties;
     private final AjouUnivModule ajouUnivModule;
+    private final AuthModule authModule;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -66,17 +68,24 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         OAuth2UserInfo userInfo = OAuth2UserInfo.from(oAuth2User);
         log.info("OAuth2 인증 성공 - Email: {}", userInfo.email());
 
-        // 사용자 정보를 JSON으로 변환
+        // 1. OAuth 검증 토큰 생성 및 DB 저장
+        String verificationToken = authModule.generateOAuthVerificationToken(userInfo.email());
+        log.info("OAuth 검증 토큰 생성 완료 - Email: {}", userInfo.email());
+
+        // 2. 사용자 정보를 JSON으로 변환
         String userInfoJson = objectMapper.writeValueAsString(userInfo);
 
-        // Base64 URL-Safe 인코딩 (UTF-8로 바이트 변환)
+        // 3. Base64 URL-Safe 인코딩 (UTF-8로 바이트 변환)
         String encodedUserInfo = Base64.getUrlEncoder()
                 .encodeToString(userInfoJson.getBytes(StandardCharsets.UTF_8));
 
-        // 쿠키 생성
+        // 4. 사용자 정보 쿠키 생성 및 추가
         Cookie userInfoCookie = getUserInfoCookie(encodedUserInfo);
-
         response.addCookie(userInfoCookie);
+
+        // 5. 검증 토큰 쿠키 생성 및 추가
+        Cookie verificationTokenCookie = getVerificationTokenCookie(verificationToken);
+        response.addCookie(verificationTokenCookie);
 
         log.info("OAuth2 사용자 정보 쿠키 생성 완료 - 프론트엔드로 리다이렉트: {}", oAuth2Properties.getSuccess().getRedirectUrl());
 
@@ -91,9 +100,38 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         userInfoCookie.setHttpOnly(false); // 프론트엔드에서 JavaScript로 읽어야 하므로 false
         userInfoCookie.setSecure(true);   // 개발 환경에서는 false, 프로덕션에서는 true로 변경
         userInfoCookie.setPath("/");
-        userInfoCookie.setMaxAge(900);     // 10분 (회원가입 완료 전까지만 유지)
+        userInfoCookie.setMaxAge(900);     // 15분 (회원가입 완료 전까지만 유지)
+
+        // 도메인 설정 (설정되어 있을 때만)
+        String domain = oAuth2Properties.getCookie().getDomain();
+        if (domain != null && !domain.isBlank()) {
+            userInfoCookie.setDomain(domain);
+            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: {}", domain);
+        } else {
+            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: 미설정 (현재 호스트 사용)");
+        }
 
         return userInfoCookie;
+    }
+
+    private Cookie getVerificationTokenCookie(String verificationToken) {
+        // 검증 토큰 쿠키 생성
+        Cookie verificationTokenCookie = new Cookie("oauth-verification-token", verificationToken);
+        verificationTokenCookie.setHttpOnly(true); // JavaScript에서 접근 불가 (보안)
+        verificationTokenCookie.setSecure(true);
+        verificationTokenCookie.setPath("/");
+        verificationTokenCookie.setMaxAge(900); // 15분 (검증 토큰과 동일한 만료시간)
+
+        // 도메인 설정 (설정되어 있을 때만)
+        String domain = oAuth2Properties.getCookie().getDomain();
+        if (domain != null && !domain.isBlank()) {
+            verificationTokenCookie.setDomain(domain);
+            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: {}", domain);
+        } else {
+            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: 미설정 (현재 호스트 사용)");
+        }
+
+        return verificationTokenCookie;
     }
 }
 
