@@ -81,11 +81,13 @@ public interface AuthDocs {
     // ------------------------- SIGNUP -------------------------
     @Operation(
             summary = "회원가입",
-            description = "OAuth를 통해 pre-authenticated 된 사용자 정보를 기반으로 회원가입합니다."
+            description = "OAuth를 통해 pre-authenticated 된 사용자 정보를 기반으로 회원가입합니다.<br>" +
+                    "OAuth 로그인 성공 시 발급된 검증 토큰(Cookie)이 필요합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "회원가입 성공", content = @Content()),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 - 검증 토큰이 없거나 유효하지 않음", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "인증 실패 - 검증 토큰 만료 또는 이미 사용됨", content = @Content()),
             @ApiResponse(responseCode = "409", description = "이미 존재하는 사용자", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
@@ -93,7 +95,10 @@ public interface AuthDocs {
     ResponseEntity<SignupResponse> signup(
             @RequestBody
             @Parameter(description = "회원가입 요청 정보", required = true)
-            SignupRequest request
+            SignupRequest request,
+            @CookieValue("oauth-verification-token")
+            @Parameter(description = "OAuth 검증 토큰 Cookie (OAuth 로그인 시 자동 발급)", required = true)
+            String verificationToken
     );
 }
 

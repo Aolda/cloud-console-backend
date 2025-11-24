@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.acc.local.domain.model.auth.Role;
+import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.domain.model.auth.RoleListResponse;
 import com.acc.local.domain.model.auth.UserListResponse;
 import org.springframework.http.HttpStatus;
@@ -448,6 +449,24 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		try {
 			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.listRoles(token, marker, limit, name);
 			return KeystoneAPIUtils.parseKeystoneRoleListResponse(response);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public RoleAssignmentListResponse listRoleAssignments(String token, Map<String, String> filters) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.listRoleAssignments(token, filters);
+			return KeystoneAPIUtils.parseKeystoneRoleAssignmentListResponse(response);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
