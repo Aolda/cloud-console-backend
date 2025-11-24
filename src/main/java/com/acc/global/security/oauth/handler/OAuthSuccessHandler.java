@@ -102,13 +102,16 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         userInfoCookie.setPath("/");
         userInfoCookie.setMaxAge(900);     // 15분 (회원가입 완료 전까지만 유지)
 
+        // SameSite 속성 설정 (크로스 사이트 쿠키 허용)
+        userInfoCookie.setAttribute("SameSite", "None");
+
         // 도메인 설정 (설정되어 있을 때만)
         String domain = oAuth2Properties.getCookie().getDomain();
         if (domain != null && !domain.isBlank()) {
             userInfoCookie.setDomain(domain);
-            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: {}", domain);
+            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: {}, SameSite: None", domain);
         } else {
-            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: 미설정 (현재 호스트 사용)");
+            log.info("[쿠키 설정] oauth-user-info 쿠키 도메인: 미설정 (현재 호스트 사용), SameSite: None");
         }
 
         return userInfoCookie;
@@ -122,13 +125,16 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         verificationTokenCookie.setPath("/");
         verificationTokenCookie.setMaxAge(900); // 15분 (검증 토큰과 동일한 만료시간)
 
+        // SameSite 속성 설정 (크로스 사이트 쿠키 허용)
+        verificationTokenCookie.setAttribute("SameSite", "None");
+
         // 도메인 설정 (설정되어 있을 때만)
         String domain = oAuth2Properties.getCookie().getDomain();
         if (domain != null && !domain.isBlank()) {
             verificationTokenCookie.setDomain(domain);
-            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: {}", domain);
+            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: {}, SameSite: None", domain);
         } else {
-            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: 미설정 (현재 호스트 사용)");
+            log.info("[쿠키 설정] oauth-verification-token 쿠키 도메인: 미설정 (현재 호스트 사용), SameSite: None");
         }
 
         return verificationTokenCookie;

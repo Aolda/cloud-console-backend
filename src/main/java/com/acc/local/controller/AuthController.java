@@ -150,13 +150,16 @@ public class AuthController implements AuthDocs {
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
 
+        // SameSite 속성 설정 (크로스 사이트 쿠키 허용)
+        refreshTokenCookie.setAttribute("SameSite", "None");
+
         // 도메인 설정 (설정되어 있을 때만)
         String domain = oAuth2Properties.getCookie().getDomain();
         if (domain != null && !domain.isBlank()) {
             refreshTokenCookie.setDomain(domain);
-            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: {}", domain);
+            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: {}, SameSite: None", domain);
         } else {
-            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: 미설정 (현재 호스트 사용)");
+            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: 미설정 (현재 호스트 사용), SameSite: None");
         }
         response.addCookie(refreshTokenCookie);
 
