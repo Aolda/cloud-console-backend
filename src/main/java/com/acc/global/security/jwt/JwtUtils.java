@@ -132,6 +132,36 @@ public class JwtUtils {
         return getUserIdFromToken(refreshToken);
     }
 
+    /**
+     * OAuth 인증 검증용 JWT 생성 (15분 만료)
+     */
+    public String generateOAuthVerificationToken(String email) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + (15 * 60 * 1000L)); // 15분
+
+        SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
+     * OAuth 검증 토큰 유효성 확인
+     */
+    public boolean validateOAuthVerificationToken(String token) {
+        return validateToken(token);
+    }
+
+    /**
+     * OAuth 검증 토큰에서 이메일 추출
+     */
+    public String extractEmailFromOAuthToken(String token) {
+        return getUserIdFromToken(token);
+    }
+
     private Claims getClaimsFromToken(String token) {
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
 

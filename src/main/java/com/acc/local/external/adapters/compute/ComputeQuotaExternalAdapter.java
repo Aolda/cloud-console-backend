@@ -42,6 +42,24 @@ public class ComputeQuotaExternalAdapter implements ComputeQuotaExternalPort {
 	}
 
 	@Override
+	public ResponseEntity<JsonNode> callGetQuotaDetail(String token, String projectId) {
+		try {
+			return novaQuotaSetAPIModule.showQuotaDetail(token, projectId);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.ACCEPTED || status == HttpStatus.NO_CONTENT) {
+				return ResponseEntity.status(status).build();
+			}
+			if (status == HttpStatus.NOT_FOUND) {
+				throw new ComputeException(ComputeErrorCode.COMPUTE_NOT_FOUND, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new ComputeException(ComputeErrorCode.FORBIDDEN_ACCESS, e);
+			}
+			throw new ComputeException(ComputeErrorCode.NOVA_API_FAILURE, e);
+		}
+	}
+
+	@Override
 	public ResponseEntity<Void> callUpdateCPUQuota(String token, String projectId, int cpuLimit) {
 		try {
 			UpdateNovaQuotaRequest quotaRequest = UpdateNovaQuotaRequest.builder()

@@ -6,7 +6,7 @@ import com.acc.global.exception.auth.AuthServiceException;
 public class UserUtil {
 
     private static final String AJOUS_EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@ajou\\.ac\\.kr$";
-    private static final String STUDENT_ID_PATTERN = "^\\d{7}$";
+    private static final String STUDENT_ID_PATTERN = "^\\d{9}$";
     private static final String PHONE_PATTERN = "^01[0-9]-\\d{4}-\\d{4}$";
 
     /**
@@ -24,7 +24,7 @@ public class UserUtil {
 
 
     /**
-     * @param studentId 7자리 학번
+     * @param studentId 9자리 학번
      * @throws IllegalArgumentException 학번 형식 오류
      */
     public static void validateStudentId(String studentId) {
@@ -32,7 +32,7 @@ public class UserUtil {
             return ;
         }
         if (!studentId.matches(STUDENT_ID_PATTERN)) {
-            throw new AuthServiceException(AuthErrorCode.INVALID_REQUEST_PARAMETER, "학번은 총 7개의 숫자로 구성됩니다.");
+            throw new AuthServiceException(AuthErrorCode.INVALID_REQUEST_PARAMETER, "학번은 총 9개의 숫자로 구성됩니다.");
         }
     }
 

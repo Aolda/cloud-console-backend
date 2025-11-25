@@ -48,28 +48,22 @@ public class AdminUserController implements AdminUserDocs {
     }
 
     @Override
-    public ResponseEntity<AdminGetUserResponse> getUser(
-            @RequestParam String userId,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-
-        AdminGetUserResponse response = userServicePort.adminGetUser(userId, requesterId);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Override
-    public ResponseEntity<PageResponse<AdminListUsersResponse>> listUsers(
+    public ResponseEntity<Object> getUsers(
+            @RequestParam(required = false) String userId,
             PageRequest page,
             Authentication authentication
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String requesterId = jwtInfo.getUserId();
 
-        PageResponse<AdminListUsersResponse> response = userServicePort.adminListUsers(page, requesterId);
+        // userId가 있으면 상세 조회
+        if (userId != null && !userId.isBlank()) {
+            AdminGetUserResponse response = userServicePort.adminGetUser(userId, requesterId);
+            return ResponseEntity.ok(response);
+        }
 
+        // userId가 없으면 목록 조회
+        PageResponse<AdminListUsersResponse> response = userServicePort.adminListUsers(page, requesterId);
         return ResponseEntity.ok(response);
     }
 

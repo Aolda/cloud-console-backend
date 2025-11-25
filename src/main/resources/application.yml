@@ -70,6 +70,8 @@ oauth:
     redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL}
   failure:
     redirect-url: ${OAUTH_FAILURE_REDIRECT_URL}
+  cookie:
+    domain: ${OAUTH_COOKIE_DOMAIN}
 
 apm:
     server-url: ${APM_SERVER_URL}

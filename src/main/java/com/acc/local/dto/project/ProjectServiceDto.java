@@ -22,15 +22,19 @@ public record ProjectServiceDto(
 	LocalDateTime createdAt,
 	ProjectRequestStatus status,
 	ProjectQuotaDto quota,
-	List<ProjectParticipantEntity> participants
+	List<ProjectParticipantDto> participants
 ) {
 	public static ProjectServiceDto from(ProjectEntity dbProject, KeystoneProject keystoneProject) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
-		ProjectQuotaDto projectQuotaDto = ProjectQuotaDto.builder()
-			.vCpu(Integer.parseInt(String.valueOf(dbProject.getQuotaVCpuCount())))
-			.vRam(Integer.parseInt(String.valueOf(dbProject.getQuotaVRamMB())))
-			.storage(Integer.parseInt(String.valueOf(dbProject.getQuotaStorageGB())))
-			.instance(Integer.parseInt(String.valueOf(dbProject.getQuotaInstanceCount())))
-			.build();
+
+		ProjectQuotaDto projectQuotaDto = null;
+		if (dbProject.getQuotaVCpuCount() != null) {
+			ProjectQuotaDto.builder()
+				.vCpu(Integer.parseInt(String.valueOf(dbProject.getQuotaVCpuCount())))
+				.vRam(Integer.parseInt(String.valueOf(dbProject.getQuotaVRamMB())))
+				.storage(Integer.parseInt(String.valueOf(dbProject.getQuotaStorageGB())))
+				.instance(Integer.parseInt(String.valueOf(dbProject.getQuotaInstanceCount())))
+				.build();
+		}
 
 		return ProjectServiceDto.builder()
 			.projectId(keystoneProject.getId())
@@ -42,7 +46,11 @@ public record ProjectServiceDto(
 			.createdAt(dbProject.getCreatedAt())
 			.status(ProjectRequestStatus.APPROVED)
 			.quota(projectQuotaDto)
-			.participants(dbProject.getParticipants())
+			.participants(
+				dbProject.getParticipants().stream()
+					.map(ProjectParticipantDto::from)
+					.toList()
+			)
 			.build();
 	}
 }

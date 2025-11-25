@@ -4,6 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
+import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -103,6 +104,38 @@ public interface InstanceDocs {
             @RequestBody
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
             InstanceCreateRequest request
+    );
+
+    @Operation(
+            summary = "쿼터 조회",
+            description = "컴퓨트 관련 리소스 쿼터를 조회합니다"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "쿼터조회 성공",
+                    content = @Content()
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패 - 유효하지 않은 토큰",
+                    content = @Content()
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "권한 없음 - 프로젝트 접근 권한이 없음",
+                    content = @Content()
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 오류 - Nova 서버 생성에 실패했습니다.",
+                    content = @Content()
+            )
+    })
+    @GetMapping("/quota")
+    ResponseEntity<InstanceQuotaResponse> getQuota(
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(

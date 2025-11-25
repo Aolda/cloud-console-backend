@@ -25,6 +25,7 @@ public enum AuthErrorCode implements ErrorCode {
     KEYSTONE_TOKEN_EXPIRED(403, "ACC-AUTH-KEYSTONE-TOKEN-EXPIRED", "Keystone 인증이 만료되었습니다."),
     KEYSTONE_TOKEN_AUTHENTICATION_FAILED(403, "ACC-AUTH-KEYSTONE-AUTHENTICATION-FAILED", "Keystone 토큰 인증에 실패했습니다."),
     AJOU_STUDENT_VERIFICATION_FAILED(403, "ACC-AUTH-AJOU-STUDENT-VERIFICATION-FAILED", "아주대 학생 인증에 실패했습니다."),
+    NO_UNIV_ACCOUNT_INFO(403, "ACC-AUTH-NO-UNIV-ACCOUNT-INFO", "아주대 학적 정보를 찾을 수 없습니다. 재학생만 가입할 수 있습니다."),
     ONLY_UNDERGRADUATE_ALLOWED(403, "ACC-AUTH-ONLY-UNDERGRADUATE-ALLOWED", "재학생인 경우에만 가입할 수 있습니다."),
 
     // 404 Not Found
@@ -47,7 +48,8 @@ public enum AuthErrorCode implements ErrorCode {
     KEYSTONE_TOKEN_EXTRACTION_FAILED(500, "ACC-AUTH-KEYSTONE-TOKEN-EXTRACTION-FAILED", "Keystone 토큰 추출에 실패했습니다."),
     KEYSTONE_RESPONSE_PARSING_FAILED(500, "ACC-AUTH-KEYSTONE-RESPONSE-PARSING-FAILED", "Keystone 응답 파싱에 실패했습니다."),
     KEYSTONE_INVALID_RESPONSE_STRUCTURE(500, "ACC-AUTH-KEYSTONE-INVALID-RESPONSE-STRUCTURE", "Keystone 응답 구조가 올바르지 않습니다."),
-    SIGN_UP_ERROR(500,"ACC-AUTH-SIGNUP-ERROR" ,"회원가입 도중 에러가 발생했습니다." );
+    SIGN_UP_ERROR(500,"ACC-AUTH-SIGNUP-ERROR" ,"회원가입 도중 에러가 발생했습니다." ),
+    ROLE_NOT_FOUND(500, "ACC-AUTH-ROLE-NOT-FOUND-ERROR", "이름과 일치하는 역할을 찾지 못했습니다");
     private final int status;
     private final String code;
     private final String message;

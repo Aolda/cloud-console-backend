@@ -6,6 +6,7 @@ import com.acc.local.dto.auth.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -55,6 +56,7 @@ public interface AdminUserDocs {
             @RequestBody
             @Parameter(description = "사용자 생성 요청 정보", required = true)
             AdminCreateUserRequest request,
+            @Parameter(hidden = true)
             Authentication authentication);
 
 
@@ -99,57 +101,19 @@ public interface AdminUserDocs {
             @RequestBody
             @Parameter(description = "사용자 수정 요청 정보", required = true)
             AdminUpdateUserRequest request,
+            @Parameter(hidden = true)
             Authentication authentication,
             @RequestParam @Parameter(description = "사용자 키스톤 유저 아이디", required = true) String userId);
 
 
     @Operation(
-            summary = "사용자 상세 조회",
-            description = "관리자가 특정 사용자의 상세 정보를 조회합니다."
+            summary = "사용자 조회 (상세/목록)",
+            description = "관리자가 사용자 정보를 조회합니다. userId가 있으면 상세 조회, 없으면 목록 조회를 수행합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "사용자 조회 성공",
-                    content = @Content()
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패 - 유효하지 않은 토큰입니다.",
-                    content = @Content()
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "권한 없음 - 관리자 권한이 필요한 기능입니다.",
-                    content = @Content()
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "사용자 없음 - 사용자를 찾을 수 없습니다.",
-                    content = @Content()
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류 - Keystone 통신 중 에러가 발생했습니다.",
-                    content = @Content()
-            )
-    })
-    @GetMapping(params = "userId")
-    ResponseEntity<AdminGetUserResponse> getUser(
-            @RequestParam
-            @Parameter(description = "조회할 사용자 키스톤 ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
-            String userId,
-            Authentication authentication);
-
-
-    @Operation(
-            summary = "사용자 목록 조회",
-            description = "관리자가 전체 사용자 목록을 조회합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "사용자 목록 조회 성공",
                     content = @Content()
             ),
             @ApiResponse(
@@ -168,15 +132,31 @@ public interface AdminUserDocs {
                     content = @Content()
             ),
             @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자 없음 - 사용자를 찾을 수 없습니다. (상세 조회 시)",
+                    content = @Content()
+            ),
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류 - Keystone 통신 중 에러가 발생했습니다.",
                     content = @Content()
             )
     })
     @GetMapping
-    ResponseEntity<PageResponse<AdminListUsersResponse>> listUsers(
-            @Parameter(description = "페이지 정보", required = false)
+    ResponseEntity<Object> getUsers(
+            @RequestParam(required = false)
+            @Parameter(
+                    description = "조회할 사용자 키스톤 ID (선택: 있으면 상세 조회, 없으면 목록 조회)",
+                    required = false,
+                    examples = {
+                            @ExampleObject(name = "상세 조회", value = "550e8400-e29b-41d4-a716-446655440000"),
+                            @ExampleObject(name = "목록 조회", value = "")
+                    }
+            )
+            String userId,
+            @Parameter(description = "페이지 정보 (목록 조회 시)", required = false)
             PageRequest page,
+            @Parameter(hidden = true)
             Authentication authentication);
 
 
@@ -216,5 +196,6 @@ public interface AdminUserDocs {
             @RequestParam
             @Parameter(description = "삭제할 사용자 ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
             String userId,
+            @Parameter(hidden = true)
             Authentication authentication);
 }

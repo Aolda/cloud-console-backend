@@ -59,4 +59,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public void deleteUserAuthById(String userId) {
         userAuthDetailJpaRepository.deleteById(userId);
     }
+
+    @Override
+    public List<UserDetailEntity> findUserByUserName(String userName) {
+        return userDetailJpaRepository.findAllByUserName(userName);
+    }
 }

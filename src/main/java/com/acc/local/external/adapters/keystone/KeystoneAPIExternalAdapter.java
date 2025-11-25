@@ -1,10 +1,15 @@
 package com.acc.local.external.adapters.keystone;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.Role;
+import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.domain.model.auth.RoleListResponse;
+import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserListResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -64,15 +69,20 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
 		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
+		// log.info("unscopedToken: {}", unscopedToken);
 		ResponseEntity<JsonNode> systemAdminTokenResponse = authenticateKeystoneWithSystemPrivilege(unscopedToken.token());
+		// log.info("systemAdminTokenResponse: {}", systemAdminTokenResponse);
 		return KeystoneAPIUtils.extractKeystoneToken(systemAdminTokenResponse);
 	}
 
 	@Override
 	public KeystoneToken getAdminTokenWithAdminProjectScope(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
 		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
-		String adminProjectId = getAdminProjectId(unscopedToken.token());
+		KeystoneToken adminSystemScopedToken = getAdminToken(loginRequest);
+		String adminProjectId = getAdminProjectId(adminSystemScopedToken.token());
 		ResponseEntity<JsonNode> systemAdminTokenResponse = authenticateKeystoneWithAdminProjectPrivilege(unscopedToken.token(), adminProjectId);
+
+		revokeToken(adminSystemScopedToken.token());
 		return KeystoneAPIUtils.extractKeystoneToken(systemAdminTokenResponse);
 	}
 
@@ -297,10 +307,10 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		}
 	}
 
-	private String getAdminProjectId(String token) {
+	public String getAdminProjectId(String token) {
 		try {
-			ResponseEntity<JsonNode> accessableProjects = keystoneProjectAPIModule.getAccessableProjects(token);
-			return KeystoneAPIUtils.extractAdminProjectId(accessableProjects);
+			ResponseEntity<JsonNode> allProjects = keystoneProjectAPIModule.getProjects(token, Collections.emptyMap());
+			return KeystoneAPIUtils.extractAdminProjectId(allProjects);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -319,14 +329,21 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String adminToken) {
+	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String token) {
 		try {
-			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
-				keyword,
-				pageRequest.getMarker(), pageRequest.getLimit()
-			);
+			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
+			if (keyword != null) {
+				keystoneListProjectRequest = Collections.singletonMap("name", keyword);
+			}
+			if (pageRequest != null) {
+				keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+					keyword,
+					pageRequest.getMarker(), pageRequest.getLimit()
+				);
+			}
+
 			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjects(
-				adminToken,
+				token,
 				keystoneListProjectRequest
 			);
 
@@ -343,7 +360,116 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			} else if (status == HttpStatus.NOT_FOUND) {
 				throw new KeystoneException(AuthErrorCode.PROJECT_NOT_FOUND, e);
 			}
+			e.printStackTrace();
 			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, e);
+		}
+	}
+
+	@Override
+	public ProjectListDto getUserProjectsByProjectName(String keyword, PageRequest pageRequest, String requestUserId, String token) {
+
+		try {
+			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
+			if (pageRequest != null) KeystoneAPIUtils.createKeystoneListProjectRequest(
+				keyword,
+				pageRequest.getMarker(), pageRequest.getLimit()
+			);
+
+			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjectsUser(
+				token,
+				requestUserId,
+				keystoneListProjectRequest
+			);
+
+			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
+			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
+
+			return ProjectListDto.from(keystoneProjects, projectsPagination);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.NOT_FOUND) {
+				throw new KeystoneException(AuthErrorCode.PROJECT_NOT_FOUND, e);
+			}
+			e.printStackTrace();
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, e);
+		}
+	}
+
+	@Override
+	public String getProjectRole(ProjectRole role, String token) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneUserAPIModule.getRoles(token);
+			return Objects.requireNonNull(
+				KeystoneAPIUtils.parseAndFindKeystoneRoleId(response, "admin")
+			) // TODO: Openstack 내 API 호출에러 방지를 위한 admin권한 부여 (임시)
+			.orElseThrow(() -> new WebClientResponseException(404, "Role Not Found", null, null, null));
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public void assignProjectRole(String userId, String projectId, String projectRoleKeystoneId, String token) {
+		try {
+			keystoneUserAPIModule.assignRole(token, userId, projectId, projectRoleKeystoneId);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public void retrieveProjectRole(String userId, String projectId, String projectRoleKeystoneId, String token) {
+		try {
+			keystoneUserAPIModule.deleteRole(token, userId, projectId, projectRoleKeystoneId);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Deprecated
+	@Override
+	public List<KeystoneUser> getUsersByEmail(String keyword) {
+		try {
+			// keystoneUserAPIModule.deleteRole(token, userId, projectId, projectRoleKeystoneId);
+			return null;
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
 		}
 	}
 
@@ -448,6 +574,24 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		try {
 			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.listRoles(token, marker, limit, name);
 			return KeystoneAPIUtils.parseKeystoneRoleListResponse(response);
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
+		}
+	}
+
+	@Override
+	public RoleAssignmentListResponse listRoleAssignments(String token, Map<String, String> filters) {
+		try {
+			ResponseEntity<JsonNode> response = keystoneRoleAPIModule.listRoleAssignments(token, filters);
+			return KeystoneAPIUtils.parseKeystoneRoleAssignmentListResponse(response);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {

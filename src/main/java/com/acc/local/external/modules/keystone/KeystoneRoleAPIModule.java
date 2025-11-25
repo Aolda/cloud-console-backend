@@ -49,4 +49,32 @@ public class KeystoneRoleAPIModule {
                 KeystoneAPIUtils.port
         );
     }
+
+    /**
+     * @param token 인증 토큰
+     * @param filters 필터 옵션 Map
+     *                - "effective": "true" (그룹 멤버십 포함)
+     *                - "include_names": "true" (이름 정보 포함)
+     *                - "scope.system": "all" (시스템 스코프)
+     *                - "scope.project.id": "{project_id}" (프로젝트 스코프)
+     *                - "user.id": "{user_id}" (특정 사용자)
+     *                - "role.id": "{role_id}" (특정 역할)
+     *                - "marker": "{marker}" (페이지네이션)
+     *                - "limit": "{limit}" (개수 제한)
+     * @return Role assignments 응답
+     */
+    public ResponseEntity<JsonNode> listRoleAssignments(String token, Map<String, String> filters) {
+        Map<String, String> queryParams = new HashMap<>();
+
+        if (filters != null && !filters.isEmpty()) {
+            queryParams.putAll(filters);
+        }
+
+        return openstackAPICallModule.callGetAPI(
+                KeystoneRoutes.ROLE_ASSIGNMENTS,
+                Collections.singletonMap("X-Auth-Token", token),
+                queryParams,
+                KeystoneAPIUtils.port
+        );
+    }
 }
