@@ -46,26 +46,42 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Optional<UserDepartDto> userDepartDtoOpt = ajouUnivModule.getUserDepartInfo(oAuth2User);
 
-        // 학적정보가 있는 경우, UNDERGRADUATE(재학생)인지 검증
-        if (userDepartDtoOpt.isPresent()) {
-            UserDepartDto userDepartDto = userDepartDtoOpt.get();
+        // 학과 정보 추출 로그
+        log.info("[학과 정보 추출] Email: {}, 학과 정보 존재 여부: {}",
+                oAuth2User.getAttribute("email"), userDepartDtoOpt.isPresent());
 
-            // UNDERGRADUATE가 아닌 경우 에러 처리
-            if (userDepartDto.univAccountType() != UnivAccountType.UNDERGRADUATE) {
-                log.warn("OAuth2 인증 실패 - 재학생이 아님: {}, Type: {}",
-                        oAuth2User.getAttribute("email"), userDepartDto.univAccountType());
+        // 학적 정보가 없는 경우 에러 처리
+        if (userDepartDtoOpt.isEmpty()) {
+            log.warn("OAuth2 인증 실패 - 학적 정보 없음: {}, OAuth2User attributes: {}",
+                    oAuth2User.getAttribute("email"), oAuth2User.getAttributes());
 
-                String errorCode = AuthErrorCode.ONLY_UNDERGRADUATE_ALLOWED.getCode();
-                String redirectUrl = oAuth2Properties.getFailure().getRedirectUrl()
-                        + "?error=" + URLEncoder.encode(errorCode, StandardCharsets.UTF_8);
+            String errorCode = AuthErrorCode.NO_UNIV_ACCOUNT_INFO.getCode();
+            String redirectUrl = oAuth2Properties.getFailure().getRedirectUrl()
+                    + "?error=" + URLEncoder.encode(errorCode, StandardCharsets.UTF_8);
 
-                response.sendRedirect(redirectUrl);
-                return;
-            }
+            response.sendRedirect(redirectUrl);
+            return;
         }
 
-        // 학적정보 유무와 관계없이 from 메서드 사용 (null 허용)
-        OAuth2UserInfo userInfo = OAuth2UserInfo.from(oAuth2User);
+        UserDepartDto userDepartDto = userDepartDtoOpt.get();
+        log.info("[학과 정보 상세] 학과: {}, 학적 타입: {}",
+                userDepartDto.department(), userDepartDto.univAccountType());
+
+        // UNDERGRADUATE가 아닌 경우 에러 처리
+        if (userDepartDto.univAccountType() != UnivAccountType.UNDERGRADUATE) {
+            log.warn("OAuth2 인증 실패 - 재학생이 아님: {}, Type: {}",
+                    oAuth2User.getAttribute("email"), userDepartDto.univAccountType());
+
+            String errorCode = AuthErrorCode.ONLY_UNDERGRADUATE_ALLOWED.getCode();
+            String redirectUrl = oAuth2Properties.getFailure().getRedirectUrl()
+                    + "?error=" + URLEncoder.encode(errorCode, StandardCharsets.UTF_8);
+
+            response.sendRedirect(redirectUrl);
+            return;
+        }
+
+        // 재학생인 경우에만 정상 처리
+        OAuth2UserInfo userInfo = OAuth2UserInfo.create(oAuth2User, userDepartDto);
         log.info("OAuth2 인증 성공 - Email: {}", userInfo.email());
 
         // 1. OAuth 검증 토큰 생성 및 DB 저장
