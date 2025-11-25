@@ -7,6 +7,7 @@ public record ImageMetadataRequest(
         String name,
         String diskFormat,
         String containerFormat,
+        String architecture,
         Integer minDisk,
         Integer minRam
 ) {}

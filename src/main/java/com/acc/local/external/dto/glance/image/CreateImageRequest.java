@@ -23,6 +23,9 @@ public class CreateImageRequest {
     @JsonProperty("disk_format")
     private String diskFormat;
 
+    @JsonProperty("architecture")
+    private String architecture;
+
     @JsonProperty("id")
     private String id;
 

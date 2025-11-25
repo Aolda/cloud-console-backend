@@ -74,6 +74,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
                     .name(req.name())
                     .diskFormat(req.diskFormat())
                     .containerFormat(req.containerFormat())
+                    .architecture(req.architecture())
                     .visibility("private")
                     .minDisk(req.minDisk())
                     .minRam(req.minRam())
