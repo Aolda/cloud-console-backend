@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -36,6 +35,7 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
             return glanceImageAPIModule.fetchImageList(token, param);
         } catch (Exception e) {
 //            System.out.println("fetchPrivateImageList error");
+//            System.out.println(e.getMessage());
             throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
         }
     }
