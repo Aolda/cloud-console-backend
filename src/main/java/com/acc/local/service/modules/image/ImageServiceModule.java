@@ -181,11 +181,12 @@ public class ImageServiceModule {
             throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
         }
 
-        // status 필드 파싱
+        // 필드 파싱
         String status = res.path("status").asText(null);
+        String os_distro = res.path("os_distro").asText(null);
 
-        // Glance 이미지 상태가 ACTIVE가 아니면 빠른 생성 불가
-        if (!"active".equalsIgnoreCase(status)) {
+        // Glance 이미지 상태가 ACTIVE가 아니거나, os_distro가 ubuntu가 아니면 에러 발생
+        if (!"active".equalsIgnoreCase(status) || !"ubuntu".equalsIgnoreCase(os_distro)) {
             throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
         }
 
