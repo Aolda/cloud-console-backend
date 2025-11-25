@@ -13,6 +13,7 @@ public record ImageListResponse(
     public record GlanceImageSummary(
             String id,
             String name,
+            String architecture,
             String projectName,
             String description,
             String diskFormat,

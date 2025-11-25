@@ -9,6 +9,7 @@ import java.util.List;
 public record ImageDetailResponse(
         String id,
         String name,
+        String architecture,
         String projectName,
         String description,     // properties.description (없으면 null)
         String diskFormat,
