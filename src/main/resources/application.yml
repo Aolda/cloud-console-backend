@@ -78,3 +78,6 @@ apm:
 logging:
   level:
     reactor.netty.http.client: TRACE
+
+quick-start:
+  default-image-id: ${DEFAULT_IMAGE_ID_X86_64}
