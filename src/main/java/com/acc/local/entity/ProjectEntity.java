@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import com.acc.local.domain.enums.project.ProjectRequestType;
 
 @Entity
 @Table(name = "projects")
-@Getter
+@Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProjectEntity {
 
@@ -50,7 +51,15 @@ public class ProjectEntity {
     private List<ProjectParticipantEntity> participants = new ArrayList<>();
 
     @Builder
-    public ProjectEntity(String projectId) {
+    public ProjectEntity(String projectId, String ownerKeystoneId, ProjectRequestType projectType, Long quotaVCpuCount,
+        Long quotaVRamMB, Long quotaInstanceCount, Long quotaStorageGB, List<ProjectParticipantEntity> participants) {
         this.projectId = projectId;
+        this.ownerKeystoneId = ownerKeystoneId;
+        this.projectType = projectType;
+        this.quotaVCpuCount = quotaVCpuCount;
+        this.quotaVRamMB = quotaVRamMB;
+        this.quotaInstanceCount = quotaInstanceCount;
+        this.quotaStorageGB = quotaStorageGB;
+        this.createdAt = LocalDateTime.now();
     }
 }

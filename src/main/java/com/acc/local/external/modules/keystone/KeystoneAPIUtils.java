@@ -480,7 +480,7 @@ public class KeystoneAPIUtils {
 
     public static Map<String, String> createKeystoneListProjectRequest(String projectName, String marker, int limit) {
         Map<String, String> request = new HashMap<>();
-        request.put("name", projectName);
+        if (projectName != null) request.put("name", projectName);
         request.put("marker", marker);
         request.put("limit", String.valueOf(limit));
 
@@ -551,8 +551,9 @@ public class KeystoneAPIUtils {
 
         if (current == null) return null;
         if (current.isArray()) return (T) current;
+        if (current.isTextual()) return (T) current.asText();
 
-        return (T) current.asText();
+        return (T) current;
 
     }
 
@@ -613,9 +614,9 @@ public class KeystoneAPIUtils {
                     .id(project.get("id").asText(""))
                     .name(project.get("name").asText(""))
                     .description(project.get("description").asText(""))
-                    .isDomain(project.get("isDomain").asBoolean())
+                    .isDomain(project.get("is_domain").asBoolean())
                     .enabled(project.get("enabled").asBoolean())
-                    .parentId(project.get("parentId").asText(""))
+                    .parentId(project.get("parent_id").asText(""))
                     .build()
             );
         }
@@ -810,4 +811,18 @@ public class KeystoneAPIUtils {
         }
     }
 
+    public static Optional<String> parseAndFindKeystoneRoleId(ResponseEntity<JsonNode> response, String roleName) {
+        JsonNode body = validateAndExtractBody(response);
+        if (!body.has("roles")) {
+            return null;
+        }
+
+        JsonNode roles = getObjectValue(body, "roles");
+        for (JsonNode role : roles) {
+            if (role.get("name").asText().equals(roleName))
+                return Optional.of(role.get("id").asText());
+        }
+
+        return Optional.empty();
+    }
 }

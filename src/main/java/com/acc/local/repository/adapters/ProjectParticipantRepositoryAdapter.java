@@ -1,6 +1,7 @@
 package com.acc.local.repository.adapters;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -27,7 +28,22 @@ public class ProjectParticipantRepositoryAdapter implements ProjectParticipantRe
 	}
 
 	@Override
+	public Optional<ProjectParticipantEntity> findByProjectIdAndParticipantId(String projectId, String participantId) {
+		return projectParticipantJpaRepository.findByProjectIdAndParticipantId(projectId, participantId);
+	}
+
+	@Override
 	public void save(ProjectParticipantEntity projectParticipantEntity) {
 		projectParticipantJpaRepository.save(projectParticipantEntity);
+	}
+
+	@Override
+	public void saveAll(List<ProjectParticipantEntity> projectParticipantEntities) {
+		projectParticipantJpaRepository.saveAll(projectParticipantEntities);
+	}
+
+	@Override
+	public void deleteAll(List<ProjectParticipantEntity> projectParticipantEntities) {
+		projectParticipantJpaRepository.deleteAll(projectParticipantEntities);
 	}
 }

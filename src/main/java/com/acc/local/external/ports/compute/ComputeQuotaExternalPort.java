@@ -8,6 +8,8 @@ public interface ComputeQuotaExternalPort {
 
 	ResponseEntity<JsonNode> callGetQuota(String token, String projectId);
 
+	ResponseEntity<JsonNode> callGetQuotaDetail(String token, String projectId);
+
 	ResponseEntity<Void> callUpdateCPUQuota(String token, String projectId, int cpuLimit);
 
 	ResponseEntity<Void> callUpdateRAMQuota(String token, String projectId, int ramLimitWithMBUnit);

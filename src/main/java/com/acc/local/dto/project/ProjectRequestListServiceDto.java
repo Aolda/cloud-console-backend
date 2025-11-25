@@ -16,12 +16,12 @@ public record ProjectRequestListServiceDto(
 ) {
 	public static ProjectRequestListServiceDto from(List<ProjectRequestDto> savedProjectRequestList, PageRequest pageRequest, boolean isLast, String prevMarker) {
 
-		int currentOffset = Integer.parseInt(new String(
+		int currentOffset = (pageRequest == null) ? 0 : Integer.parseInt(new String(
 			Base64.getDecoder().decode(pageRequest.getMarker()),
 			StandardCharsets.UTF_8
 		));
 		String nextMarker = Base64.getEncoder().encodeToString(String.valueOf(
-			currentOffset + pageRequest.getLimit()
+			currentOffset + ((pageRequest == null) ? 0 : pageRequest.getLimit())
 		).getBytes());
 
 		RepositoryPagination projectRequestPaginationInfo = RepositoryPagination.builder()

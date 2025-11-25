@@ -6,8 +6,11 @@ import com.acc.global.exception.instance.InstanceErrorCode;
 import com.acc.global.exception.instance.InstanceException;
 import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
+import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
+import com.acc.local.dto.project.ProjectQuotaDto;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.instance.InstanceModule;
 import com.acc.local.service.modules.instance.InstanceUtil;
 import com.acc.local.service.ports.InstanceServicePort;
@@ -24,6 +27,7 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     private final InstanceModule instanceModule;
     private final InstanceUtil instanceUtil;
     private final AuthModule authModule;
+    private final ProjectModule projectModule;
 
     @Override
     public PageResponse<InstanceResponse> getInstances(PageRequest page, String userId, String projectId) {
@@ -60,5 +64,14 @@ public class InstanceServiceAdapter implements InstanceServicePort {
         String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
         instanceUtil.validateInstanceActionRequest(request);
         instanceModule.controlInstance(keystoneToken, projectId, instanceId, request);
+    }
+
+    @Override
+    public InstanceQuotaResponse getQuota(String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
+        InstanceQuotaResponse projectComputeQuotaDetail = projectModule.getProjectComputeQuotaDetail(projectId, token);
+        authModule.invalidateServiceTokensByUserId(userId);
+
+        return projectComputeQuotaDetail;
     }
 }
