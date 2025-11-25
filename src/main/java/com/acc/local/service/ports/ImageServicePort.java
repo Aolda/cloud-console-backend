@@ -7,7 +7,7 @@ import java.io.InputStream;
 
 public interface ImageServicePort {
 
-    PageResponse<ImageListResponse.GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest pageRequest, boolean isHidden);
+    PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest pageRequest, ImageFilterRequest imageFilterRequest);
 
     ImageDetailResponse getImageDetail(String userId, String projectId, String imageId);
 

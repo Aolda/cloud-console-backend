@@ -6,7 +6,6 @@ import com.acc.global.exception.image.ImageException;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.properties.QuickStartProperties;
 import com.acc.local.dto.image.*;
-import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -27,50 +23,15 @@ public class ImageServiceModule {
     private final ImageJsonMapperModule mapper;
     private final QuickStartProperties quickStartProperties;
 
-    private ImageListResponse getPrivateImages(String token, String projectId) {
+    public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {
         try {
-            ResponseEntity<JsonNode> res = glanceExternalPort.fetchPrivateImageList(token, projectId);
-            return mapper.toImageListResponse(res.getBody());
+            ResponseEntity<JsonNode> res = glanceExternalPort.fetchImageList(token, projectId, filters);
+            List<GlanceImageSummary> imageSummaryList = mapper.toImageListResponse(res.getBody());
+            return mapper.sortGlanceImageSummary(imageSummaryList);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
         }
     }
-
-    private ImageListResponse getPublicImages(String token) {
-        try {
-            ResponseEntity<JsonNode> res = glanceExternalPort.fetchPublicImageList(token);
-            return mapper.toImageListResponse(res.getBody());
-        } catch (Exception e) {
-            throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
-        }
-    }
-
-    public List<GlanceImageSummary> fetchCombinedSortedList(String token, String projectId, boolean fetchHidden) {
-        try {
-            ImageListResponse privateList = getPrivateImages(token, projectId);
-            ImageListResponse publicList = getPublicImages(token);
-
-            List<GlanceImageSummary> combined = new ArrayList<>();
-            combined.addAll(privateList.images());
-            combined.addAll(publicList.images());
-
-            //hidden
-            if (!fetchHidden) {
-                combined = combined.stream()
-                        .filter(img -> !Boolean.TRUE.equals(img.hidden()))
-                        .collect(Collectors.toList());
-                // os_hidden == true만 제거
-            }
-
-            combined.sort(Comparator.comparing(GlanceImageSummary::createdAt).reversed());
-
-            return combined;
-
-        } catch (Exception e) {
-            throw new ImageException(ImageErrorCode.IMAGE_LIST_FETCH_FAILURE, e);
-        }
-    }
-
 
     public PageResponse<GlanceImageSummary> paginate(List<GlanceImageSummary> all, PageRequest req) {
         String marker = req.getMarker();

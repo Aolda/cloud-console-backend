@@ -6,22 +6,25 @@ import com.acc.local.dto.image.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Component
 public class ImageJsonMapperModule {
 
-    public ImageListResponse toImageListResponse(JsonNode json) {
+    public List<GlanceImageSummary> toImageListResponse(JsonNode json) {
         try {
             if (json == null) throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
-            List<ImageListResponse.GlanceImageSummary> list = new ArrayList<>();
+            List<GlanceImageSummary> list = new ArrayList<>();
 
             JsonNode imagesNode = json.get("images");
             if (imagesNode != null && imagesNode.isArray()) {
                 for (JsonNode img : imagesNode) {
                     list.add(
-                            ImageListResponse.GlanceImageSummary.builder()
+                            GlanceImageSummary.builder()
                                     .id(text(img, "id"))
                                     .name(text(img, "name"))
                                     .architecture(text(img, "architecture"))
@@ -39,14 +42,28 @@ public class ImageJsonMapperModule {
                     );
                 }
             }
-
-            return ImageListResponse.builder()
-                    .images(list)
-                    .build();
+            return list;
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
         }
     }
+
+    public List<GlanceImageSummary> sortGlanceImageSummary(List<GlanceImageSummary> list) {
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<GlanceImageSummary> sorted =
+                new ArrayList<>(list);
+
+        sorted.sort(Comparator.comparing(
+                img -> Instant.parse(img.createdAt()),
+                Comparator.reverseOrder()
+        ));
+
+        return sorted;
+    }
+
 
     public ImageDetailResponse toImageDetailResponse(JsonNode json) {
         try {

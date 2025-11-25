@@ -3,7 +3,6 @@ package com.acc.local.service.adapters.image;
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.image.*;
-import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.image.ImageServiceModule;
 import com.acc.local.service.ports.ImageServicePort;
@@ -20,11 +19,11 @@ public class ImageServiceAdapter implements ImageServicePort {
     private final AuthModule authModule;
 
     @Override
-    public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req, boolean fetchHidden) {
+    public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req, ImageFilterRequest imageFilterRequest) {
         String token = authModule.issueProjectScopeToken(userId, projectId);
         try {
-            List<GlanceImageSummary> combined = imageServiceModule.fetchCombinedSortedList(token, projectId, fetchHidden);
-            return imageServiceModule.paginate(combined, req);
+            List<GlanceImageSummary> totalImageList = imageServiceModule.fetchSortedList(token, projectId, imageFilterRequest);
+            return imageServiceModule.paginate(totalImageList, req);
         } finally {
             authModule.invalidateServiceTokensByUserId(userId);
         }
