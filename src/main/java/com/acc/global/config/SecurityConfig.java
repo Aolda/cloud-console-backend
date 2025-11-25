@@ -100,6 +100,7 @@ public class SecurityConfig {
                 "https://console.aoldacloud.com",
                 "https://acc.jalju.com",
                 "https://console.jalju.com",
+                "https://console.jalju.com:5173",
                 "https://aolda.cloud",
                 "https://console.aolda.cloud"
         ));
