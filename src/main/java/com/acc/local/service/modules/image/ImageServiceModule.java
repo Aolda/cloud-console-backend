@@ -4,6 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.image.ImageException;
 import com.acc.global.exception.image.ImageErrorCode;
+import com.acc.global.properties.QuickStartProperties;
 import com.acc.local.dto.image.*;
 import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import com.acc.local.external.ports.GlanceExternalPort;
@@ -24,6 +25,7 @@ public class ImageServiceModule {
 
     private final GlanceExternalPort glanceExternalPort;
     private final ImageJsonMapperModule mapper;
+    private final QuickStartProperties quickStartProperties;
 
     private ImageListResponse getPrivateImages(String token, String projectId) {
         try {
@@ -165,5 +167,28 @@ public class ImageServiceModule {
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.IMAGE_UPLOAD_FAILURE, e);
         }
+    }
+
+    //QuickStart 시 Default 이미지 가져오기 및 ID 유효성 검사
+    //추후 아키텍처에 따라 baseImage 여러 개 관리 가능
+    public String fetchQuickStartImageId(String token) {
+        String imageId = quickStartProperties.getDefaultImageId();
+
+        // external에서 token error or 403 or image not found는 Exception으로 처리 (예정)
+        JsonNode res = glanceExternalPort.fetchImageDetail(token, imageId).getBody();
+
+        if (res == null) {
+            throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
+        }
+
+        // status 필드 파싱
+        String status = res.path("status").asText(null);
+
+        // Glance 이미지 상태가 ACTIVE가 아니면 빠른 생성 불가
+        if (!"active".equalsIgnoreCase(status)) {
+            throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
+        }
+
+        return imageId;
     }
 }
