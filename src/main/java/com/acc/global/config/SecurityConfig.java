@@ -98,7 +98,10 @@ public class SecurityConfig {
                 "https://script.google.com",
                 "https://script.googleusercontent.com",
                 "https://console.aoldacloud.com",
-                "https://acc.jalju.com"
+                "https://acc.jalju.com",
+                "https://console.jalju.com",
+                "https://aolda.cloud",
+                "https://console.aolda.cloud"
         ));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
