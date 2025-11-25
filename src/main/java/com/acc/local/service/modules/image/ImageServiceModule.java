@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class ImageServiceModule {
         }
     }
 
-    public List<GlanceImageSummary> fetchCombinedSortedList(String token, String projectId) {
+    public List<GlanceImageSummary> fetchCombinedSortedList(String token, String projectId, boolean fetchHidden) {
         try {
             ImageListResponse privateList = getPrivateImages(token, projectId);
             ImageListResponse publicList = getPublicImages(token);
@@ -51,7 +52,16 @@ public class ImageServiceModule {
             combined.addAll(privateList.images());
             combined.addAll(publicList.images());
 
+            //hidden
+            if (!fetchHidden) {
+                combined = combined.stream()
+                        .filter(img -> !Boolean.TRUE.equals(img.hidden()))
+                        .collect(Collectors.toList());
+                // os_hidden == true만 제거
+            }
+
             combined.sort(Comparator.comparing(GlanceImageSummary::createdAt).reversed());
+
             return combined;
 
         } catch (Exception e) {
@@ -59,10 +69,8 @@ public class ImageServiceModule {
         }
     }
 
-    public PageResponse<GlanceImageSummary> paginate(
-            List<GlanceImageSummary> all,
-            PageRequest req
-    ) {
+
+    public PageResponse<GlanceImageSummary> paginate(List<GlanceImageSummary> all, PageRequest req) {
         String marker = req.getMarker();
         int limit = req.getLimit();
         PageRequest.Direction direction = req.getDirection();
@@ -105,7 +113,6 @@ public class ImageServiceModule {
                 .prevMarker(prevMarker)
                 .build();
     }
-
 
     public ImageDetailResponse getImageDetail(String token, String imageId) {
         try {

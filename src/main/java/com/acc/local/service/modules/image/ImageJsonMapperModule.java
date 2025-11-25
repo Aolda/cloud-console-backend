@@ -30,6 +30,7 @@ public class ImageJsonMapperModule {
                                     .status(text(img, "status"))
                                     .visibility(text(img, "visibility"))
                                     .size(longOrNull(img, "size"))
+                                    .hidden(boolOrNull(img, "os_hidden"))
                                     .minDisk(intOrNull(img, "min_disk"))
                                     .minRam(intOrNull(img, "min_ram"))
                                     .createdAt(text(img, "created_at"))
@@ -59,6 +60,7 @@ public class ImageJsonMapperModule {
                     .status(text(json, "status"))
                     .visibility(text(json, "visibility"))
                     .size(longOrNull(json, "size"))
+                    .hidden(boolOrNull(json, "os_hidden"))
                     .minDisk(intOrNull(json, "min_disk"))
                     .minRam(intOrNull(json, "min_ram"))
                     .createdAt(text(json, "created_at"))
@@ -66,6 +68,7 @@ public class ImageJsonMapperModule {
                     .tags(listOrNull(json.get("tags")))
                     .build();
         } catch (Exception e) {
+            System.out.println("파서");
             throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
         }
     }
@@ -110,5 +113,10 @@ public class ImageJsonMapperModule {
             if (n != null && !n.isNull()) list.add(n.asText());
         }
         return list;
+    }
+    private Boolean boolOrNull(JsonNode node, String field) {
+        if (node == null) return null;
+        JsonNode v = node.get(field);
+        return (v == null || v.isNull()) ? null : v.asBoolean();
     }
 }
