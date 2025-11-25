@@ -19,6 +19,7 @@ public record ImageListResponse(
             String status,
             String visibility,
             Long size,
+            Boolean hidden,
             Integer minDisk,
             Integer minRam,
             String createdAt
