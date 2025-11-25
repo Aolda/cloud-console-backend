@@ -31,7 +31,7 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public PageResponse<InstanceResponse> getInstances(PageRequest page, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
 
         return instanceModule.listInstances(
                 keystoneToken,
@@ -45,7 +45,7 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     public void createInstance(InstanceCreateRequest request, String userId, String projectId) {
         // TODO:  Quota 검증
 
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
 
         if (!instanceUtil.validateInstanceName(request.getInstanceName())) {
             throw new InstanceException(InstanceErrorCode.INVALID_INSTANCE_NAME);
@@ -61,7 +61,7 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public void controlInstance(String instanceId, InstanceActionRequest request, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         instanceUtil.validateInstanceActionRequest(request);
         instanceModule.controlInstance(keystoneToken, projectId, instanceId, request);
     }
