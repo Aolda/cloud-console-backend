@@ -15,8 +15,8 @@ public enum ImageErrorCode implements ErrorCode {
     IMAGE_LIST_FETCH_FAILURE(502, "ACC-IMAGE-FETCH-LIST-FAILURE", "이미지 목록 조회 중 오류가 발생했습니다."),
     IMAGE_FILE_UPLOAD_FAILURE(502, "ACC-IMAGE-UPLOAD-FAILURE", "이미지 파일 업로드 중 오류가 발생했습니다."),
     INVALID_PAGINATION_PARAM(400, "ACC-IMAGE-PAGINATION-PARAM-INVALID", "잘못된 페이지네이션 파라미터 조합입니다."),
-    INVALID_PAGINATION_WITH_IMAGE_ID(400, "ACC-IMAGE-PAGINATION-WITH-IMAGE-ID", "이미지 단건 조회 시 페이지네이션 파라미터를 함께 사용할 수 없습니다.");
-
+    INVALID_PAGINATION_WITH_IMAGE_ID(400, "ACC-IMAGE-PAGINATION-WITH-IMAGE-ID", "이미지 단건 조회 시 페이지네이션 파라미터를 함께 사용할 수 없습니다."),
+    INVALID_QUICK_START_IMAGE(502, "ACC-FETCH-DEFAULT-IMAGE-FAIL", "빠른 생성 이미지 조회 및 유효성 검사에 실패했습니다.");
 
     private final int status;
     private final String code;
