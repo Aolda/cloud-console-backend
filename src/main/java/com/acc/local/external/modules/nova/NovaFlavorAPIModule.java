@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -18,7 +19,7 @@ public class NovaFlavorAPIModule extends NovaAPIUtil {
 
     public ResponseEntity<JsonNode> createFlavor(String token, String serverId, CreateFlavorRequest request) {
         String uri = "/v2.1/flavors";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, createHeaders(token), request, port);
     }
 
     // List Flavors
@@ -35,7 +36,7 @@ public class NovaFlavorAPIModule extends NovaAPIUtil {
     // Get Flavor Details
     public ResponseEntity<JsonNode> listFlavorsDetails(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/flavors/detail";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, createHeaders(token), queryParams, port);
     }
 
     // Get Flavor Details without query parameters
@@ -45,11 +46,18 @@ public class NovaFlavorAPIModule extends NovaAPIUtil {
 
     public ResponseEntity<JsonNode> showFlavorDetails(String token, String flavorId) {
         String uri = "/v2.1/flavors/" + flavorId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, createHeaders(token), Collections.emptyMap(), port);
     }
 
-    public ResponseEntity<JsonNode> deleteFlavor(String token, String serverId, String flavorId) {
+    public ResponseEntity<JsonNode> deleteFlavor(String token, String flavorId) {
         String uri = "/v2.1/flavors/" + flavorId;
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
+        return openstackAPICallModule.callDeleteAPI(uri, createHeaders(token), port);
+    }
+
+    private Map<String, String> createHeaders(String token) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Auth-Token", token);
+        headers.put("X-OpenStack-Nova-API-Version", "2.79");
+        return headers;
     }
 }

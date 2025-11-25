@@ -72,10 +72,8 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/api/v1/images/**",
-                                "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
-                                "/api/v1/keypairs/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 
                         ).permitAll()
