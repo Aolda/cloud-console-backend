@@ -7,10 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Collections;
-import java.util.Vector;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class GlanceImageAPIModule {
     }
 
     // List images
-    public ResponseEntity<JsonNode> fetchImageList(String token, FetchImagesRequestParam params) {
+    public ResponseEntity<JsonNode> fetchImageList(String token, GlanceFetchImagesRequestParam params) {
         String uri = "/v2/images";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), params.toQueryParams(), port);
     }
@@ -38,25 +36,25 @@ public class GlanceImageAPIModule {
     }
 
     // Create Image (메타데이터 생성)
-    public ResponseEntity<JsonNode> createImage(String token, CreateImageRequest request) {
+    public ResponseEntity<JsonNode> createImage(String token, GlanceCreateImageRequest request) {
         String uri = "/v2/images";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     // Stage Image (이미지 업로드 준비 단계)
-    public ResponseEntity<JsonNode> stageImage(String token, String imageId, StageImageRequest request) {
+    public ResponseEntity<JsonNode> stageImage(String token, String imageId, GlanceStageImageRequest request) {
         String uri = "/v2/images/" + imageId + "/stage";
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     // Import Image (외부 URL로 import)
-    public ResponseEntity<Void> importImage(String token, String imageId, ImportImageRequest request) {
+    public ResponseEntity<Void> importImage(String token, String imageId, GlanceImportImageRequest request) {
         String uri = "/v2/images/" + imageId + "/import";
         return openstackAPICallModule.callPostAPINoBody(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
     // Update Image (메타데이터 수정)
-    public ResponseEntity<JsonNode> updateImage(String token, String imageId, UpdateImageRequest request) {
+    public ResponseEntity<JsonNode> updateImage(String token, String imageId, GlanceUpdateImageRequest request) {
         String uri = "/v2/images/" + imageId;
         return openstackAPICallModule.callPatchAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }

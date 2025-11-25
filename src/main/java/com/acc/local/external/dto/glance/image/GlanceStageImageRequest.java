@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class StageImageRequest {
+public class GlanceStageImageRequest {
     @JsonProperty("x-openstack-image-size")
     private String xOpenstackImageSize;
 

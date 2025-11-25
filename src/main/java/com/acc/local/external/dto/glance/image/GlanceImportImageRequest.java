@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ImportImageRequest {
+public class GlanceImportImageRequest {
 
     @JsonProperty("method")
     private Method method;
