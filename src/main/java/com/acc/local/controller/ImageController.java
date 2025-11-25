@@ -7,7 +7,6 @@ import com.acc.global.exception.image.ImageException;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.ImageDocs;
 import com.acc.local.dto.image.*;
-import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import com.acc.local.service.ports.ImageServicePort;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,21 +27,25 @@ public class ImageController implements ImageDocs {
     public ResponseEntity<?> getImages(
             Authentication authentication,
             @RequestParam(value = "imageId", required = false) String imageId,
-            @RequestParam(value = "hidden", required = false) boolean isHidden,
-            @ModelAttribute PageRequest pageRequest
+            @ModelAttribute PageRequest pageRequest,
+            @ModelAttribute ImageFilterRequest filterRequest
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
 
+        // 단건 조회
         if (imageId != null) {
             ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
             return ResponseEntity.ok(detail);
         }
 
-        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, isHidden);
+        // 목록 조회 (필터링 + 페이징)
+        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
+
         return ResponseEntity.ok(page);
     }
+
 
 
     @PostMapping("/import")

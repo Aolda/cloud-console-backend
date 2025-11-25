@@ -2,12 +2,12 @@ package com.acc.local.controller.docs;
 
 import com.acc.global.common.PageRequest;
 import com.acc.local.dto.image.*;
-import com.acc.local.dto.image.ImageListResponse.GlanceImageSummary;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,22 +19,17 @@ public interface ImageDocs {
 
     @Operation(
             summary = "이미지 목록/상세 조회",
-            description = "imageId 존재 시 상세 조회, 없으면 페이징 목록 조회",
-            parameters = {
-                    @Parameter(
-                            name = "Authorization",
-                            description = "Bearer {access_token}",
-                            required = true,
-                            in = ParameterIn.HEADER
-                    )
-            }
+            description = """
+                imageId 존재 시 상세 조회,
+                없으면 필터 + 페이지네이션 기반 목록 조회.
+                """
     )
     @GetMapping
     ResponseEntity<?> getImages(
             Authentication authentication,
             @RequestParam(value = "imageId", required = false) String imageId,
-            @RequestParam(value = "hidden", required = false) boolean isHidden,
-            @ModelAttribute PageRequest pageRequest
+            @ParameterObject @ModelAttribute PageRequest pageRequest,
+            @ParameterObject @ModelAttribute ImageFilterRequest filterRequest
     );
 
 
