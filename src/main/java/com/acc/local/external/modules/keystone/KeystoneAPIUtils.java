@@ -480,11 +480,32 @@ public class KeystoneAPIUtils {
 
     public static Map<String, String> createKeystoneListProjectRequest(String projectName, String marker, int limit) {
         Map<String, String> request = new HashMap<>();
-        request.put("name", projectName);
+        if (projectName != null) request.put("name", projectName);
         request.put("marker", marker);
         request.put("limit", String.valueOf(limit));
 
         return request;
+    }
+
+    /**
+     * Role Assignments API 요청 필터 생성
+     * @param marker 페이지네이션 마커 (nullable)
+     * @param limit 조회 개수 제한
+     * @return Role Assignments 필터 맵
+     */
+    public static Map<String, String> createKeystoneRoleAssignmentsFilters(String marker, Integer limit) {
+        Map<String, String> filters = new HashMap<>();
+        filters.put("effective", ""); // 그룹 멤버십 포함
+        filters.put("include_names", "true"); // 이름 정보 포함
+
+        if (marker != null && !marker.isEmpty()) {
+            filters.put("marker", marker);
+        }
+        if (limit != null) {
+            filters.put("limit", String.valueOf(limit));
+        }
+
+        return filters;
     }
 
     // -- Helper 메서드 분리 --//
@@ -530,8 +551,9 @@ public class KeystoneAPIUtils {
 
         if (current == null) return null;
         if (current.isArray()) return (T) current;
+        if (current.isTextual()) return (T) current.asText();
 
-        return (T) current.asText();
+        return (T) current;
 
     }
 
@@ -592,9 +614,9 @@ public class KeystoneAPIUtils {
                     .id(project.get("id").asText(""))
                     .name(project.get("name").asText(""))
                     .description(project.get("description").asText(""))
-                    .isDomain(project.get("isDomain").asBoolean())
+                    .isDomain(project.get("is_domain").asBoolean())
                     .enabled(project.get("enabled").asBoolean())
-                    .parentId(project.get("parentId").asText(""))
+                    .parentId(project.get("parent_id").asText(""))
                     .build()
             );
         }
@@ -634,4 +656,173 @@ public class KeystoneAPIUtils {
         return marker;
     }
 
+    /**
+     * Role Assignments API 응답 파싱
+     */
+    public static RoleAssignmentListResponse parseKeystoneRoleAssignmentListResponse(ResponseEntity<JsonNode> response) {
+        JsonNode body = validateAndExtractBody(response);
+
+        if (!body.has("role_assignments")) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_INVALID_RESPONSE_STRUCTURE,
+                "Response body에 'role_assignments' 필드가 존재하지 않습니다."
+            );
+        }
+
+        try {
+            JsonNode assignmentsNode = body.get("role_assignments");
+            JsonNode linksNode = body.get("links");
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            if (assignmentsNode != null && assignmentsNode.isArray()) {
+                for (JsonNode assignmentNode : assignmentsNode) {
+                    RoleAssignment assignment = parseRoleAssignment(assignmentNode);
+                    if (assignment != null) {
+                        roleAssignments.add(assignment);
+                    }
+                }
+            }
+
+            String nextMarker = extractMarkerFromLink(linksNode, "next");
+            String prevMarker = extractMarkerFromLink(linksNode, "previous");
+
+            return RoleAssignmentListResponse.builder()
+                    .roleAssignments(roleAssignments)
+                    .nextMarker(nextMarker)
+                    .prevMarker(prevMarker)
+                    .build();
+        } catch (Exception e) {
+            throw new KeystoneException(
+                AuthErrorCode.KEYSTONE_RESPONSE_PARSING_FAILED,
+                "Role Assignment 목록 파싱 중 오류가 발생했습니다.",
+                e
+            );
+        }
+    }
+
+    /**
+     * 개별 Role Assignment 파싱
+     */
+    private static RoleAssignment parseRoleAssignment(JsonNode assignmentNode) {
+        try {
+            RoleAssignment.RoleAssignmentBuilder builder = RoleAssignment.builder();
+
+            // Role 정보 파싱
+            if (assignmentNode.has("role")) {
+                JsonNode roleNode = assignmentNode.get("role");
+                builder.role(RoleAssignment.RoleInfo.builder()
+                        .id(roleNode.has("id") ? roleNode.get("id").asText() : null)
+                        .name(roleNode.has("name") ? roleNode.get("name").asText() : null)
+                        .build());
+            }
+
+            // User 정보 파싱
+            if (assignmentNode.has("user")) {
+                JsonNode userNode = assignmentNode.get("user");
+                RoleAssignment.DomainInfo userDomain = null;
+                if (userNode.has("domain")) {
+                    JsonNode domainNode = userNode.get("domain");
+                    userDomain = RoleAssignment.DomainInfo.builder()
+                            .id(domainNode.has("id") ? domainNode.get("id").asText() : null)
+                            .name(domainNode.has("name") ? domainNode.get("name").asText() : null)
+                            .build();
+                }
+                builder.user(RoleAssignment.UserInfo.builder()
+                        .id(userNode.has("id") ? userNode.get("id").asText() : null)
+                        .name(userNode.has("name") ? userNode.get("name").asText() : null)
+                        .domain(userDomain)
+                        .build());
+            }
+
+            // Group 정보 파싱
+            if (assignmentNode.has("group")) {
+                JsonNode groupNode = assignmentNode.get("group");
+                RoleAssignment.DomainInfo groupDomain = null;
+                if (groupNode.has("domain")) {
+                    JsonNode domainNode = groupNode.get("domain");
+                    groupDomain = RoleAssignment.DomainInfo.builder()
+                            .id(domainNode.has("id") ? domainNode.get("id").asText() : null)
+                            .name(domainNode.has("name") ? domainNode.get("name").asText() : null)
+                            .build();
+                }
+                builder.group(RoleAssignment.GroupInfo.builder()
+                        .id(groupNode.has("id") ? groupNode.get("id").asText() : null)
+                        .name(groupNode.has("name") ? groupNode.get("name").asText() : null)
+                        .domain(groupDomain)
+                        .build());
+            }
+
+            // Scope 정보 파싱
+            if (assignmentNode.has("scope")) {
+                JsonNode scopeNode = assignmentNode.get("scope");
+                RoleAssignment.ScopeInfo.ScopeInfoBuilder scopeBuilder = RoleAssignment.ScopeInfo.builder();
+
+                // System scope
+                if (scopeNode.has("system")) {
+                    JsonNode systemNode = scopeNode.get("system");
+                    scopeBuilder.system(RoleAssignment.SystemInfo.builder()
+                            .all(systemNode.has("all") ? systemNode.get("all").asBoolean() : false)
+                            .build());
+                }
+
+                // Project scope
+                if (scopeNode.has("project")) {
+                    JsonNode projectNode = scopeNode.get("project");
+                    RoleAssignment.DomainInfo projectDomain = null;
+                    if (projectNode.has("domain")) {
+                        JsonNode domainNode = projectNode.get("domain");
+                        projectDomain = RoleAssignment.DomainInfo.builder()
+                                .id(domainNode.has("id") ? domainNode.get("id").asText() : null)
+                                .name(domainNode.has("name") ? domainNode.get("name").asText() : null)
+                                .build();
+                    }
+                    scopeBuilder.project(RoleAssignment.ProjectInfo.builder()
+                            .id(projectNode.has("id") ? projectNode.get("id").asText() : null)
+                            .name(projectNode.has("name") ? projectNode.get("name").asText() : null)
+                            .domain(projectDomain)
+                            .build());
+                }
+
+                // Domain scope
+                if (scopeNode.has("domain")) {
+                    JsonNode domainNode = scopeNode.get("domain");
+                    scopeBuilder.domain(RoleAssignment.DomainInfo.builder()
+                            .id(domainNode.has("id") ? domainNode.get("id").asText() : null)
+                            .name(domainNode.has("name") ? domainNode.get("name").asText() : null)
+                            .build());
+                }
+
+                builder.scope(scopeBuilder.build());
+            }
+
+            // Links 정보 파싱
+            if (assignmentNode.has("links")) {
+                JsonNode linksNode = assignmentNode.get("links");
+                Map<String, String> links = new HashMap<>();
+                linksNode.fields().forEachRemaining(entry ->
+                    links.put(entry.getKey(), entry.getValue().asText())
+                );
+                builder.links(links);
+            }
+
+            return builder.build();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Optional<String> parseAndFindKeystoneRoleId(ResponseEntity<JsonNode> response, String roleName) {
+        JsonNode body = validateAndExtractBody(response);
+        if (!body.has("roles")) {
+            return null;
+        }
+
+        JsonNode roles = getObjectValue(body, "roles");
+        for (JsonNode role : roles) {
+            if (role.get("name").asText().equals(roleName))
+                return Optional.of(role.get("id").asText());
+        }
+
+        return Optional.empty();
+    }
 }

@@ -44,4 +44,9 @@ public class KeystoneProjectAPIModule {
     public ResponseEntity<JsonNode> getProjects(String token, Map<String, String> projectListRequest) {
         return openstackAPICallModule.callGetAPI(KeystoneRoutes.PROJECT_DEFAULT, Collections.singletonMap("X-Auth-Token", token), projectListRequest, KeystoneAPIUtils.port);
     }
+
+    public ResponseEntity<JsonNode> getProjectsUser(String token, String userId, Map<String, String> projectListRequest) {
+        String uri = KeystoneRoutes.PROJECT_USER.replace("{user_id}", userId);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), projectListRequest, KeystoneAPIUtils.port);
+    }
 }

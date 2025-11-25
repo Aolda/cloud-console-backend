@@ -5,6 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.CreateProjectRequestRequest;
 import com.acc.local.dto.project.CreateProjectRequestResponse;
@@ -26,6 +27,7 @@ import com.acc.local.dto.project.UpdateProjectResponse;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
+import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.ports.AdminProjectServicePort;
 
 import lombok.RequiredArgsConstructor;
@@ -46,6 +48,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 	private final AuthModule authModule;
 	private final ProjectModule projectModule;
+	private final NeutronModule neutronModule;
 
 	@Override
 	@Transactional
@@ -55,10 +58,23 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		log.info(adminToken);
 
 		try {
+			String projectOwnerId = createProjectRequest.projectOwnerId();
+
 			KeystoneProject createdProject = projectModule.createProject(adminToken, createProjectRequest, userId);
 			ProjectQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
-			authModule.invalidateSystemAdminToken(adminToken);
 
+			String createdProjectId = createdProject.getId();
+			projectModule.applyProjectAccessOnOpenstack(
+				createdProjectId,
+				List.of(projectOwnerId), ProjectRole.PROJECT_ADMIN,
+				adminToken
+			);
+
+			String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
+			neutronModule.createDefaultNetwork(projectOwnerScopedToken);
+			authModule.invalidateServiceTokensByUserId(projectOwnerId);
+
+			authModule.invalidateSystemAdminToken(adminToken);
 			return CreateProjectResponse.from(createdProject, quota);
 		} catch(Exception e) {
 			authModule.invalidateSystemAdminToken(adminToken);
@@ -72,11 +88,6 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		projectModule.updateProjectStorageQuota(adminToken, createdProject.getId(), quota.storage(), userId);
 		projectModule.updateProjectCPUAndRAMQuota(adminToken, createdProject.getId(), quota.vCpu(), quota.vRam(), userId);
 		return quota;
-	}
-
-	@Override
-	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requesterId) {
-		return projectModule.createProjectRequest(request, requesterId);
 	}
 
 	@Override
@@ -116,13 +127,6 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	}
 
 	@Override
-	public GetProjectResponse getProjectDetail(String projectId, String requesterId) {
-		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-		KeystoneProject project = projectModule.getProjectDetail(projectId, requesterId);
-		return GetProjectResponse.from(project);
-	}
-
-	@Override
 	public UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId) {
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
 
@@ -154,10 +158,15 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 			for (ProjectServiceDto projectInfo : projectServiceDataList.projects()) {
 				// TODO(MR~): 사용자 통합정보 조회모듈 사용
 				List<ProjectParticipantDto> projectParticipants = projectModule.getProjectParticipantList(projectInfo.projectId());
-				KeystoneUser ownerKeystoneUser = authModule.getUserDetail(
-					projectInfo.ownerKeystoneId(),
-					requestUserId
-				);
+
+				KeystoneUser ownerKeystoneUser = null;
+				if (projectInfo.ownerKeystoneId() != null) {
+					ownerKeystoneUser = authModule.getUserDetail(
+						projectInfo.ownerKeystoneId(),
+						requestUserId
+					);
+				}
+
 				projectResponseList.add(ProjectResponse.from(projectInfo, ownerKeystoneUser, projectParticipants));
 			}
 

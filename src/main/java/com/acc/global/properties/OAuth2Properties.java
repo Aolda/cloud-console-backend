@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class OAuth2Properties {
     private Success success;
     private Failure failure;
+    private Cookie cookie;
 
     @Getter
     @Setter
@@ -24,5 +25,11 @@ public class OAuth2Properties {
     @Setter
     public static class Failure {
         private String redirectUrl;
+    }
+
+    @Getter
+    @Setter
+    public static class Cookie {
+        private String domain;
     }
 }

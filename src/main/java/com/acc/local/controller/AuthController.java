@@ -5,9 +5,11 @@ import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.controller.docs.AuthDocs;
 import com.acc.local.service.ports.AuthServicePort;
 import com.acc.global.properties.KeycloakProperties;
+import com.acc.global.properties.OAuth2Properties;
 import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.dto.auth.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -20,11 +22,13 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
+@Slf4j
 public class AuthController implements AuthDocs {
 
 
     private final KeycloakProperties keycloakProperties;
     private final AuthServicePort authServicePort;
+    private final OAuth2Properties oAuth2Properties;
 
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
     @Deprecated
@@ -145,6 +149,18 @@ public class AuthController implements AuthDocs {
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+
+        // SameSite 속성 설정 (크로스 사이트 쿠키 허용)
+        refreshTokenCookie.setAttribute("SameSite", "None");
+
+        // 도메인 설정 (설정되어 있을 때만)
+        String domain = oAuth2Properties.getCookie().getDomain();
+        if (domain != null && !domain.isBlank()) {
+            refreshTokenCookie.setDomain(domain);
+            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: {}, SameSite: None", domain);
+        } else {
+            log.info("[쿠키 설정] acc-refresh-token 쿠키 도메인: 미설정 (현재 호스트 사용), SameSite: None");
+        }
         response.addCookie(refreshTokenCookie);
 
         // 3. Access Token은 Response Body에 반환
@@ -175,10 +191,11 @@ public class AuthController implements AuthDocs {
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(
-            @RequestBody @Validated SignupRequest request
+            @RequestBody @Validated SignupRequest request,
+            @CookieValue("oauth-verification-token") String verificationToken
     ) {
 
-        SignupResponse response = authServicePort.signup(request);
+        SignupResponse response = authServicePort.signup(request, verificationToken);
 
         return ResponseEntity.ok(response);
     }

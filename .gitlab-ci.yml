@@ -1,4 +1,4 @@
-stages: [check, build, package, image, manifest]
+stages: [check, build, image, manifest]
 
 # 공통 기본값 (원하면 생략 가능)
 default:
@@ -19,23 +19,16 @@ check_runner:
 build:
   stage: build
   script:
-    - ./gradlew --no-daemon clean build -x test   # ← 테스트 제외
+    - ./gradlew --no-daemon clean build -x test   # 전체 빌드(테스트 제외): bootJar + plain JAR 생성
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
   artifacts:
     when: always
     paths:
       - build/libs/
     expire_in: 7 days
-
-package:
-  stage: package
-  needs: ["build"]
-  script:
-    - ./gradlew --no-daemon assemble -x test      # ← 여기서도 제외
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # 컨테이너 이미지 빌드(kaniko)
 kaniko_build_image:
@@ -47,6 +40,9 @@ kaniko_build_image:
   variables:
     IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"  # 깃랩 커밋 해시(쇼트)
   before_script: []
+  needs:
+    - job: build
+      artifacts: true
   script:
     # Docker 인증 정보 작성 (CI_REGISTRY_USER/CI_JOB_TOKEN 사용)
     - |
@@ -68,11 +64,22 @@ kaniko_build_image:
         exit 1
       fi
     # 캐시를 레지스트리에 저장/활용하여 빠른 빌드
+    - |
+      # 아티팩트에서 부트 실행 JAR 경로 확인 (-plain.jar 제외)
+      JAR_FILE=$(ls build/libs/*.jar 2>/dev/null | grep -v -- "-plain\.jar$" | head -n1)
+      if [ -z "$JAR_FILE" ]; then
+        echo "[error] Bootable JAR not found under build/libs/ (expected Spring Boot bootJar, not *-plain.jar)" >&2
+        echo "Contents:"; ls -la build/libs || true
+        exit 1
+      fi
+      echo "Using bootable JAR: $JAR_FILE"
     - >
       /kaniko/executor
       --context "$CI_PROJECT_DIR"
       --dockerfile "$CI_PROJECT_DIR/Dockerfile"
       --destination "docker.io/$DOCKERHUB_REPO:$IMAGE_TAG"
+      --build-arg APP_JAR="$JAR_FILE"
+      --customPlatform=linux/amd64
       --cache=true
       --cache-repo "docker.io/$DOCKERHUB_REPO-cache"
   # 기본 브랜치 + 필수 변수 있으면 자동, 그 외 manual

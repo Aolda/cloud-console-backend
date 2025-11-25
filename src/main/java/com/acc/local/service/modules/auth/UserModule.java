@@ -5,6 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.domain.model.auth.UserAuthDetail;
 import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserListResponse;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -166,88 +168,114 @@ public class UserModule {
     /**
      * 관리자 사용자 목록 조회
      * System Admin 권한으로 Keystone 사용자 목록 조회 및 ACC DB 정보 병합
+     * 필터링(미가입/삭제 제외) 후에도 요청한 개수를 채우기 위해 반복 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<AdminListUsersResponse> adminListUsers(
-            PageRequest page, String adminToken) {
+    public PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String adminToken) {
+        List<AdminListUsersResponse> validUsers = new ArrayList<>();
+        String currentMarker = page.getMarker();
+        String lastNextMarker = null;
 
-        // 1. Keystone에서 사용자 목록 조회 (UserListResponse 모델 반환)
-        UserListResponse userListResponse = keystoneAPIExternalPort.listUsers(
-                adminToken,
-                page.getMarker(),
-                page.getLimit()
-        );
+        // 요청한 개수를 채울 때까지 반복 조회
+        while (validUsers.size() < page.getLimit()) {
+            UserListResponse keystoneResponse = keystoneAPIExternalPort.listUsers(
+                    adminToken, currentMarker, page.getLimit()
+            );
 
-        // 2. 모든 userId 추출
-        List<String> userIds = userListResponse.getKeystoneUsers().stream()
+            // Keystone 사용자들을 필터링하여 유효한 사용자만 추가
+            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneResponse.getKeystoneUsers());
+            validUsers.addAll(filtered);
+
+            lastNextMarker = keystoneResponse.getNextMarker();
+
+            // Keystone에 더 이상 데이터가 없으면 중단
+            if (lastNextMarker == null) {
+                break;
+            }
+
+            // 요청한 개수를 채웠으면 중단
+            if (validUsers.size() >= page.getLimit()) {
+                validUsers = validUsers.subList(0, page.getLimit());
+                break;
+            }
+
+            currentMarker = lastNextMarker;
+        }
+
+        return buildPageResponse(validUsers, page.getMarker(), lastNextMarker);
+    }
+
+    /**
+     * Keystone 사용자 목록을 필터링하고 DTO로 변환
+     * 미가입 사용자 및 삭제된 사용자 제외
+     */
+    private List<AdminListUsersResponse> filterAndConvertUsers(List<KeystoneUser> keystoneUsers) {
+        List<String> userIds = keystoneUsers.stream()
                 .map(KeystoneUser::getId)
                 .toList();
 
-        // 3. ACC DB에서 모든 사용자 정보 bulk 조회
-        List<UserDetailEntity> userDetails = userRepositoryPort.findUserDetailsByIds(userIds);
-        List<UserAuthDetailEntity> userAuths = userRepositoryPort.findUserAuthsByIds(userIds);
-
-        // 4. userId를 키로 하는 Map 생성
-        Map<String, UserDetailEntity> userDetailMap = userDetails.stream()
+        // ACC DB에서 사용자 정보 bulk 조회
+        Map<String, UserDetailEntity> userDetailMap = userRepositoryPort.findUserDetailsByIds(userIds)
+                .stream()
                 .collect(Collectors.toMap(UserDetailEntity::getUserId, entity -> entity));
-        Map<String, UserAuthDetailEntity> userAuthMap = userAuths.stream()
+
+        Map<String, UserAuthDetailEntity> userAuthMap = userRepositoryPort.findUserAuthsByIds(userIds)
+                .stream()
                 .collect(Collectors.toMap(UserAuthDetailEntity::getUserId, entity -> entity));
 
-        // 5. User 모델 리스트를 DTO 리스트로 변환 및 ACC DB 정보 병합
-        List<AdminListUsersResponse> userList = new ArrayList<>();
+        // 필터링 및 변환
+        return keystoneUsers.stream()
+                .map(keystoneUser -> convertToAdminListResponse(keystoneUser, userDetailMap, userAuthMap))
+                .filter(response -> response != null)
+                .toList();
+    }
 
-        for (KeystoneUser keystoneUser : userListResponse.getKeystoneUsers()) {
-            String userId = keystoneUser.getId();
-            String keystoneName = keystoneUser.getName();
-            boolean enabled = keystoneUser.isEnabled();
-           // String defaultProjectId = keystoneUser.getDefaultProjectId();
+    /**
+     * Keystone 사용자를 AdminListUsersResponse로 변환
+     * 미가입 또는 삭제된 사용자는 null 반환
+     */
+    private AdminListUsersResponse convertToAdminListResponse(
+            KeystoneUser keystoneUser,
+            Map<String, UserDetailEntity> userDetailMap,
+            Map<String, UserAuthDetailEntity> userAuthMap) {
 
-            // Map에서 정보 조회
-            UserDetailEntity userDetail = userDetailMap.get(userId);
-            UserAuthDetailEntity userAuth = userAuthMap.get(userId);
+        String userId = keystoneUser.getId();
+        UserDetailEntity userDetail = userDetailMap.get(userId);
 
-            // 삭제된 사용자는 목록에서 제외
-            if (userDetail != null && userDetail.getIsDeleted()) {
-                continue;
-            }
-
-            // 기본 프로젝트 이름 조회 (defaultProjectId가 있는 경우)
-            String defaultProjectName = null;
-//            if (defaultProjectId != null && !defaultProjectId.isEmpty()) {
-//                try {
-//                    ResponseEntity<JsonNode> projectResponse = keystoneAPIExternalPort.getProjectDetail(defaultProjectId, adminToken);
-//                    if (projectResponse != null && projectResponse.getBody() != null) {
-//                        defaultProjectName = projectResponse.getBody().path("project").path("name").asText(null);
-//                    }
-//                } catch (Exception e) {
-//                    log.warn("Failed to fetch project name for project ID: {}", defaultProjectId);
-//                }
-//            }
-
-            // Response 객체 생성
-            AdminListUsersResponse userResponse =
-                    AdminListUsersResponse.builder()
-                            .userId(userId)
-                            .username(userDetail != null ? userDetail.getUserName() : keystoneName)
-                            .isAdmin(userDetail != null ? userDetail.getIsAdmin() : false)
-                            .email(userAuth != null ? userAuth.getUserEmail() : null)
-                            .phoneNumber(userDetail != null ? userDetail.getUserPhoneNumber() : null)
-                            .department(userAuth != null ? userAuth.getDepartment() : null)
-                            .enabled(enabled)
-                            .defaultProjectName(defaultProjectName)
-                            .build();
-
-            userList.add(userResponse);
+        // 미가입 사용자 또는 삭제된 사용자는 제외
+        if (userDetail == null || userDetail.getIsDeleted()) {
+            return null;
         }
 
-        // 3. 페이지 응답 구성
+        UserAuthDetailEntity userAuth = userAuthMap.get(userId);
+
+        return AdminListUsersResponse.builder()
+                .userId(userId)
+                .username(userDetail.getUserName())
+                .isAdmin(userDetail.getIsAdmin())
+                .email(userAuth != null ? userAuth.getUserEmail() : null)
+                .phoneNumber(userDetail.getUserPhoneNumber())
+                .department(userAuth != null ? userAuth.getDepartment() : null)
+                .enabled(keystoneUser.isEnabled())
+                .defaultProjectName(null)
+                .build();
+    }
+
+    /**
+     * 페이지 응답 객체 생성
+     */
+    private PageResponse<AdminListUsersResponse> buildPageResponse(
+            List<AdminListUsersResponse> users,
+            String requestMarker,
+            String nextMarker) {
+
         return PageResponse.<AdminListUsersResponse>builder()
-                .contents(userList)
-                .first(page.getMarker() == null || page.getMarker().isEmpty())
-                .last(userListResponse.getNextMarker() == null)
-                .size(userList.size())
-                .nextMarker(userListResponse.getNextMarker())
-                .prevMarker(userListResponse.getPrevMarker())
+                .contents(users)
+                .first(requestMarker == null || requestMarker.isEmpty())
+                .last(nextMarker == null)
+                .size(users.size())
+                .nextMarker(nextMarker)
+                .prevMarker(requestMarker)
                 .build();
     }
 
@@ -267,6 +295,77 @@ public class UserModule {
                 .build();
 
         userRepositoryPort.saveUserDetail(deletedEntity);
+    }
+
+    /**
+     * 관리자 사용자 목록 조회 (Role Assignments API 사용)
+     * Role Assignments API를 통해 권한이 할당된 모든 사용자 조회
+     * 기존 listUsers API 대비 효율적으로 권한 정보를 함께 조회
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<AdminListUsersResponse> adminListUsersViaRoleAssignments(PageRequest page, String adminToken) {
+        List<AdminListUsersResponse> validUsers = new ArrayList<>();
+        String currentMarker = page.getMarker();
+        String lastNextMarker = null;
+
+        // 요청한 개수를 채울 때까지 반복 조회
+        while (validUsers.size() < page.getLimit()) {
+            // 1. Role Assignments API로 모든 권한이 할당된 사용자 조회
+            Map<String, String> filters = KeystoneAPIUtils.createKeystoneRoleAssignmentsFilters(
+                    currentMarker, page.getLimit()
+            );
+
+            RoleAssignmentListResponse roleAssignmentResponse = keystoneAPIExternalPort
+                    .listRoleAssignments(adminToken, filters);
+
+            // 2. role assignments에서 KeystoneUser 목록 추출 (중복 제거)
+            List<KeystoneUser> keystoneUsers = convertRoleAssignmentsToKeystoneUsers(roleAssignmentResponse);
+
+            // 3. ACC DB에서 해당 사용자들의 정보를 bulk 조회하여 필터링
+            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneUsers);
+            validUsers.addAll(filtered);
+
+            lastNextMarker = roleAssignmentResponse.getNextMarker();
+
+            // Keystone에 더 이상 데이터가 없으면 중단
+            if (lastNextMarker == null) {
+                break;
+            }
+
+            // 요청한 개수를 채웠으면 중단
+            if (validUsers.size() >= page.getLimit()) {
+                validUsers = validUsers.subList(0, page.getLimit());
+                break;
+            }
+
+            currentMarker = lastNextMarker;
+        }
+
+        return buildPageResponse(validUsers, page.getMarker(), lastNextMarker);
+    }
+
+    /**
+     * Role Assignments를 KeystoneUser 목록으로 변환
+     * user가 있는 assignment만 추출하고 userId 중복 제거
+     */
+    private List<KeystoneUser> convertRoleAssignmentsToKeystoneUsers(RoleAssignmentListResponse response) {
+        return response.getRoleAssignments().stream()
+                .filter(assignment -> assignment.getUser() != null) // NPE 처리
+                .map(assignment -> KeystoneUser.builder()
+                        .id(assignment.getUser().getId())
+                        .name(assignment.getUser().getName())
+                        .domainId(assignment.getUser().getDomain() != null ?
+                                assignment.getUser().getDomain().getId() : null)
+                        .enabled(true) // role이 할당되어 있다는 것은 활성 사용자
+                        .build())
+                .collect(Collectors.toMap(
+                        KeystoneUser::getId,
+                        user -> user,
+                        (existing, replacement) -> existing // 중복 시 첫 번째 유지
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 
     // 요청자의 UserId를 통해서 관리자인지 확인할 수 있는 메서드

@@ -2,15 +2,20 @@ package com.acc.local.external.ports;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.exception.AccBaseException;
+import com.acc.local.domain.enums.project.ProjectRole;
+import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.domain.model.auth.Role;
 import com.acc.local.domain.model.auth.RoleListResponse;
 import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
+import com.acc.local.entity.UserDetailEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Map;
 
 public interface KeystoneAPIExternalPort {
@@ -71,5 +76,19 @@ public interface KeystoneAPIExternalPort {
 
 	RoleListResponse listRoles(String token, String marker, Integer limit, String name);
 
+	RoleAssignmentListResponse listRoleAssignments(String token, Map<String, String> filters);
+
 	ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String adminToken);
+
+	ProjectListDto getUserProjectsByProjectName(String keyword, PageRequest pageRequest, String requestUserId, String token);
+
+	String getProjectRole(ProjectRole role, String token);
+
+	void assignProjectRole(String userId, String projectId, String projectRoleKeystoneId, String token);
+
+	void retrieveProjectRole(String userId, String projectId, String projectRole, String token);
+
+	List<KeystoneUser> getUsersByEmail(String keyword);
+
+	String getAdminProjectId(String token);
 }

@@ -6,8 +6,11 @@ import com.acc.global.exception.instance.InstanceErrorCode;
 import com.acc.global.exception.instance.InstanceException;
 import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
+import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
+import com.acc.local.dto.project.ProjectQuotaDto;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.instance.InstanceModule;
 import com.acc.local.service.modules.instance.InstanceUtil;
 import com.acc.local.service.ports.InstanceServicePort;
@@ -24,10 +27,11 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     private final InstanceModule instanceModule;
     private final InstanceUtil instanceUtil;
     private final AuthModule authModule;
+    private final ProjectModule projectModule;
 
     @Override
     public PageResponse<InstanceResponse> getInstances(PageRequest page, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
 
         return instanceModule.listInstances(
                 keystoneToken,
@@ -41,7 +45,7 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     public void createInstance(InstanceCreateRequest request, String userId, String projectId) {
         // TODO:  Quota 검증
 
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
 
         if (!instanceUtil.validateInstanceName(request.getInstanceName())) {
             throw new InstanceException(InstanceErrorCode.INVALID_INSTANCE_NAME);
@@ -57,8 +61,17 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public void controlInstance(String instanceId, InstanceActionRequest request, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         instanceUtil.validateInstanceActionRequest(request);
         instanceModule.controlInstance(keystoneToken, projectId, instanceId, request);
+    }
+
+    @Override
+    public InstanceQuotaResponse getQuota(String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
+        InstanceQuotaResponse projectComputeQuotaDetail = projectModule.getProjectComputeQuotaDetail(projectId, token);
+        authModule.invalidateServiceTokensByUserId(userId);
+
+        return projectComputeQuotaDetail;
     }
 }

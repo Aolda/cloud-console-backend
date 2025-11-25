@@ -25,7 +25,7 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
 
     @Override
     public PageResponse<InstanceTypeResponse> listUserInstanceTypes(String userId, String projectId, String architect, PageRequest page) {
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
 
         return instanceTypeModule.listInstanceTypesByArchitect(
                 keystoneToken,
@@ -37,7 +37,7 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
 
     @Override
     public PageResponse<InstanceTypeResponse> listAdminInstanceTypes(String userId, String projectId, String architect, PageRequest page) {
-//        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId, projectId);
+//        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(projectId, userId);
         String keystoneToken = authModule.issueSystemAdminToken(userId);
 
         PageResponse<InstanceTypeResponse> response = instanceTypeModule.listInstanceTypesByArchitect(
@@ -53,7 +53,7 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
 
     @Override
     public void createInstanceType(String userId, String projectId, InstanceTypeCreateRequest request) {
-//        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId, projectId);
+//        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(projectId, userId);
         String keystoneToken = authModule.issueSystemAdminToken(userId);
 
         if (!instanceTypeUtil.validateInstanceTypeName(request.getTypeName())) {
