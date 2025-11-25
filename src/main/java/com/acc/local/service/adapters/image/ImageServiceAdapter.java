@@ -20,11 +20,10 @@ public class ImageServiceAdapter implements ImageServicePort {
     private final AuthModule authModule;
 
     @Override
-    public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req) {
+    public PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest req, boolean fetchHidden) {
         String token = authModule.issueProjectScopeToken(userId, projectId);
-
         try {
-            List<GlanceImageSummary> combined = imageServiceModule.fetchCombinedSortedList(token, projectId);
+            List<GlanceImageSummary> combined = imageServiceModule.fetchCombinedSortedList(token, projectId, fetchHidden);
             return imageServiceModule.paginate(combined, req);
         } finally {
             authModule.invalidateServiceTokensByUserId(userId);
