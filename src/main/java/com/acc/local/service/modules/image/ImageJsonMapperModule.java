@@ -81,6 +81,7 @@ public class ImageJsonMapperModule {
 
             return ImageUploadAckResponse.builder()
                     .imageId(node.get("id").asText())
+                    .name(node.get("name").asText())
                     .status(node.get("status") != null ? node.get("status").asText() : null)
                     .message("Image metadata created")
                     .build();
