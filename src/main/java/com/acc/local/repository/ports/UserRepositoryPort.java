@@ -23,4 +23,6 @@ public interface UserRepositoryPort {
     void deleteUserDetailById(String userId);
 
     void deleteUserAuthById(String userId);
+
+	List<UserDetailEntity> findUserByUserName(String userName);
 }

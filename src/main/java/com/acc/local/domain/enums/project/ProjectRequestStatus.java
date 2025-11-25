@@ -2,6 +2,11 @@ package com.acc.local.domain.enums.project;
 
 import com.acc.global.exception.auth.AuthEntityException;
 import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.project.ProjectErrorCode;
+import com.acc.global.exception.project.ProjectServiceException;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -27,4 +32,23 @@ public enum ProjectRequestStatus {
         }
         throw new AuthEntityException(AuthErrorCode.INVALID_PROJECT_STATUS, "잘못된 프로젝트 상태값 입니다.");
     }
+
+    @Override
+    @JsonValue
+    public String toString() {
+        return code;
+    }
+
+
+    @JsonCreator
+    public static ProjectRequestStatus fromTypeId(String code) {
+        for (ProjectRequestStatus requestStatus : ProjectRequestStatus.values()) {
+            if (requestStatus.code.equalsIgnoreCase(code)) {
+                return requestStatus;
+            }
+        }
+
+        throw new ProjectServiceException(ProjectErrorCode.INVALID_PROJECT_REQUEST_STATUS);
+    }
+
 }

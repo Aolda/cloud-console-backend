@@ -182,7 +182,7 @@ public class AuthModule {
 
     @Transactional
     public KeystoneUser getUserDetail(String targetUserId, String requesterId) {
-        String keystoneToken = getUnscopedTokenByUserId(requesterId);
+        String keystoneToken = issueSystemAdminToken(requesterId);
 
         // Keystone에서 사용자 정보 조회
         ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getUserDetail(targetUserId, keystoneToken);
@@ -245,7 +245,7 @@ public class AuthModule {
         return scopedToken.token();
     }
 
-    protected String getUnscopedTokenByUserId(String userId) {
+    public String getUnscopedTokenByUserId(String userId) {
         UserTokenEntity userToken = getAvailUserTokenEntities(userId).getFirst();
         checkUnscopedTokenExpired(userToken);
 

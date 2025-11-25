@@ -18,15 +18,11 @@ import com.acc.local.dto.project.UpdateProjectResponse;
 
 public interface AdminProjectServicePort {
 
-	CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requestUserId);
-
 	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requestUserId);
 
 	void applyProjectRequestDecision(List<String> projectRequestIds, ProjectRequestStatus decision, String rejectReason, String decideUserId);
 
 	CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String userId);
-
-	GetProjectResponse getProjectDetail(String projectId, String requesterId);
 
 	UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId);
 

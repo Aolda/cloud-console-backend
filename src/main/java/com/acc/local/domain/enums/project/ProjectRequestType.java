@@ -1,5 +1,10 @@
 package com.acc.local.domain.enums.project;
 
+import com.acc.global.exception.project.ProjectErrorCode;
+import com.acc.global.exception.project.ProjectServiceException;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -17,8 +22,20 @@ public enum ProjectRequestType {
 	private final String requestTypeName;
 
 	@Override
+	@JsonValue
 	public String toString() {
 		return this.getRequestTypeId();
+	}
+
+	@JsonCreator
+	public static ProjectRequestType fromTypeId(String requestTypeId) {
+		for (ProjectRequestType type : ProjectRequestType.values()) {
+			if (type.requestTypeId.equalsIgnoreCase(requestTypeId)) {
+				return type;
+			}
+		}
+
+		throw new ProjectServiceException(ProjectErrorCode.INVALID_PROJECT_REQUEST_TYPE);
 	}
 
 }

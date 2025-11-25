@@ -2,15 +2,12 @@ package com.acc.local.entity;
 
 import java.time.LocalDateTime;
 
-import org.hibernate.annotations.Fetch;
-
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.entity.id.ProjectParticiapntId;
+import com.acc.local.entity.id.ProjectParticipantId;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -27,7 +24,7 @@ import lombok.Setter;
 public class ProjectParticipantEntity {
 
 	@EmbeddedId
-	private ProjectParticiapntId projectParticipantId;
+	private ProjectParticipantId projectParticipantId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("projectId")

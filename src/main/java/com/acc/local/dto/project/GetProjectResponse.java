@@ -1,31 +1,40 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Builder
 public record GetProjectResponse(
-    String id,
-    String name,
+    String projectId,
+    String projectName,
     String description,
-    String domainId,
-    Boolean enabled,
-    Boolean isDomain,
-    String parentId,
-    Map<String, Object> options,
-    Map<String, Object> links
+    boolean isActive,
+    ProjectRequestType projectType,
+    String ownerKeystoneId,
+    LocalDateTime createdAt,
+    ProjectRequestStatus status,
+    ProjectQuotaDto quota,
+    List<ProjectParticipantDto> participants
 ) {
-    public static GetProjectResponse from(KeystoneProject project) {
+    public static GetProjectResponse from(ProjectServiceDto project) {
         return GetProjectResponse.builder()
-                .id(project.getId())
-                .name(project.getName())
-                .description(project.getDescription())
-                .domainId(project.getDomainId())
-                .enabled(project.getEnabled())
-                .isDomain(project.getIsDomain())
-                .parentId(project.getParentId())
-                .build();
+            .projectId(project.projectId())
+            .projectName(project.projectName())
+            .description(project.description())
+            .isActive(project.isActive())
+            .projectType(project.projectType())
+            .ownerKeystoneId(project.ownerKeystoneId())
+            .createdAt(project.createdAt())
+            .status(project.status())
+            .quota(project.quota())
+            .participants(project.participants())
+            .build();
     }
 }

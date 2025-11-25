@@ -6,6 +6,7 @@ import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.InstanceDocs;
 import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
+import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
 import com.acc.local.service.ports.InstanceServicePort;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,16 @@ public class InstanceController implements InstanceDocs {
 
         instanceServicePort.createInstance(request, userId, projectId);
         return ResponseEntity.created(null).build();
+    }
+
+    @Override
+    public ResponseEntity<InstanceQuotaResponse> getQuota(Authentication authentication) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        InstanceQuotaResponse response = instanceServicePort.getQuota(userId, projectId);
+        return ResponseEntity.ok(response);
     }
 
     @Override

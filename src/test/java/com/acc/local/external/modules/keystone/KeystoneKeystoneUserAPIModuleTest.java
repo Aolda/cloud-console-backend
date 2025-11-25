@@ -112,7 +112,7 @@ class KeystoneKeystoneUserAPIModuleTest {
 		);
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
-		when(openstackAPICallModule.callPutAPI(
+		when(openstackAPICallModule.callPatchAPI(
 			eq(expectedUri),
 			eq(Collections.singletonMap("X-Auth-Token", token)),
 			eq(userRequest),
@@ -126,7 +126,7 @@ class KeystoneKeystoneUserAPIModuleTest {
 		assertNotNull(actualResponse);
 		assertEquals(HttpStatus.OK, actualResponse.getStatusCode());
 		assertEquals(responseBody, actualResponse.getBody());
-		verify(openstackAPICallModule).callPutAPI(
+		verify(openstackAPICallModule).callPatchAPI(
 			eq(expectedUri),
 			anyMap(),
 			eq(userRequest),

@@ -62,6 +62,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/test",
                                 "/api/v1/google/**",
                                 "/api/v1/auth/token",
                                 "/api/v1/auth/login/general",
@@ -71,7 +72,6 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/api/v1/images/**",
-                                "/api/v1/projects",
                                 "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
