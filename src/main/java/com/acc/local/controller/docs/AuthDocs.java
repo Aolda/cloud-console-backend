@@ -100,5 +100,22 @@ public interface AuthDocs {
             @Parameter(description = "OAuth 검증 토큰 Cookie (OAuth 로그인 시 자동 발급)", required = true)
             String verificationToken
     );
+
+    // ------------------------- SIGNUP -------------------------
+    @Operation(
+        summary = "회원정보 조회 - 기본",
+        description = "로그인된 사용자의 기본정보를 조회합니다"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content()),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 - 검증 토큰이 없거나 유효하지 않음", content = @Content()),
+        @ApiResponse(responseCode = "401", description = "인증 실패 - 검증 토큰 만료 또는 이미 사용됨", content = @Content()),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
+    })
+    @PostMapping("/profile")
+    ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(
+        @Parameter(hidden = true)
+        Authentication authentication
+    );
 }
 
