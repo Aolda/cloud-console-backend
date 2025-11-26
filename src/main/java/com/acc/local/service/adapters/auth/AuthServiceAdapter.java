@@ -191,4 +191,10 @@ public class AuthServiceAdapter implements AuthServicePort {
             throw e;
         }
     }
+
+    @Override
+    public void logout(String userId) {
+        authModule.invalidateServiceTokensByUserId(userId);
+        log.info("logout - 유저 토큰 삭제 성공 user: {}", userId);
+    }
 }

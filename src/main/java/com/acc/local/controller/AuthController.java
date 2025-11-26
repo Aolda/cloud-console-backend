@@ -209,5 +209,43 @@ public class AuthController implements AuthDocs {
         LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId, projectId);
         return ResponseEntity.ok(loginedUserProfileResponse);
     }
+
+    @Override
+    public ResponseEntity<LogoutResponse> logout(Authentication authentication, HttpServletResponse response) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+
+        // 서버 토큰 무효화
+        authServicePort.logout(userId);
+
+        // 쿠키 삭제 (로그인 시 설정한 속성과 동일하게)
+        String domain = oAuth2Properties.getCookie().getDomain();
+
+        Cookie accessTokenCookie = new Cookie("acc-access-token", null);
+        accessTokenCookie.setMaxAge(0);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setAttribute("SameSite", "None");
+        if (domain != null && !domain.isBlank()) {
+            accessTokenCookie.setDomain(domain);
+        }
+
+        Cookie refreshTokenCookie = new Cookie("acc-refresh-token", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setAttribute("SameSite", "None");
+        if (domain != null && !domain.isBlank()) {
+            refreshTokenCookie.setDomain(domain);
+        }
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+
+        log.info("logout - 성공 User: {}", userId);
+        return ResponseEntity.ok(LogoutResponse.success());
+    }
 }
 
