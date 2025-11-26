@@ -72,7 +72,6 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 			String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
 			neutronModule.createDefaultNetwork(projectOwnerScopedToken);
-			authModule.invalidateServiceTokensByUserId(projectOwnerId);
 
 			authModule.invalidateSystemAdminToken(adminToken);
 			return CreateProjectResponse.from(createdProject, quota);
