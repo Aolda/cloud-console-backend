@@ -454,7 +454,7 @@ public class AuthModule {
         String newAccessToken = jwtUtils.generateToken(userId);
 
         // 10. 새로운 UserToken 생성 및 저장
-        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, userId,newKeystoneToken,newAccessToken, jwtUtils.calculateExpirationDateTime());
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
 
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
