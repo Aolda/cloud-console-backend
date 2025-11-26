@@ -1,5 +1,6 @@
 package com.acc.local.domain.model.auth;
 
+import com.acc.local.dto.auth.AdminCreateUserRequest;
 import com.acc.local.dto.auth.CreateUserRequest;
 import com.acc.local.dto.auth.SignupRequest;
 import com.acc.local.dto.auth.UpdateUserRequest;
@@ -40,7 +41,7 @@ public class KeystoneUser {
         }
 
         return KeystoneUser.builder()
-                .name(request.userName())
+                .name(extractUsernameFromEmail(request.userName()))
                 .email(request.userEmail())
                 .enabled(true)
                 // ACC 내부 정보
@@ -65,11 +66,30 @@ public class KeystoneUser {
 
     public static KeystoneUser from(SignupRequest request) {
         return KeystoneUser.builder()
-                .name(request.email()) // email을 name(아이디)로 사용
+                .name(extractUsernameFromEmail(request.email())) // email의 @ 앞부분만 name(아이디)로 사용
                 .email(request.email())
                 .password(request.password())
                 .enabled(true)
                 .build();
+    }
+
+    public static KeystoneUser from(AdminCreateUserRequest request) {
+        return KeystoneUser.builder()
+                .name(extractUsernameFromEmail(request.email())) // email의 @ 앞부분만 name(아이디)로 사용
+                .password(request.password())
+                .enabled(request.isEnabled())
+                .build();
+    }
+
+    /**
+     * 이메일에서 username 부분(@앞부분)만 추출
+     * Skyline에서 @를 도메인으로 인식하는 문제 해결용
+     */
+    private static String extractUsernameFromEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+        return email.substring(0, email.indexOf("@"));
     }
     @Override
     public boolean equals(Object obj) {
