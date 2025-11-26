@@ -221,16 +221,6 @@ public class AuthController implements AuthDocs {
         // 쿠키 삭제 (로그인 시 설정한 속성과 동일하게)
         String domain = oAuth2Properties.getCookie().getDomain();
 
-        Cookie accessTokenCookie = new Cookie("acc-access-token", null);
-        accessTokenCookie.setMaxAge(0);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setAttribute("SameSite", "None");
-        if (domain != null && !domain.isBlank()) {
-            accessTokenCookie.setDomain(domain);
-        }
-
         Cookie refreshTokenCookie = new Cookie("acc-refresh-token", null);
         refreshTokenCookie.setMaxAge(0);
         refreshTokenCookie.setPath("/");
@@ -241,7 +231,6 @@ public class AuthController implements AuthDocs {
             refreshTokenCookie.setDomain(domain);
         }
 
-        response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
 
         log.info("logout - 성공 User: {}", userId);

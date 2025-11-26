@@ -123,7 +123,7 @@ public interface AuthDocs {
     @Operation(
         summary = "로그아웃",
         description = "현재 로그인된 사용자를 로그아웃합니다.<br>" +
-                "서버에 저장된 토큰을 무효화하고, 클라이언트의 쿠키(acc-access-token, acc-refresh-token)를 삭제합니다."
+                "서버에 저장된 토큰을 무효화하고, 클라이언트의 쿠키(acc-refresh-token)를 삭제합니다."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "로그아웃 성공", content = @Content()),
