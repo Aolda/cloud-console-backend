@@ -110,7 +110,7 @@ public class SecurityConfig {
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/v1/google/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
