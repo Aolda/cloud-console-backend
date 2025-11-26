@@ -19,8 +19,11 @@ public record ProjectResponse(
 	String createdAt,
 	ProjectRequestStatus status,
 	ProjectQuotaDto projectBrief,
-	List<ProjectParticipantDto> participants
+	List<ProjectParticipantDto> participants,
+	String rejectReason
 ) {
+
+	// 생성된 프로젝트
 	public static ProjectResponse from(ProjectServiceDto projectServiceDto, KeystoneUser owner, List<ProjectParticipantDto> participants) {
 		ProjectRequestType projectType = projectServiceDto.projectType();
 		if (projectType == null) {
@@ -60,6 +63,7 @@ public record ProjectResponse(
 			.build();
 	}
 
+	// 프로젝트 요청
 	public static ProjectResponse from(ProjectRequestDto projectRequestDto, KeystoneUser projectRequestUser) {
 		return ProjectResponse.builder()
 			.projectName(projectRequestDto.projectName())
@@ -68,6 +72,7 @@ public record ProjectResponse(
 			.createdAt(projectRequestDto.createdAt().toString())
 			.status(projectRequestDto.status())
 			.projectBrief(ProjectQuotaDto.getDefault())
+			.rejectReason(projectRequestDto.rejectReason())
 			.participants(List.of(
 				ProjectParticipantDto.builder()
 					.userId(projectRequestUser.getId())
