@@ -1,5 +1,7 @@
 package com.acc.local.repository.jpa;
 
+import java.util.List;
+
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.entity.ProjectRequestEntity;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,8 @@ public interface ProjectRequestJpaRepository extends JpaRepository<ProjectReques
 	Page<ProjectRequestEntity> findByRequestUserId(String requestUserId, Pageable pageable);
 
 	Page<ProjectRequestEntity> findByProjectRequestId(String projectRequestId, Pageable pageable);
+
+	List<ProjectRequestEntity> findByProjectNameContaining(String keyword);
 
 	Page<ProjectRequestEntity> findByProjectNameContaining(String keyword, Pageable pageable);
 

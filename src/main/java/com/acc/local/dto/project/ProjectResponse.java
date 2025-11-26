@@ -1,9 +1,11 @@
 package com.acc.local.dto.project;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
 
 import lombok.Builder;
@@ -20,15 +22,59 @@ public record ProjectResponse(
 	List<ProjectParticipantDto> participants
 ) {
 	public static ProjectResponse from(ProjectServiceDto projectServiceDto, KeystoneUser owner, List<ProjectParticipantDto> participants) {
+		ProjectRequestType projectType = projectServiceDto.projectType();
+		if (projectType == null) {
+			projectType = ProjectRequestType.ETC;
+		}
+
+		if (participants.isEmpty() && owner != null) {
+			participants.add(
+				ProjectParticipantDto.builder()
+					.userId(owner.getId())
+					.userName(owner.getName())
+					.userEmail(owner.getEmail())
+					.role(ProjectRole.PROJECT_ADMIN)
+				.build()
+			);
+		}
+
+		ProjectQuotaDto quota = projectServiceDto.quota();
+		if (quota == null) {
+			quota = ProjectQuotaDto.getDefault();
+		}
+
+		String createdAt = LocalDateTime.of(1900, 1, 1, 0, 0).toString();
+		if (projectServiceDto.createdAt() != null) {
+			createdAt = projectServiceDto.createdAt().toString();
+		}
+
 		return ProjectResponse.builder()
 			.projectId(projectServiceDto.projectId())
 			.projectName(projectServiceDto.projectName())
-			.projectType(projectServiceDto.projectType())
+			.projectType(projectType)
 			.createdBy(owner == null ? null : ProjectOwnerDto.from(owner))
-			.createdAt(projectServiceDto.createdAt() == null ? null : projectServiceDto.createdAt().toString())
+			.createdAt(createdAt)
 			.status(projectServiceDto.status())
-			.projectBrief(projectServiceDto.quota())
+			.projectBrief(quota)
 			.participants(participants)
+			.build();
+	}
+
+	public static ProjectResponse from(ProjectRequestDto projectRequestDto, KeystoneUser projectRequestUser) {
+		return ProjectResponse.builder()
+			.projectName(projectRequestDto.projectName())
+			.projectType(projectRequestDto.projectType())
+			.createdBy(ProjectOwnerDto.from(projectRequestUser))
+			.createdAt(projectRequestDto.createdAt().toString())
+			.status(projectRequestDto.status())
+			.projectBrief(ProjectQuotaDto.getDefault())
+			.participants(List.of(
+				ProjectParticipantDto.builder()
+					.userId(projectRequestUser.getId())
+					.userName(projectRequestUser.getName())
+					.role(ProjectRole.PROJECT_ADMIN)
+					.build()
+			))
 			.build();
 	}
 }
