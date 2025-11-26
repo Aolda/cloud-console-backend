@@ -112,7 +112,7 @@ public interface AuthDocs {
         @ApiResponse(responseCode = "401", description = "인증 실패 - 검증 토큰 만료 또는 이미 사용됨", content = @Content()),
         @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
-    @PostMapping("/profile")
+    @GetMapping("/profile")
     ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(
         @Parameter(hidden = true)
         Authentication authentication
