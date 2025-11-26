@@ -276,7 +276,7 @@ public class ProjectModule {
 		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
 
 		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getProjectDetail(projectId, scopedToken);
-		authModule.invalidateServiceTokensByUserId(requestUserId);
+		// authModule.invalidateServiceTokensByUserId(requestUserId);
 
 		if (response == null) {
 			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");
