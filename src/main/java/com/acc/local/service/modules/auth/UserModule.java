@@ -167,10 +167,18 @@ public class UserModule {
     }
 
     public UserDetailEntity adminGetUserDetailDB(String userId) {
-        UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
-            .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
+        try {
+            UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
 
-        return userDetail;
+            return userDetail;
+        } catch (AccBaseException e) {
+            if (e instanceof AccBaseException) {
+                throw e;
+            }
+
+            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, e.getMessage());
+        }
     }
 
     public AdminGetUserResponse adminGetUserWithoutAuthInfoResponse(String userId, String adminToken) {
