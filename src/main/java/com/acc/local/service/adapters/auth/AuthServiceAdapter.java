@@ -160,7 +160,7 @@ public class AuthServiceAdapter implements AuthServicePort {
     public LoginedUserProfileResponse getUserLoginedProfile(String userId) {
         try {
             String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
-            AdminGetUserResponse adminGetUserResponse = handleAdminGetUserResponse(userId, adminToken);
+            AdminGetUserResponse adminGetUserResponse = userModule.adminGetUserWithoutAuthInfoResponse(userId, adminToken);
             authModule.invalidateSystemAdminToken(adminToken);
 
             if (adminGetUserResponse != null) {
@@ -177,17 +177,6 @@ public class AuthServiceAdapter implements AuthServicePort {
 
         } catch(Exception e) {
             e.printStackTrace();
-            throw e;
-        }
-    }
-
-    private AdminGetUserResponse handleAdminGetUserResponse(String userId, String adminToken) {
-        try {
-            return userModule.adminGetUser(userId, adminToken);
-        } catch (AccBaseException e) {
-            if (e.getErrorCode().equals(AuthErrorCode.USER_NOT_FOUND)) {
-                return null;
-            }
             throw e;
         }
     }
