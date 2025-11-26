@@ -110,6 +110,14 @@ public class ProjectModule {
 		);
 	}
 
+	public List<ProjectRequestDto> getAllProjectRequestList(String keyword) {
+		String searchKeyword = (keyword == null) ? "" : keyword;
+
+		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword);
+
+		return savedProjectRequestList.stream().map(ProjectRequestDto::from).toList();
+	}
+
 	private static int getOffsetFromMarker(String marker) {
 		try {
 			Base64.Decoder decoder = Base64.getDecoder();

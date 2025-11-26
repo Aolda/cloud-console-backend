@@ -25,6 +25,12 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 		return PageRequest.of(pageNumber, size);
 	}
 
+
+	@Override
+	public List<ProjectRequestEntity> findAllByKeyword(String keyword) {
+		return projectRequestJpaRepository.findByProjectNameContaining(keyword);
+	}
+
 	@Override
 	public List<ProjectRequestEntity> findAllByKeyword(String keyword, int offset, int size) {
 		return projectRequestJpaRepository.findByProjectNameContaining(keyword, createPageable(offset, size)).getContent();

@@ -10,6 +10,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.global.exception.project.ProjectServiceException;
+import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.dto.project.CreateProjectRequestRequest;
@@ -27,6 +28,7 @@ import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
+import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.ProjectServicePort;
 
 import jakarta.transaction.Transactional;
@@ -40,6 +42,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 	private final ProjectModule projectModule;
 	private final AuthModule authModule;
+	private final UserModule userModule;
 
 	@Override
 	public List<ProjectResponse> getProjects(String keyword, String requestUserId) {
@@ -64,6 +67,13 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 				projectResponseList.add(ProjectResponse.from(projectInfo, ownerUser, projectParticipants));
 			}
+
+			KeystoneUser userDetail = authModule.getUserDetail(requestUserId, requestUserId);
+			projectModule.getAllProjectRequestList(keyword).stream()
+				.filter(v -> v.status() != ProjectRequestStatus.APPROVED)
+				.forEach(
+					v -> projectResponseList.add(ProjectResponse.from(v, userDetail))
+				);
 
 			return projectResponseList;
 		} catch(Exception e) {
