@@ -44,7 +44,7 @@ public class FlavorExternalAdapter implements NovaFlavorExternalPort {
         ResponseEntity<JsonNode> response;
 
         try {
-            response = novaFlavorAPIModule.listFlavorsDetails(keystoneToken, getListFlavorsParams(marker, direction, limit > 0 ? limit + 1 : 0));
+            response = novaFlavorAPIModule.listFlavorsDetails(keystoneToken, getListFlavorsParams(marker, direction, limit == 0 ? 0 : limit + 1));
         } catch (WebClientException e) {
             throw new FlavorExternalException(FlavorExternalErrorCode.FLAVOR_EXTERNAL_RETRIEVAL_FAILED);
         }
@@ -104,10 +104,12 @@ public class FlavorExternalAdapter implements NovaFlavorExternalPort {
     }
 
     private Map<String, String> getListFlavorsParams(String marker, String direction, int limit) {
-        Map<String, String> params = new HashMap<>(Map.of(
-                "is_public", "None",  // Public + Private 모두 조회
-                "limit", String.valueOf(limit)
-        ));
+        Map<String, String> params = new HashMap<>();
+        params.put("is_public", "None");  // Public + Private 모두 조회
+
+        if (limit != 0) {
+            params.put("limit", String.valueOf(limit));
+        }
 
         if (marker != null && !marker.isEmpty()) {
             params.put("marker", marker);
@@ -185,17 +187,17 @@ public class FlavorExternalAdapter implements NovaFlavorExternalPort {
     }
 
     private PageResponse<InstanceTypeResponse> getFlavorsPageResponse(String marker, int limit, List<InstanceTypeResponse> flavors) {
-        boolean hasNext = limit > 0 && flavors.size() > limit;
-        if (hasNext) {
-            flavors.remove(limit);
+        int returnedSize = flavors.size();
+        if (limit != 0 && returnedSize == limit + 1) {
+            flavors.removeLast();
         }
 
         return PageResponse.<InstanceTypeResponse>builder()
                 .contents(flavors)
-                .nextMarker(hasNext ? flavors.getLast().getTypeId() : null)
-                .prevMarker((marker != null && !flavors.isEmpty()) ? flavors.getFirst().getTypeId() : null)
-                .last(!hasNext)
-                .first(marker == null)
+                .nextMarker(limit == 0 || returnedSize <= limit ? null : flavors.getLast().getTypeId())
+                .prevMarker(limit == 0 || marker == null ? null : flavors.getFirst().getTypeId())
+                .last(limit == 0 || returnedSize <= limit)
+                .first(marker == null || limit == 0)
                 .size(flavors.size())
                 .build();
     }

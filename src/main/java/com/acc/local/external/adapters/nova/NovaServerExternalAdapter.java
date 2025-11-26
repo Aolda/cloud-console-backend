@@ -32,7 +32,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
         ResponseEntity<JsonNode> response;
 
         try {
-            response = novaServerAPIModule.listServersDetail(keystoneToken, getListServersParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0));
+            response = novaServerAPIModule.listServersDetail(keystoneToken, getListServersParams(projectId, marker, direction, limit == 0 ? 0 : limit + 1));
         } catch (WebClientException e) {
             throw new NovaException(NovaErrorCode.NOVA_SERVER_RETRIEVAL_FAILED);
         }
@@ -62,13 +62,16 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
 
     private Map<String, String> getListServersParams(String projectId, String marker, String direction, int limit) {
         Map<String, String> params = new HashMap<>(Map.of(
-                "project_id", projectId,
-                "page_reverse", direction.equals("prev") ? "true" : "false",
-                "limit", String.valueOf(limit)
+                "project_id", projectId
         ));
+
+        if (limit != 0) {
+            params.put("limit", String.valueOf(limit));
+        }
 
         if (marker != null && !marker.isEmpty()) {
             params.put("marker", marker);
+            params.put("page_reverse", direction.equals("prev") ? "true" : "false");
         }
         return params;
     }
@@ -107,17 +110,17 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
     }
 
     private PageResponse<InstanceResponse> getServersPageResponse(String marker, int limit, List<InstanceResponse> servers) {
-        boolean hasNext = limit > 0 && servers.size() > limit;
-        if (hasNext) {
-            servers.remove(limit);
+        int returnedSize = servers.size();
+        if (limit != 0 && returnedSize == limit + 1) {
+            servers.removeLast();
         }
 
         return PageResponse.<InstanceResponse>builder()
                 .contents(servers)
-                .nextMarker(hasNext ? servers.getLast().getInstanceId() : null)
-                .prevMarker(marker != null && !servers.isEmpty() ? servers.getFirst().getInstanceId() : null)
-                .last(!hasNext)
-                .first(marker == null)
+                .nextMarker(limit == 0 || returnedSize <= limit ? null : servers.getLast().getInstanceId())
+                .prevMarker(limit == 0 || marker == null ? null : servers.getFirst().getInstanceId())
+                .last(limit == 0 || returnedSize <= limit)
+                .first(marker == null || limit == 0)
                 .size(servers.size())
                 .build();
     }
