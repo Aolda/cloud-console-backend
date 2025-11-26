@@ -1,13 +1,17 @@
 package com.acc.local.service.adapters.auth;
 
+import com.acc.global.exception.AccBaseException;
+import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.UserPermissionResponse;
+import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,7 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     private final AuthModule authModule;
     private final UserRepositoryPort userRepositoryPort;
+    private final UserModule userModule;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -148,6 +153,42 @@ public class AuthServiceAdapter implements AuthServicePort {
         } finally {
             // 3. 어드민 토큰 revoke (성공/실패 여부와 관계없이 항상 실행)
             authModule.invalidateSystemAdminToken(adminToken);
+        }
+    }
+
+    @Override
+    public LoginedUserProfileResponse getUserLoginedProfile(String userId) {
+        try {
+            String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
+            AdminGetUserResponse adminGetUserResponse = handleAdminGetUserResponse(userId, adminToken);
+            authModule.invalidateSystemAdminToken(adminToken);
+
+            if (adminGetUserResponse != null) {
+                return LoginedUserProfileResponse.builder()
+                    .userName(adminGetUserResponse.username())
+                    .univ(UnivDepartBriefDto.from(adminGetUserResponse))
+                    .build();
+            }
+
+            UserDetailEntity userDetailEntity = userModule.adminGetUserDetailDB(userId);
+            return LoginedUserProfileResponse.builder()
+                .userName(userDetailEntity.getUserName())
+                .build();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    private AdminGetUserResponse handleAdminGetUserResponse(String userId, String adminToken) {
+        try {
+            return userModule.adminGetUser(userId, adminToken);
+        } catch (AccBaseException e) {
+            if (e.getErrorCode().equals(AuthErrorCode.USER_NOT_FOUND)) {
+                return null;
+            }
+            throw e;
         }
     }
 }

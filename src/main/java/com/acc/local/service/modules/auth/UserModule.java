@@ -165,6 +165,13 @@ public class UserModule {
                 .build();
     }
 
+    public UserDetailEntity adminGetUserDetailDB(String userId) {
+        UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+            .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
+
+        return userDetail;
+    }
+
     /**
      * 관리자 사용자 목록 조회
      * System Admin 권한으로 Keystone 사용자 목록 조회 및 ACC DB 정보 병합
