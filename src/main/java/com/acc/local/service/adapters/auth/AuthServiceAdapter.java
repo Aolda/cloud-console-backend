@@ -7,10 +7,12 @@ import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.KeystoneUser;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
+import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class AuthServiceAdapter implements AuthServicePort {
     private final AuthModule authModule;
     private final UserRepositoryPort userRepositoryPort;
     private final UserModule userModule;
+    private final ProjectModule projectModule;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -157,22 +160,30 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public LoginedUserProfileResponse getUserLoginedProfile(String userId) {
+    public LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId) {
         try {
             String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
             AdminGetUserResponse adminGetUserResponse = userModule.adminGetUserWithoutAuthInfoResponse(userId, adminToken);
             authModule.invalidateSystemAdminToken(adminToken);
 
+            // projectId가 존재하면 프로젝트 정보 조회
+            ProjectServiceDto projectServiceDto = null;
+            if (projectId != null && !projectId.isBlank()) {
+                projectServiceDto = projectModule.getProjectDetail(projectId, userId);
+            }
+
             if (adminGetUserResponse != null) {
                 return LoginedUserProfileResponse.builder()
                     .userName(adminGetUserResponse.username())
                     .univ(UnivDepartBriefDto.from(adminGetUserResponse))
+                    .project(projectServiceDto)
                     .build();
             }
 
             UserDetailEntity userDetailEntity = userModule.adminGetUserDetailDB(userId);
             return LoginedUserProfileResponse.builder()
                 .userName(userDetailEntity.getUserName())
+                .project(projectServiceDto)
                 .build();
 
         } catch(Exception e) {

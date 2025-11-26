@@ -204,9 +204,10 @@ public class AuthController implements AuthDocs {
     public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
 
-        LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId);
+        LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId, projectId);
         return ResponseEntity.ok(loginedUserProfileResponse);
     }
-
 }
+
