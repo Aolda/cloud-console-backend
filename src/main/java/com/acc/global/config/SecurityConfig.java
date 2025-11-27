@@ -1,8 +1,6 @@
 package com.acc.global.config;
 
 import com.acc.global.security.jwt.JwtAuthenticationFilter;
-import com.acc.global.security.logout.handler.CustomLogoutHandler;
-import com.acc.global.security.logout.handler.CustomLogoutSuccessHandler;
 import com.acc.global.security.oauth.OAuth2CustomUserService;
 import com.acc.global.security.oauth.handler.OAuthFailureHandler;
 import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
@@ -34,11 +32,6 @@ public class SecurityConfig {
     private final OAuth2CustomUserService oAuth2CustomUserService;
     private final OAuthSuccessHandler oAuthSuccessHandler;
     private final OAuthFailureHandler oAuthFailureHandler;
-
-    //logout
-    private final CustomLogoutHandler customLogoutHandler;
-    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -79,14 +72,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(
-                    logout -> logout
-                            .logoutUrl("/api/v1/auth/logout")
-                            .addLogoutHandler(customLogoutHandler)
-                            .logoutSuccessHandler(customLogoutSuccessHandler)
-                            .deleteCookies("acc-access-token","acc-refresh-token")
-                );
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
