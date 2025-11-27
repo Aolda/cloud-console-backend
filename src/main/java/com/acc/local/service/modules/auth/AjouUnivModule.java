@@ -24,10 +24,10 @@ public class AjouUnivModule {
 
 	public Optional<UserDepartDto> getUserDepartInfo(OAuth2User googleOAuth2UserObject) {
 		GoogleDepartResponse userDepartInfo = googlePeopleModule.getUserDepartInfo(googleOAuth2UserObject);
-		UnivDepartInfoEntity predictedUserDepartment = predictUserDepartProfile(userDepartInfo);
-		if (predictedUserDepartment == null) {
+		if (userDepartInfo == null) {
 			return Optional.empty();
 		}
+		UnivDepartInfoEntity predictedUserDepartment = predictUserDepartProfile(userDepartInfo);
 
 		return Optional.of(UserDepartDto.create(userDepartInfo, predictedUserDepartment));
 	}

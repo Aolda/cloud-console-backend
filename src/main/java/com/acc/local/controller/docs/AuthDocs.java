@@ -117,5 +117,23 @@ public interface AuthDocs {
         @Parameter(hidden = true)
         Authentication authentication
     );
+
+
+    // ------------------------- LOGOUT -------------------------
+    @Operation(
+        summary = "로그아웃",
+        description = "현재 로그인된 사용자를 로그아웃합니다.<br>" +
+                "서버에 저장된 토큰을 무효화하고, 클라이언트의 쿠키(acc-refresh-token)를 삭제합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그아웃 성공", content = @Content()),
+        @ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 토큰", content = @Content()),
+        @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
+    })
+    @PostMapping("/logout")
+    ResponseEntity<LogoutResponse> logout(
+        @Parameter(hidden = true) Authentication authentication,
+        HttpServletResponse response
+    );
 }
 

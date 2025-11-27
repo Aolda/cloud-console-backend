@@ -46,12 +46,8 @@ public class UserModule {
      */
     @Transactional
     public String adminCreateUser(AdminCreateUserRequest request, String adminToken) {
-        // 1. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
-        KeystoneUser newKeystoneUser = KeystoneUser.builder()
-                .name(request.email()) // email을 name(아이디)로 사용
-                .password(request.password())
-                .enabled(request.isEnabled())
-                .build();
+        // 1. Keystone 사용자 생성 요청 생성
+        KeystoneUser newKeystoneUser = KeystoneUser.from(request);
 
         Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newKeystoneUser);
 
