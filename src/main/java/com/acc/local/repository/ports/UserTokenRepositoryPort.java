@@ -16,6 +16,8 @@ public interface UserTokenRepositoryPort {
     void deactivateAllByUserId(String userId);
     
     void deactivateExpiredTokens();
-    
+
     void deleteInactiveTokens();
+
+    Optional<UserTokenEntity> findLatestByUserId(String userId);
 }

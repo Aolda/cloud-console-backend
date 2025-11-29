@@ -52,4 +52,9 @@ public class UserTokenRepositoryAdapter implements UserTokenRepositoryPort {
     public void deleteInactiveTokens() {
         userTokenJpaRepository.deleteByIsActiveFalse();
     }
+
+    @Override
+    public Optional<UserTokenEntity> findLatestByUserId(String userId) {
+        return userTokenJpaRepository.findFirstByUserIdOrderByUpdatedAtDesc(userId);
+    }
 }
