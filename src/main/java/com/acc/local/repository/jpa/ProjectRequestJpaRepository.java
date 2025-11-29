@@ -28,4 +28,6 @@ public interface ProjectRequestJpaRepository extends JpaRepository<ProjectReques
 	@Modifying
 	@Query("UPDATE ProjectRequestEntity p SET p.status = :status, p.rejectReason = :rejectReason WHERE p.projectRequestId = :id")
 	void updateStatusById(@Param("id") String id, @Param("status") ProjectRequestStatus status, @Param("rejectReason") String rejectReason);
+
+	List<ProjectRequestEntity> findByProjectNameContainingAndRequestUserId(String keyword, String requestUserId);
 }

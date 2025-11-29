@@ -27,8 +27,8 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 
 
 	@Override
-	public List<ProjectRequestEntity> findAllByKeyword(String keyword) {
-		return projectRequestJpaRepository.findByProjectNameContaining(keyword);
+	public List<ProjectRequestEntity> findAllByKeyword(String keyword, String requestUserId) {
+		return projectRequestJpaRepository.findByProjectNameContainingAndRequestUserId(keyword, requestUserId);
 	}
 
 	@Override

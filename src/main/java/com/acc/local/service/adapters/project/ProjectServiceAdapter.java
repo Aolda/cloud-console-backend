@@ -69,7 +69,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 			}
 
 			KeystoneUser userDetail = authModule.getUserDetail(requestUserId, requestUserId);
-			projectModule.getAllProjectRequestList(keyword).stream()
+			projectModule.getAllProjectRequestList(keyword, requestUserId).stream()
 				.filter(v -> v.status() != ProjectRequestStatus.APPROVED)
 				.forEach(
 					v -> projectResponseList.add(ProjectResponse.from(v, userDetail))

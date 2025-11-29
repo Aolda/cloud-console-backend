@@ -110,10 +110,10 @@ public class ProjectModule {
 		);
 	}
 
-	public List<ProjectRequestDto> getAllProjectRequestList(String keyword) {
+	public List<ProjectRequestDto> getAllProjectRequestList(String keyword, String requestUserId) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
 
-		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword);
+		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword, requestUserId);
 
 		return savedProjectRequestList.stream().map(ProjectRequestDto::from).toList();
 	}
