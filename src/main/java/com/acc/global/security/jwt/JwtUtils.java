@@ -65,7 +65,7 @@ public class JwtUtils {
 
     public String generateRefreshToken(String userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000L)); // 7일
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshExpirationMs());
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()
@@ -126,11 +126,17 @@ public class JwtUtils {
     }
 
     /**
-     * JWT 만료시간을 LocalDateTime으로 계산
-     * 토큰 생성 시와 동일한 만료시간 적용
+     * Access Token 만료시간을 LocalDateTime으로 계산
      */
     public LocalDateTime calculateExpirationDateTime() {
         return LocalDateTime.now().plus(jwtProperties.getExpirationMs(), ChronoUnit.MILLIS);
+    }
+
+    /**
+     * Refresh Token 만료시간을 LocalDateTime으로 계산
+     */
+    public LocalDateTime calculateRefreshTokenExpirationDateTime() {
+        return LocalDateTime.now().plus(jwtProperties.getRefreshExpirationMs(), ChronoUnit.MILLIS);
     }
 
     /**
@@ -148,11 +154,11 @@ public class JwtUtils {
     }
 
     /**
-     * OAuth 인증 검증용 JWT 생성 (15분 만료)
+     * OAuth 인증 검증용 JWT 생성
      */
     public String generateOAuthVerificationToken(String email) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + (15 * 60 * 1000L)); // 15분
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getOauthVerificationExpirationMs());
 
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         return Jwts.builder()

@@ -384,7 +384,7 @@ public class AuthModule {
         RefreshToken refreshToken = RefreshToken.builder()
             .userId(userId)
             .refreshToken(refreshTokenValue)
-            .expiresAt(LocalDateTime.now().plusDays(7))
+            .expiresAt(jwtUtils.calculateRefreshTokenExpirationDateTime())
             .build();
 
         RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(refreshToken.toEntity());
@@ -413,11 +413,13 @@ public class AuthModule {
     }
 
     /**
-     * Refresh Token 검증 및 userId 반환
+     * Refresh Token 검증 및 즉시 무효화 후 userId 반환
+     * 동시 요청 방지를 위해 검증과 동시에 토큰을 무효화함
      * @param refreshTokenValue 검증할 refresh token 값
      * @return userId
      * @throws JwtAuthenticationException 토큰이 유효하지 않거나 만료된 경우
      */
+    @Transactional
     public String validateRefreshTokenAndGetUserId(String refreshTokenValue) {
         // 1. JWT 형식 검증
         if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
@@ -433,6 +435,10 @@ public class AuthModule {
         if (refreshTokenEntity.isExpired()) {
             throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
         }
+
+        // 4. 즉시 무효화 (동일 토큰으로 재사용 방지)
+        refreshTokenEntity.deactivate();
+        refreshTokenRepositoryPort.save(refreshTokenEntity);
 
         return jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
     }
@@ -489,13 +495,11 @@ public class AuthModule {
 
         // 2. 새로운 refresh token 값 생성
         String newRefreshTokenValue = jwtUtils.generateRefreshToken(userId);
-        LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(7);
+        LocalDateTime newExpiresAt = jwtUtils.calculateRefreshTokenExpirationDateTime();
 
         // 3. 기존 엔티티 업데이트 (말소 + 재발급)
         existingTokenEntity.updateRefreshToken(newRefreshTokenValue, newExpiresAt);
         refreshTokenRepositoryPort.save(existingTokenEntity);
-
-        log.info("[Refresh Token Rotation] userId: {}, 새로운 refresh token 발급 완료", userId);
 
         return newRefreshTokenValue;
     }
