@@ -20,11 +20,11 @@ public interface GlanceExternalPort {
 
     ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req);
 
-    void importImageUrl(String token, String imageId, String fileUrl);
+    ResponseEntity<Void> importImageUrl(String token, String imageId, String fileUrl);
 
     void uploadImageProxyStream(String token, String imageId, InputStream body, String contentType);
 
-    void deleteImage(String token, String imageId);
+    ResponseEntity<Void> deleteImage(String token, String imageId);
 
 //    ResponseEntity<JsonNode> fetchImage(String token, String imageId);
 //
