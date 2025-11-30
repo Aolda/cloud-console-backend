@@ -140,6 +140,13 @@ public class JwtUtils {
     }
 
     /**
+     * Refresh Token 만료시간을 초(seconds) 단위로 반환 (쿠키 설정용)
+     */
+    public int getRefreshTokenExpirationSeconds() {
+        return (int) (jwtProperties.getRefreshExpirationMs() / 1000);
+    }
+
+    /**
      * Refresh Token 검증
      */
     public boolean validateRefreshToken(String refreshToken) {

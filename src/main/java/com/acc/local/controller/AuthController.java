@@ -1,5 +1,6 @@
 package com.acc.local.controller;
 
+import com.acc.global.properties.JwtProperties;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.controller.docs.AuthDocs;
@@ -29,6 +30,7 @@ public class AuthController implements AuthDocs {
     private final KeycloakProperties keycloakProperties;
     private final AuthServicePort authServicePort;
     private final OAuth2Properties oAuth2Properties;
+    private final JwtUtils jwtUtils;
 
     // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
     @Deprecated
@@ -148,7 +150,7 @@ public class AuthController implements AuthDocs {
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+        refreshTokenCookie.setMaxAge(jwtUtils.getRefreshTokenExpirationSeconds()); // 7일
 
         // SameSite 속성 설정 (크로스 사이트 쿠키 허용)
         refreshTokenCookie.setAttribute("SameSite", "None");
@@ -194,7 +196,7 @@ public class AuthController implements AuthDocs {
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+        refreshTokenCookie.setMaxAge(jwtUtils.getRefreshTokenExpirationSeconds()); // 7일
 
         // SameSite 속성 설정
         refreshTokenCookie.setAttribute("SameSite", "None");
