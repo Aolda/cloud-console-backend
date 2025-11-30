@@ -415,6 +415,7 @@ public class AuthModule {
     /**
      * Refresh Token으로 새로운 Access Token 발급
      * 기존 Keystone Token도 재발급하여 완전히 새로운 세션 생성
+     * 가장 최근 발급된 토큰에 projectId가 있었다면 새 토큰에도 포함
      */
     @Transactional
     public String refreshAccessToken(String refreshTokenValue) {
@@ -439,7 +440,12 @@ public class AuthModule {
         // 5. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
         UserToken existingUserToken = UserToken.from(existingTokenEntity);
-        // 6. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+
+        // 6. 가장 최근 발급된 토큰에서 projectId 추출
+        String projectId = extractProjectIdFromLatestToken(userId);
+        log.info("[Refresh Token] userId: {}, projectId: {}", userId, projectId);
+
+        // 7. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
 
@@ -447,11 +453,11 @@ public class AuthModule {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
         }
 
-        // 7. 기존 Keystone Token revoke
+        // 8. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 9. 새로운 JWT Access Token 발급 (projectId 없이)
-        String newAccessToken = jwtUtils.generateToken(userId);
+        // 9. 새로운 JWT Access Token 발급 (projectId 포함)
+        String newAccessToken = jwtUtils.generateToken(userId, projectId);
 
         // 10. 새로운 UserToken 생성 및 저장
         UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
@@ -459,6 +465,17 @@ public class AuthModule {
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
         return newAccessToken;
+    }
+
+    /**
+     * 가장 최근 발급된 UserToken의 JWT에서 projectId 추출
+     * 만료된 토큰에서도 projectId를 추출할 수 있음
+     */
+    private String extractProjectIdFromLatestToken(String userId) {
+        return userTokenRepositoryPort.findLatestByUserId(userId)
+            .map(UserTokenEntity::getJwtToken)
+            .map(jwtUtils::getProjectIdFromExpiredToken)
+            .orElse(null);
     }
 
     /**
