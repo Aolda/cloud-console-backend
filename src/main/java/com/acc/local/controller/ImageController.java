@@ -34,17 +34,36 @@ public class ImageController implements ImageDocs {
         String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
 
-        // 단건 조회
+        boolean hasPaginationParams = pageRequest.getLimit() != null || pageRequest.getMarker() != null || pageRequest.getDirection() != null;
+
+        if (imageId != null && hasPaginationParams) {
+            throw new ImageException(ImageErrorCode.INVALID_PAGINATION_WITH_IMAGE_ID);
+        }
+
+        if (imageId == null) {
+
+            // marker 단독 금지
+            if (pageRequest.getMarker() != null && pageRequest.getLimit() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
+            }
+
+            // direction 단독 금지
+            if (pageRequest.getDirection() != null && pageRequest.getLimit() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
+            }
+        }
+
         if (imageId != null) {
             ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
             return ResponseEntity.ok(detail);
         }
 
-        // 목록 조회 (필터링 + 페이징)
-        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
+        PageResponse<GlanceImageSummary> page =
+                imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
 
         return ResponseEntity.ok(page);
     }
+
 
 
 
@@ -99,7 +118,7 @@ public class ImageController implements ImageDocs {
             );
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            throw new ImageException(ImageErrorCode.IMAGE_FILE_UPLOAD_FAILURE, e);
+            throw new ImageException(ImageErrorCode.IMAGE_UPLOAD_FAILURE, e);
         }
     }
 
