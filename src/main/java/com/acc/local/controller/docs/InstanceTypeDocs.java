@@ -68,8 +68,7 @@ public interface InstanceTypeDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "조회 성공",
-                    content = @Content()
+                    description = "조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -98,8 +97,7 @@ public interface InstanceTypeDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "조회 성공",
-                    content = @Content()
+                    description = "조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
