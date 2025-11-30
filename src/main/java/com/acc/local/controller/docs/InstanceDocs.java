@@ -29,8 +29,7 @@ public interface InstanceDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "인스턴스 목록 조회 성공",
-                    content = @Content()
+                    description = "인스턴스 목록 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -63,7 +62,7 @@ public interface InstanceDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "인스턴스 생성 요청 성공 (비동기 처리)",
+                    description = "인스턴스 생성 요청 성공",
                     content = @Content()
             ),
             @ApiResponse(
@@ -113,8 +112,7 @@ public interface InstanceDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "쿼터조회 성공",
-                    content = @Content()
+                    description = "쿼터조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
