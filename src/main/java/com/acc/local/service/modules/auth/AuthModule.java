@@ -505,6 +505,19 @@ public class AuthModule {
     }
 
     /**
+     * Refresh Token 비활성화
+     * 회원 삭제, 로그아웃 시 사용
+     * @param userId 사용자 ID
+     */
+    @Transactional
+    public void invalidateRefreshTokenByUserId(String userId) {
+        refreshTokenRepositoryPort.findById(userId).ifPresent(refreshTokenEntity -> {
+            refreshTokenEntity.deactivate();
+            refreshTokenRepositoryPort.save(refreshTokenEntity);
+        });
+    }
+
+    /**
      * 가장 최근 발급된 UserToken의 JWT에서 projectId 추출
      * 만료된 토큰에서도 projectId를 추출할 수 있음
      */
