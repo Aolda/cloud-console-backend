@@ -29,6 +29,7 @@ public interface AuthDocs {
             @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content()),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content()),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
+            @ApiResponse(responseCode = "409", description = "사용자가 삭제된 사용자입니다.",  content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/login")
