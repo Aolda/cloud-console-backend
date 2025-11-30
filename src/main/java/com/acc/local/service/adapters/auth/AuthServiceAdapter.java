@@ -5,6 +5,7 @@ import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.ProjectServiceDto;

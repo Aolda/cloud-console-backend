@@ -325,6 +325,8 @@ public class AuthModule {
         String userId = keystoneToken.userId();
         invalidateServiceTokensByUserId(userId);
 
+        validateUserIsDeleted(userId);
+
         // 2. UserToken 모델 생성 및 저장
         UserToken userToken = createUserToken(userId, keystoneToken);
 
@@ -621,5 +623,15 @@ public class AuthModule {
 
         // 5. 토큰 삭제 (일회성 토큰이므로 하드 딜리트)
         oAuthVerificationTokenRepositoryPort.delete(tokenEntity);
+    }
+
+    private void validateUserIsDeleted(String userId){
+        // 사용자 삭제되었는지 검증
+        UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (userDetail.getIsDeleted()) {
+            throw new AuthServiceException(AuthErrorCode.USER_IS_DELETED);
+        }
     }
 }
