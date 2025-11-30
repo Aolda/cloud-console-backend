@@ -183,9 +183,31 @@ public class AuthController implements AuthDocs {
 
     @PostMapping("/login/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
-            @CookieValue("acc-refresh-token") String refreshToken
+            @CookieValue("acc-refresh-token") String refreshToken,
+            HttpServletResponse response
     ) {
-        LoginResponse loginResponse = authServicePort.refreshToken(refreshToken);
+        // 1. Service에서 LoginTokens DTO 받기
+        LoginTokens tokens = authServicePort.refreshToken(refreshToken);
+
+        // 2. 새로운 Refresh Token을 Cookie에 설정
+        Cookie refreshTokenCookie = new Cookie("acc-refresh-token", tokens.refreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7일
+
+        // SameSite 속성 설정
+        refreshTokenCookie.setAttribute("SameSite", "None");
+
+        // 도메인 설정
+        String domain = oAuth2Properties.getCookie().getDomain();
+        if (domain != null && !domain.isBlank()) {
+            refreshTokenCookie.setDomain(domain);
+        }
+        response.addCookie(refreshTokenCookie);
+
+        // 3. Access Token은 Response Body에 반환
+        LoginResponse loginResponse = new LoginResponse(tokens.accessToken());
         return ResponseEntity.ok(loginResponse);
     }
 

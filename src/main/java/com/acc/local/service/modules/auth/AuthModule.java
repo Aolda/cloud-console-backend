@@ -413,39 +413,46 @@ public class AuthModule {
     }
 
     /**
-     * Refresh Token으로 새로운 Access Token 발급
-     * 기존 Keystone Token도 재발급하여 완전히 새로운 세션 생성
-     * 가장 최근 발급된 토큰에 projectId가 있었다면 새 토큰에도 포함
+     * Refresh Token 검증 및 userId 반환
+     * @param refreshTokenValue 검증할 refresh token 값
+     * @return userId
+     * @throws JwtAuthenticationException 토큰이 유효하지 않거나 만료된 경우
      */
-    @Transactional
-    public String refreshAccessToken(String refreshTokenValue) {
-        // 1. Refresh Token 검증
+    public String validateRefreshTokenAndGetUserId(String refreshTokenValue) {
+        // 1. JWT 형식 검증
         if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
             throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
         }
 
-        // 2. Refresh Token에서 userId 추출
-        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
-
-        // 3. DB에서 Refresh Token 확인
+        // 2. DB에서 Refresh Token 확인
         RefreshTokenEntity refreshTokenEntity = refreshTokenRepositoryPort
             .findByRefreshTokenAndIsActiveTrue(refreshTokenValue)
             .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
 
-        // 4. Refresh Token 만료 확인
+        // 3. Refresh Token 만료 확인
         if (refreshTokenEntity.isExpired()) {
             throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
         }
 
-        // 5. 기존 UserToken 조회
+        return jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+    }
+
+    /**
+     * Keystone Token + Access Token 재발급
+     * @param userId 사용자 ID
+     * @return 새로 발급된 accessToken
+     */
+    @Transactional
+    public String refreshKeystoneAndAccessToken(String userId) {
+        // 1. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
         UserToken existingUserToken = UserToken.from(existingTokenEntity);
 
-        // 6. 가장 최근 발급된 토큰에서 projectId 추출
+        // 2. 가장 최근 발급된 토큰에서 projectId 추출
         String projectId = extractProjectIdFromLatestToken(userId);
         log.info("[Refresh Token] userId: {}, projectId: {}", userId, projectId);
 
-        // 7. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        // 3. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
 
@@ -453,18 +460,44 @@ public class AuthModule {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
         }
 
-        // 8. 기존 Keystone Token revoke
+        // 4. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 9. 새로운 JWT Access Token 발급 (projectId 포함)
+        // 5. 새로운 JWT Access Token 발급 (projectId 포함)
         String newAccessToken = jwtUtils.generateToken(userId, projectId);
 
-        // 10. 새로운 UserToken 생성 및 저장
-        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
-
+        // 6. 새로운 UserToken 생성 및 저장
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
+        log.info("[Access Token Refresh] userId: {}, 새로운 access token 발급 완료", userId);
+
         return newAccessToken;
+    }
+
+    /**
+     * Refresh Token Rotation - 기존 토큰 말소 후 새 토큰 발급
+     * @param userId 사용자 ID
+     * @return 새로 발급된 refreshToken 값
+     */
+    @Transactional
+    public String rotateRefreshToken(String userId) {
+        // 1. 기존 Refresh Token 조회 (userId가 PK)
+        RefreshTokenEntity existingTokenEntity = refreshTokenRepositoryPort
+            .findById(userId)
+            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+
+        // 2. 새로운 refresh token 값 생성
+        String newRefreshTokenValue = jwtUtils.generateRefreshToken(userId);
+        LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(7);
+
+        // 3. 기존 엔티티 업데이트 (말소 + 재발급)
+        existingTokenEntity.updateRefreshToken(newRefreshTokenValue, newExpiresAt);
+        refreshTokenRepositoryPort.save(existingTokenEntity);
+
+        log.info("[Refresh Token Rotation] userId: {}, 새로운 refresh token 발급 완료", userId);
+
+        return newRefreshTokenValue;
     }
 
     /**
