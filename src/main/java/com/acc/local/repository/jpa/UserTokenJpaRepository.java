@@ -32,4 +32,7 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
 
     // 비활성화된 토큰들을 물리적으로 삭제 (정리 작업용)
     void deleteByIsActiveFalse();
+
+    // 사용자별 가장 최근 발급된 토큰 조회 (활성/비활성 무관)
+    Optional<UserTokenEntity> findFirstByUserIdOrderByUpdatedAtDesc(String userId);
 }

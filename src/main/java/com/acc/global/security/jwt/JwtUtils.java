@@ -90,6 +90,21 @@ public class JwtUtils {
         }
     }
 
+    /**
+     * 만료된 토큰에서도 projectId 추출
+     * refresh 시 기존 토큰에서 projectId를 가져올 때 사용
+     */
+    public String getProjectIdFromExpiredToken(String token) {
+        try {
+            Claims claims = getClaimsFromToken(token);
+            return claims.get("projectId", String.class);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return e.getClaims().get("projectId", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public boolean validateToken(String token) {
         try {
             getClaimsFromToken(token);
