@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ProjectRequestRepositoryPort {
 
-	List<ProjectRequestEntity> findAllByKeyword(String keyword);
+	List<ProjectRequestEntity> findAllByKeyword(String keyword, String requestUserId);
 
 	List<ProjectRequestEntity> findAllByKeyword(String keyword, int offset, int size);
 
