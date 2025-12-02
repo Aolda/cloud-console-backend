@@ -15,7 +15,4 @@ public interface ComputeQuotaExternalPort {
 	ResponseEntity<Void> callUpdateRAMQuota(String token, String projectId, int ramLimitWithMBUnit);
 
 	ResponseEntity<Void> callUpdateCPUAndRAMQuota(String token, String projectId, int cpuLimit, int ramLimitWithMBUnit);
-
-
-
 }

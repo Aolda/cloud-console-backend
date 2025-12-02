@@ -86,9 +86,10 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	}
 
 	@Override
-	public GetProjectResponse getProjectDetail(String projectId, String requesterId) {
+	public GetProjectResponse getProjectDetail(String projectId, String requestUserId) {
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-		ProjectServiceDto project = projectModule.getProjectDetail(projectId, requesterId);
+		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
+		ProjectServiceDto project = projectModule.getProjectDetail(projectId, scopedToken);
 		return GetProjectResponse.from(project);
 	}
 

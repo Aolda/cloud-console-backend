@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectStorageQuotaDto;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 
@@ -24,15 +26,18 @@ public record ProjectServiceDto(
 	ProjectGlobalQuotaDto quota,
 	List<ProjectParticipantDto> participants
 ) {
-	public static ProjectServiceDto from(ProjectEntity dbProject, KeystoneProject keystoneProject) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
+	public static ProjectServiceDto from(
+		ProjectEntity dbProject, KeystoneProject keystoneProject,
+		ProjectComputeQuotaDto computeQuota, ProjectStorageQuotaDto storageQuota
+	) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
 
 		ProjectGlobalQuotaDto projectGlobalQuotaDto = null;
 		if (dbProject.getQuotaVCpuCount() != null) {
 			ProjectGlobalQuotaDto.builder()
-				.vCpu(Integer.parseInt(String.valueOf(dbProject.getQuotaVCpuCount())))
-				.vRam(Integer.parseInt(String.valueOf(dbProject.getQuotaVRamMB())))
-				.storage(Integer.parseInt(String.valueOf(dbProject.getQuotaStorageGB())))
-				.instance(Integer.parseInt(String.valueOf(dbProject.getQuotaInstanceCount())))
+				.core(computeQuota.core())
+				.ram(computeQuota.ram())
+				.instance(computeQuota.instance())
+				.volume(storageQuota.volume())
 				.build();
 		}
 

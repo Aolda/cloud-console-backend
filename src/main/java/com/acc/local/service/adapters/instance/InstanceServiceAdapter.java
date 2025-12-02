@@ -8,6 +8,7 @@ import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
 import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
+import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.instance.InstanceModule;
@@ -68,9 +69,9 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     @Override
     public InstanceQuotaResponse getQuota(String userId, String projectId) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
-        InstanceQuotaResponse projectComputeQuotaDetail = projectModule.getProjectComputeQuotaDetail(projectId, token);
+        ProjectComputeQuotaDto projectComputeQuota = projectModule.getProjectComputeQuotaDetail(projectId, token);
         authModule.invalidateServiceTokensByUserId(userId);
 
-        return projectComputeQuotaDetail;
+        return InstanceQuotaResponse.from(projectComputeQuota);
     }
 }

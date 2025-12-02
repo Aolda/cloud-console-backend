@@ -169,7 +169,8 @@ public class AuthServiceAdapter implements AuthServicePort {
             // projectId가 존재하면 프로젝트 정보 조회
             ProjectServiceDto projectServiceDto = null;
             if (projectId != null && !projectId.isBlank()) {
-                projectServiceDto = projectModule.getProjectDetail(projectId, userId);
+                String scopedToken = authModule.issueProjectScopeToken(projectId, userId);
+                projectServiceDto = projectModule.getProjectDetail(projectId, scopedToken);
             }
 
             if (adminGetUserResponse != null) {

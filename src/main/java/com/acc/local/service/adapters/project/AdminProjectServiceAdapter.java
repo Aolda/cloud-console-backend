@@ -143,7 +143,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	@Override
 	public PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String requestUserId) {
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
-		String adminToken = authModule.issueSystemAdminToken(requestUserId);
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
 		log.info(adminToken);
 
 		try {

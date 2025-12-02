@@ -4,17 +4,30 @@ import lombok.Builder;
 
 @Builder
 public record ProjectGlobalQuotaDto(
-	int vCpu,
-	int vRam,
-	int instance,
-	int storage
+	QuotaInformation instance,
+	QuotaInformation core,
+	QuotaInformation ram,
+	QuotaGroup volume
 ) {
 	public static ProjectGlobalQuotaDto getDefault() {
 		return ProjectGlobalQuotaDto.builder()
-			.vCpu(8)
-			.vRam(32)
-			.instance(10)
-			.storage(1000)
+			.core(QuotaInformation.builder()
+				.available(8)
+				.build())
+			.ram(QuotaInformation.builder()
+				.available(32)
+				.build())
+			.instance(QuotaInformation.builder()
+				.available(10)
+				.build())
+			.volume(QuotaGroup.builder()
+				.count(QuotaInformation.builder()
+					.available(10)
+					.build())
+				.size(QuotaInformation.builder()
+					.available(1000)
+					.build())
+				.build())
 		.build();
 	}
 }
