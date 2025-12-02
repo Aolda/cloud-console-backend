@@ -1,5 +1,6 @@
 package com.acc.local.controller.docs;
 
+import com.acc.global.common.PageRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
 import com.acc.local.dto.snapshot.policy.SnapshotTaskResponse;
@@ -11,9 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -38,10 +39,10 @@ public interface SnapshotPolicyDocs {
     })
     @GetMapping
     ResponseEntity<Page<SnapshotPolicyResponse>> getPolicies(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "페이지 정보", required = false)
-            Pageable pageable
+            PageRequest page,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -61,10 +62,10 @@ public interface SnapshotPolicyDocs {
     })
     @GetMapping(params = "policyId")
     ResponseEntity<SnapshotPolicyResponse> getPolicyDetails(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "조회할 정책 ID", required = true)
-            @RequestParam Long policyId
+            @RequestParam Long policyId,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -84,10 +85,10 @@ public interface SnapshotPolicyDocs {
     })
     @PostMapping
     ResponseEntity<SnapshotPolicyResponse> createPolicy(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "생성할 정책 정보", required = true)
-            @RequestBody SnapshotPolicyRequest request
+            @RequestBody SnapshotPolicyRequest request,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -108,12 +109,12 @@ public interface SnapshotPolicyDocs {
     })
     @PutMapping(params = "policyId")
     ResponseEntity<SnapshotPolicyResponse> updatePolicy(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "수정할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(description = "수정할 정책 정보", required = true)
-            @RequestBody SnapshotPolicyRequest request
+            @RequestBody SnapshotPolicyRequest request,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -132,10 +133,10 @@ public interface SnapshotPolicyDocs {
     })
     @DeleteMapping(params = "policyId")
     ResponseEntity<Void> deletePolicy(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "삭제할 정책 ID", required = true)
-            @RequestParam Long policyId
+            @RequestParam Long policyId,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -154,10 +155,10 @@ public interface SnapshotPolicyDocs {
     })
     @PostMapping("/{policyId}/deactivate")
     ResponseEntity<Void> deactivatePolicy(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "비활성화할 정책 ID", required = true)
-            @PathVariable Long policyId
+            @PathVariable Long policyId,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -176,10 +177,10 @@ public interface SnapshotPolicyDocs {
     })
     @PostMapping("/{policyId}/activate")
     ResponseEntity<Void> activatePolicy(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "활성화할 정책 ID", required = true)
-            @PathVariable Long policyId
+            @PathVariable Long policyId,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 
     @Operation(
@@ -199,14 +200,13 @@ public interface SnapshotPolicyDocs {
     })
     @GetMapping("/{policyId}/runs")
     ResponseEntity<Page<SnapshotTaskResponse>> getPolicyRuns(
-            @Parameter(description = "인증 토큰", required = true)
-            @RequestHeader("Authorization") String token,
             @Parameter(description = "조회할 정책 ID", required = true)
             @PathVariable Long policyId,
             @Parameter(description = "조회 시작 일자 (YYYY-MM-DD)", required = false)
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate since,
             @Parameter(description = "페이지 정보", required = false)
-            Pageable pageable
+            PageRequest page,
+            @Parameter(hidden = true)
+            Authentication authentication
     );
 }
-

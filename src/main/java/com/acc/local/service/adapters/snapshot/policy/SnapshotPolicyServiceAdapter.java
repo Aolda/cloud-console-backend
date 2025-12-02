@@ -23,49 +23,49 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
     private final SnapshotPolicyModule policyModule;
 
     @Override
-    public Page<SnapshotPolicyResponse> getPolicies(Pageable pageable, String token) {
+    public Page<SnapshotPolicyResponse> getPolicies(Pageable pageable) {
         return policyModule.getPolicies(pageable);
     }
 
     @Override
-    public SnapshotPolicyResponse getPolicyDetails(Long policyId, String token) {
+    public SnapshotPolicyResponse getPolicyDetails(Long policyId) {
         validatePolicyId(policyId);
         return policyModule.getPolicyDetails(policyId);
     }
 
     @Override
-    public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request, String token) {
+    public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request) {
         validateRequest(request);
         return policyModule.createPolicy(request);
     }
 
     @Override
-    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String token) {
+    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request) {
         validatePolicyId(policyId);
         validateRequest(request);
         return policyModule.updatePolicy(policyId, request);
     }
 
     @Override
-    public void deletePolicy(Long policyId, String token) {
+    public void deletePolicy(Long policyId) {
         validatePolicyId(policyId);
         policyModule.deletePolicy(policyId);
     }
 
     @Override
-    public void activatePolicy(Long policyId, String token) {
+    public void activatePolicy(Long policyId) {
         validatePolicyId(policyId);
         policyModule.activatePolicy(policyId);
     }
 
     @Override
-    public void deactivatePolicy(Long policyId, String token) {
+    public void deactivatePolicy(Long policyId) {
         validatePolicyId(policyId);
         policyModule.deactivatePolicy(policyId);
     }
 
     @Override
-    public Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable, String token) {
+    public Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable) {
         validatePolicyId(policyId);
         return policyModule.getPolicyRuns(policyId, since, pageable);
     }
@@ -85,4 +85,3 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
         }
     }
 }
-

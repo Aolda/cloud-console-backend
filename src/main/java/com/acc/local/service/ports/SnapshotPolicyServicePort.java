@@ -9,13 +9,12 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 
 public interface SnapshotPolicyServicePort {
-    Page<SnapshotPolicyResponse> getPolicies(Pageable pageable, String token);
-    SnapshotPolicyResponse getPolicyDetails(Long policyId, String token);
-    SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request, String token);
-    SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String token);
-    void deletePolicy(Long policyId, String token);
-    void activatePolicy(Long policyId, String token);
-    void deactivatePolicy(Long policyId, String token);
-    Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable, String token);
+    Page<SnapshotPolicyResponse> getPolicies(Pageable pageable);
+    SnapshotPolicyResponse getPolicyDetails(Long policyId);
+    SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request);
+    SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request);
+    void deletePolicy(Long policyId);
+    void activatePolicy(Long policyId);
+    void deactivatePolicy(Long policyId);
+    Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable);
 }
-
