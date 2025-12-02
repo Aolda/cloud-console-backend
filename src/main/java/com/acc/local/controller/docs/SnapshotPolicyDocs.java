@@ -1,6 +1,7 @@
 package com.acc.local.controller.docs;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
 import com.acc.local.dto.snapshot.policy.SnapshotTaskResponse;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,13 +32,13 @@ public interface SnapshotPolicyDocs {
                     responseCode = "200",
                     description = "정책 목록 조회 성공",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class))
+                            schema = @Schema(implementation = PageResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content())
     })
     @GetMapping
-    ResponseEntity<Page<SnapshotPolicyResponse>> getPolicies(
+    ResponseEntity<PageResponse<SnapshotPolicyResponse>> getPolicies(
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(hidden = true)
@@ -192,14 +192,14 @@ public interface SnapshotPolicyDocs {
                     responseCode = "200",
                     description = "실행 이력 조회 성공",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class))
+                            schema = @Schema(implementation = PageResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음", content = @Content())
     })
     @GetMapping(path = "/runs", params = "policyId")
-    ResponseEntity<Page<SnapshotTaskResponse>> getPolicyRuns(
+    ResponseEntity<PageResponse<SnapshotTaskResponse>> getPolicyRuns(
             @Parameter(description = "조회할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(description = "조회 시작 일자 (YYYY-MM-DD)", required = false)

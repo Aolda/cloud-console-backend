@@ -1,14 +1,13 @@
 package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.local.controller.docs.SnapshotPolicyDocs;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
 import com.acc.local.dto.snapshot.policy.SnapshotTaskResponse;
 import com.acc.local.service.ports.SnapshotPolicyServicePort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +23,11 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
     private final SnapshotPolicyServicePort policyServicePort;
 
     @Override
-    public ResponseEntity<Page<SnapshotPolicyResponse>> getPolicies(
+    public ResponseEntity<PageResponse<SnapshotPolicyResponse>> getPolicies(
             PageRequest page,
             Authentication authentication
     ) {
-        Pageable pageable = toPageable(page);
-        Page<SnapshotPolicyResponse> response = policyServicePort.getPolicies(pageable);
+        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page);
         return ResponseEntity.ok(response);
     }
 
@@ -89,34 +87,13 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
     }
 
     @Override
-    public ResponseEntity<Page<SnapshotTaskResponse>> getPolicyRuns(
+    public ResponseEntity<PageResponse<SnapshotTaskResponse>> getPolicyRuns(
             Long policyId,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate since,
             PageRequest page,
             Authentication authentication
     ) {
-        Pageable pageable = toPageable(page);
-        Page<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, pageable);
+        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page);
         return ResponseEntity.ok(response);
-    }
-
-    private Pageable toPageable(PageRequest page) {
-        int pageNumber = 0;
-        int size = 10;
-
-        if (page != null) {
-            if (page.getLimit() != null) {
-                size = page.getLimit();
-            }
-            if (page.getMarker() != null) {
-                try {
-                    pageNumber = Integer.parseInt(page.getMarker());
-                } catch (NumberFormatException ignored) {
-                    // ignore and use default pageNumber
-                }
-            }
-        }
-
-        return org.springframework.data.domain.PageRequest.of(pageNumber, size);
     }
 }
