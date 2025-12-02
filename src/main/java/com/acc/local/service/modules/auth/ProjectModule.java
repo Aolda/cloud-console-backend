@@ -32,7 +32,7 @@ import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.UpdateProjectRequest;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.entity.ProjectParticipantEntity;
@@ -150,13 +150,7 @@ public class ProjectModule {
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
 			try {
 				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
+				ProjectEntity databaseProject = getDatabaseProject(projectId);
 				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
 			} catch (AuthServiceException e) {
 				throw e;
@@ -180,13 +174,7 @@ public class ProjectModule {
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
 			try {
 				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
+				ProjectEntity databaseProject = getDatabaseProject(projectId);
 				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
 			} catch (AuthServiceException e) {
 				throw e;
@@ -199,24 +187,18 @@ public class ProjectModule {
 			.build();
 	}
 
-	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String adminToken) {
+	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String unscopedToken) {
 		ProjectListDto openstackProjectResponse = keystoneAPIExternalPort.getUserProjectsByProjectName(
 			keyword,
 			null, requestUserId,
-			adminToken
+			unscopedToken
 		);
 
 		List<ProjectServiceDto> responseList = new ArrayList<>();
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
 			try {
 				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
+				ProjectEntity databaseProject = getDatabaseProject(projectId);
 				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
 			} catch (AuthServiceException e) {
 				throw e;
@@ -224,6 +206,16 @@ public class ProjectModule {
 		}
 
 		return responseList;
+	}
+
+	private ProjectEntity getDatabaseProject(String projectId) {
+		Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
+
+		if (databaseProjectOrNull.isEmpty()) {
+			throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
+		}
+
+		return databaseProjectOrNull.get();
 	}
 
 	public KeystoneProject createProject(String adminToken, CreateProjectRequest request, String commandUserId) {
@@ -283,13 +275,7 @@ public class ProjectModule {
 		}
 
 		KeystoneProject openstackProject = KeystoneAPIUtils.parseKeystoneProjectResponse(response);
-		Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-		if (databaseProjectOrNull.isEmpty()) {
-			throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-		}
-
-		ProjectEntity databaseProject = databaseProjectOrNull.get();
+		ProjectEntity databaseProject = getDatabaseProject(projectId);
 
 		return ProjectServiceDto.from(databaseProject, openstackProject);
 	}
@@ -319,7 +305,7 @@ public class ProjectModule {
 	}
 
 	// ============ Quota ============
-	public ProjectQuotaDto getProjectQuota(String projectId, String adminToken) {
+	public ProjectGlobalQuotaDto getProjectQuota(String projectId, String adminToken) {
 		ResponseEntity<JsonNode> jsonNodeResponseEntity = computeQuotaExternalPort.callGetQuota(adminToken, projectId);
 		volumeQuotaExternalPort.callGetQuota(adminToken, projectId);
 		JsonNode computeQuotaSet = jsonNodeResponseEntity.getBody().get("quota_set");
@@ -330,7 +316,7 @@ public class ProjectModule {
 		int storageCountQuota = volumeQuotaSet.get("volumes").asInt();
 		int instanceCountQuota = computeQuotaSet.get("instances").asInt();
 
-		return ProjectQuotaDto.builder()
+		return ProjectGlobalQuotaDto.builder()
 			.vCpu(cpuCoreCountQuota)
 			.vRam(ramMBSizeQuota)
 			.storage(storageCountQuota)
