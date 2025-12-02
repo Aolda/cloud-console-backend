@@ -16,7 +16,4 @@ public class VolumeRequest {
 
     @Schema(description = "볼륨 설명(선택)", example = "My storage volume", required = false)
     private String description;
-
-    @Schema(description = "가용 영역(선택)", example = "nova", required = false)
-    private String availabilityZone;
 }

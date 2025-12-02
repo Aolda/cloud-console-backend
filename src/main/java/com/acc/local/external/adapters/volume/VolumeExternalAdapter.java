@@ -120,7 +120,6 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
                 .name(request.getName())
                 .description(request.getDescription())
                 .volumeType(request.getVolumeType())
-                .availabilityZone(request.getAvailabilityZone())
                 .build();
 
         CreateVolumeRequest cinderRequest = CreateVolumeRequest.builder()
