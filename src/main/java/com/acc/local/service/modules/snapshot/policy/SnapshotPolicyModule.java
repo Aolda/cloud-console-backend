@@ -1,5 +1,7 @@
 package com.acc.local.service.modules.snapshot.policy;
 
+import com.acc.global.exception.volume.VolumeErrorCode;
+import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.domain.enums.IntervalType;
 import com.acc.local.domain.enums.TaskStatus;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
@@ -34,8 +36,7 @@ public class SnapshotPolicyModule {
     public SnapshotPolicyResponse getPolicyDetails(Long policyId) {
         return policyRepository.findById(policyId)
                 .map(this::convertToResponse)
-                .orElseThrow(() -> new com.acc.global.exception.volume.VolumeException(
-                        com.acc.global.exception.volume.VolumeErrorCode.POLICY_NOT_FOUND));
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
     }
 
     public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request) {
@@ -61,8 +62,7 @@ public class SnapshotPolicyModule {
 
     public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request) {
         SnapshotPolicyEntity entity = policyRepository.findById(policyId)
-                .orElseThrow(() -> new com.acc.global.exception.volume.VolumeException(
-                        com.acc.global.exception.volume.VolumeErrorCode.POLICY_NOT_FOUND));
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
 
         validateScheduleParameters(request);
 
@@ -84,24 +84,21 @@ public class SnapshotPolicyModule {
 
     public void deletePolicy(Long policyId) {
         if (!policyRepository.findById(policyId).isPresent()) {
-            throw new com.acc.global.exception.volume.VolumeException(
-                    com.acc.global.exception.volume.VolumeErrorCode.POLICY_NOT_FOUND);
+            throw new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND);
         }
         policyRepository.deleteById(policyId);
     }
 
     public void activatePolicy(Long policyId) {
         SnapshotPolicyEntity entity = policyRepository.findById(policyId)
-                .orElseThrow(() -> new com.acc.global.exception.volume.VolumeException(
-                        com.acc.global.exception.volume.VolumeErrorCode.POLICY_NOT_FOUND));
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
         entity.activate();
         policyRepository.save(entity);
     }
 
     public void deactivatePolicy(Long policyId) {
         SnapshotPolicyEntity entity = policyRepository.findById(policyId)
-                .orElseThrow(() -> new com.acc.global.exception.volume.VolumeException(
-                        com.acc.global.exception.volume.VolumeErrorCode.POLICY_NOT_FOUND));
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
         entity.deactivate();
         policyRepository.save(entity);
     }
@@ -119,27 +116,23 @@ public class SnapshotPolicyModule {
 
     private void validateScheduleParameters(SnapshotPolicyRequest request) {
         if (request.getIntervalType() == null) {
-            throw new com.acc.global.exception.volume.VolumeException(
-                    com.acc.global.exception.volume.VolumeErrorCode.INVALID_INTERVAL_TYPE);
+            throw new VolumeException(VolumeErrorCode.INVALID_INTERVAL_TYPE);
         }
 
         switch (request.getIntervalType()) {
             case DAILY:
                 if (request.getDailyTime() == null) {
-                    throw new com.acc.global.exception.volume.VolumeException(
-                            com.acc.global.exception.volume.VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
+                    throw new VolumeException(VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
                 }
                 break;
             case WEEKLY:
                 if (request.getWeeklyDayOfWeek() == null || request.getWeeklyTime() == null) {
-                    throw new com.acc.global.exception.volume.VolumeException(
-                            com.acc.global.exception.volume.VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
+                    throw new VolumeException(VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
                 }
                 break;
             case MONTHLY:
                 if (request.getMonthlyDayOfMonth() == null || request.getMonthlyTime() == null) {
-                    throw new com.acc.global.exception.volume.VolumeException(
-                            com.acc.global.exception.volume.VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
+                    throw new VolumeException(VolumeErrorCode.INVALID_SCHEDULE_PARAMETER);
                 }
                 break;
         }
@@ -179,4 +172,3 @@ public class SnapshotPolicyModule {
                 .build();
     }
 }
-
