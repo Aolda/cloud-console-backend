@@ -1,5 +1,6 @@
 package com.acc.local.controller;
 
+import com.acc.global.common.PageRequest;
 import com.acc.local.controller.docs.SnapshotPolicyDocs;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -23,77 +25,98 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
 
     @Override
     public ResponseEntity<Page<SnapshotPolicyResponse>> getPolicies(
-            String token,
-            Pageable pageable
+            PageRequest page,
+            Authentication authentication
     ) {
-        Page<SnapshotPolicyResponse> response = policyServicePort.getPolicies(pageable, token);
+        Pageable pageable = toPageable(page);
+        Page<SnapshotPolicyResponse> response = policyServicePort.getPolicies(pageable);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<SnapshotPolicyResponse> getPolicyDetails(
-            String token,
-            Long policyId
+            Long policyId,
+            Authentication authentication
     ) {
-        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, token);
+        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<SnapshotPolicyResponse> createPolicy(
-            String token,
-            SnapshotPolicyRequest request
+            SnapshotPolicyRequest request,
+            Authentication authentication
     ) {
-        SnapshotPolicyResponse response = policyServicePort.createPolicy(request, token);
+        SnapshotPolicyResponse response = policyServicePort.createPolicy(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
     public ResponseEntity<SnapshotPolicyResponse> updatePolicy(
-            String token,
             Long policyId,
-            SnapshotPolicyRequest request
+            SnapshotPolicyRequest request,
+            Authentication authentication
     ) {
-        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, token);
+        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deletePolicy(
-            String token,
-            Long policyId
+            Long policyId,
+            Authentication authentication
     ) {
-        policyServicePort.deletePolicy(policyId, token);
+        policyServicePort.deletePolicy(policyId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deactivatePolicy(
-            String token,
-            Long policyId
+            Long policyId,
+            Authentication authentication
     ) {
-        policyServicePort.deactivatePolicy(policyId, token);
+        policyServicePort.deactivatePolicy(policyId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> activatePolicy(
-            String token,
-            Long policyId
+            Long policyId,
+            Authentication authentication
     ) {
-        policyServicePort.activatePolicy(policyId, token);
+        policyServicePort.activatePolicy(policyId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Page<SnapshotTaskResponse>> getPolicyRuns(
-            String token,
             Long policyId,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate since,
-            Pageable pageable
+            PageRequest page,
+            Authentication authentication
     ) {
-        Page<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, pageable, token);
+        Pageable pageable = toPageable(page);
+        Page<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, pageable);
         return ResponseEntity.ok(response);
     }
-}
 
+    private Pageable toPageable(PageRequest page) {
+        int pageNumber = 0;
+        int size = 10;
+
+        if (page != null) {
+            if (page.getLimit() != null) {
+                size = page.getLimit();
+            }
+            if (page.getMarker() != null) {
+                try {
+                    pageNumber = Integer.parseInt(page.getMarker());
+                } catch (NumberFormatException ignored) {
+                    // ignore and use default pageNumber
+                }
+            }
+        }
+
+        return org.springframework.data.domain.PageRequest.of(pageNumber, size);
+    }
+}

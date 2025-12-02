@@ -37,7 +37,6 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("정책 목록을 페이징하여 조회할 수 있다")
     void givenPageable_whenGetPolicies_thenReturnPageResponse() {
         // given
-        String token = "test-token";
         Pageable pageable = PageRequest.of(0, 10);
 
         SnapshotPolicyResponse policy1 = SnapshotPolicyResponse.builder()
@@ -62,7 +61,7 @@ class SnapshotPolicyServiceAdapterTest {
         when(policyModule.getPolicies(pageable)).thenReturn(expectedPage);
 
         // when
-        Page<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageable, token);
+        Page<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageable);
 
         // then
         assertNotNull(actualPage);
@@ -75,7 +74,6 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("유효한 정책 ID로 정책 상세 정보를 조회할 수 있다")
     void givenValidPolicyId_whenGetPolicyDetails_thenReturnPolicyResponse() {
         // given
-        String token = "test-token";
         Long policyId = 1L;
 
         SnapshotPolicyResponse expectedPolicy = SnapshotPolicyResponse.builder()
@@ -91,7 +89,7 @@ class SnapshotPolicyServiceAdapterTest {
         when(policyModule.getPolicyDetails(policyId)).thenReturn(expectedPolicy);
 
         // when
-        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.getPolicyDetails(policyId, token);
+        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.getPolicyDetails(policyId);
 
         // then
         assertNotNull(actualPolicy);
@@ -104,12 +102,11 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("유효하지 않은 정책 ID로 조회 시 예외가 발생한다")
     void givenInvalidPolicyId_whenGetPolicyDetails_thenThrowException() {
         // given
-        String token = "test-token";
         Long invalidPolicyId = 0L;
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyServiceAdapter.getPolicyDetails(invalidPolicyId, token);
+            policyServiceAdapter.getPolicyDetails(invalidPolicyId);
         });
 
         assertEquals(VolumeErrorCode.INVALID_POLICY_ID, exception.getErrorCode());
@@ -120,7 +117,6 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("유효한 요청으로 정책을 생성할 수 있다")
     void givenValidRequest_whenCreatePolicy_thenReturnCreatedPolicy() {
         // given
-        String token = "test-token";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName("daily-backup");
         request.setDescription("Daily backup policy");
@@ -141,7 +137,7 @@ class SnapshotPolicyServiceAdapterTest {
         when(policyModule.createPolicy(request)).thenReturn(expectedPolicy);
 
         // when
-        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.createPolicy(request, token);
+        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.createPolicy(request);
 
         // then
         assertNotNull(actualPolicy);
@@ -154,7 +150,6 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("유효하지 않은 이름으로 정책 생성 시 예외가 발생한다")
     void givenInvalidName_whenCreatePolicy_thenThrowException() {
         // given
-        String token = "test-token";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName(""); // 빈 이름
         request.setVolumeId("volume-1");
@@ -162,7 +157,7 @@ class SnapshotPolicyServiceAdapterTest {
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyServiceAdapter.createPolicy(request, token);
+            policyServiceAdapter.createPolicy(request);
         });
 
         assertEquals(VolumeErrorCode.INVALID_POLICY_NAME, exception.getErrorCode());
@@ -173,14 +168,13 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("정책을 활성화할 수 있다")
     void givenValidPolicyId_whenActivatePolicy_thenSuccess() {
         // given
-        String token = "test-token";
         Long policyId = 1L;
 
         doNothing().when(policyModule).activatePolicy(policyId);
 
         // when & then
         assertDoesNotThrow(() -> {
-            policyServiceAdapter.activatePolicy(policyId, token);
+            policyServiceAdapter.activatePolicy(policyId);
         });
 
         verify(policyModule).activatePolicy(policyId);
@@ -190,17 +184,15 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("정책을 비활성화할 수 있다")
     void givenValidPolicyId_whenDeactivatePolicy_thenSuccess() {
         // given
-        String token = "test-token";
         Long policyId = 1L;
 
         doNothing().when(policyModule).deactivatePolicy(policyId);
 
         // when & then
         assertDoesNotThrow(() -> {
-            policyServiceAdapter.deactivatePolicy(policyId, token);
+            policyServiceAdapter.deactivatePolicy(policyId);
         });
 
         verify(policyModule).deactivatePolicy(policyId);
     }
 }
-

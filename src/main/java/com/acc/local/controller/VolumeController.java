@@ -23,7 +23,6 @@ public class VolumeController implements VolumeDocs {
 
     @Override
     public ResponseEntity<PageResponse<VolumeResponse>> getVolumes(
-            String token,
             PageRequest page,
             Authentication authentication
     ) {
@@ -36,7 +35,7 @@ public class VolumeController implements VolumeDocs {
     }
 
     @Override
-    public ResponseEntity<VolumeResponse> getVolumeDetails(String token, String volumeId, Authentication authentication) {
+    public ResponseEntity<VolumeResponse> getVolumeDetails(String volumeId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
@@ -46,7 +45,7 @@ public class VolumeController implements VolumeDocs {
     }
 
     @Override
-    public ResponseEntity<Void> deleteVolume(String token, String volumeId, Authentication authentication) {
+    public ResponseEntity<Void> deleteVolume(String volumeId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
@@ -55,7 +54,7 @@ public class VolumeController implements VolumeDocs {
     }
 
     @Override
-    public ResponseEntity<VolumeResponse> createVolume(String token, VolumeRequest request, Authentication authentication) {
+    public ResponseEntity<VolumeResponse> createVolume(VolumeRequest request, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
