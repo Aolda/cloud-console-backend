@@ -415,34 +415,46 @@ public class AuthModule {
     }
 
     /**
-     * Refresh Token 검증 및 즉시 무효화 후 userId 반환
-     * 동시 요청 방지를 위해 검증과 동시에 토큰을 무효화함
+     * Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급을 한 번에 처리
+     * 동시 요청 시 하나의 요청만 성공하도록 보장
      * @param refreshTokenValue 검증할 refresh token 값
-     * @return userId
+     * @return 새로 발급된 RefreshToken (userId, newRefreshToken 포함)
      * @throws JwtAuthenticationException 토큰이 유효하지 않거나 만료된 경우
      */
     @Transactional
-    public String validateRefreshTokenAndGetUserId(String refreshTokenValue) {
+    public RefreshToken validateAndRotateRefreshToken(String refreshTokenValue) {
         // 1. JWT 형식 검증
         if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
             throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
         }
 
-        // 2. DB에서 Refresh Token 확인
-        RefreshTokenEntity refreshTokenEntity = refreshTokenRepositoryPort
-            .findByRefreshTokenAndIsActiveTrue(refreshTokenValue)
-            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+        // 2. 원자적으로 토큰 비활성화 (조회 + 검증 + 비활성화를 한 번에 처리)
+        // 동시 요청 시 하나의 요청만 updatedCount > 0을 받게된다.
+        int updatedCount = refreshTokenRepositoryPort.deactivateByTokenAtomically(
+            refreshTokenValue,
+            LocalDateTime.now()
+        );
 
-        // 3. Refresh Token 만료 확인
-        if (refreshTokenEntity.isExpired()) {
-            throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
+        // 3. 업데이트된 행이 없으면 토큰이 유효하지 않거나 이미 사용됨
+        if (updatedCount == 0) {
+            throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
         }
 
-        // 4. 즉시 무효화 (동일 토큰으로 재사용 방지)
-        refreshTokenEntity.deactivate();
-        refreshTokenRepositoryPort.save(refreshTokenEntity);
+        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
 
-        return jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+        // 4. 새 Refresh Token 발급
+        String newRefreshTokenValue = jwtUtils.generateRefreshToken(userId);
+        LocalDateTime newExpiresAt = jwtUtils.calculateRefreshTokenExpirationDateTime();
+
+        // 5. 기존 엔티티 업데이트 -- 이 시점에서 jwt가 변경된다.
+        RefreshTokenEntity existingTokenEntity = refreshTokenRepositoryPort
+            .findById(userId)
+            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+
+        existingTokenEntity.updateRefreshToken(newRefreshTokenValue, newExpiresAt);
+        RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(existingTokenEntity);
+
+        return RefreshToken.from(savedEntity);
     }
 
     /**
@@ -481,29 +493,6 @@ public class AuthModule {
         log.info("[Access Token Refresh] userId: {}, 새로운 access token 발급 완료", userId);
 
         return newAccessToken;
-    }
-
-    /**
-     * Refresh Token Rotation - 기존 토큰 말소 후 새 토큰 발급
-     * @param userId 사용자 ID
-     * @return 새로 발급된 refreshToken 값
-     */
-    @Transactional
-    public String rotateRefreshToken(String userId) {
-        // 1. 기존 Refresh Token 조회 (userId가 PK)
-        RefreshTokenEntity existingTokenEntity = refreshTokenRepositoryPort
-            .findById(userId)
-            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
-
-        // 2. 새로운 refresh token 값 생성
-        String newRefreshTokenValue = jwtUtils.generateRefreshToken(userId);
-        LocalDateTime newExpiresAt = jwtUtils.calculateRefreshTokenExpirationDateTime();
-
-        // 3. 기존 엔티티 업데이트 (말소 + 재발급)
-        existingTokenEntity.updateRefreshToken(newRefreshTokenValue, newExpiresAt);
-        refreshTokenRepositoryPort.save(existingTokenEntity);
-
-        return newRefreshTokenValue;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.acc.local.repository.ports;
 
 import com.acc.local.entity.RefreshTokenEntity;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface RefreshTokenRepositoryPort {
@@ -11,4 +12,6 @@ public interface RefreshTokenRepositoryPort {
     Optional<RefreshTokenEntity> findById(String userId);
 
     Optional<RefreshTokenEntity> findByRefreshTokenAndIsActiveTrue(String refreshToken);
+
+    int deactivateByTokenAtomically(String token, LocalDateTime now);
 }

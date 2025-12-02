@@ -138,16 +138,14 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     @Override
     public LoginTokens refreshToken(String refreshToken) {
-        // 1. Refresh Token 검증 및 userId 추출
-        String userId = authModule.validateRefreshTokenAndGetUserId(refreshToken);
+        // 1. Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급 (동시 요청 방지를 위한 통합 로직)
+        RefreshToken rotatedRefreshToken = authModule.validateAndRotateRefreshToken(refreshToken);
+        String userId = rotatedRefreshToken.getUserId();
 
         // 2. Keystone + Access Token 재발급
         String newAccessToken = authModule.refreshKeystoneAndAccessToken(userId);
 
-        // 3. Refresh Token Rotation (기존 토큰 말소 + 새 토큰 발급)
-        String newRefreshToken = authModule.rotateRefreshToken(userId);
-
-        return LoginTokens.from(newAccessToken, newRefreshToken);
+        return LoginTokens.from(newAccessToken, rotatedRefreshToken.getRefreshToken());
     }
 
     @Override

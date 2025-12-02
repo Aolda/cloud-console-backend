@@ -6,6 +6,7 @@ import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -27,5 +28,10 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepositoryPort
     @Override
     public Optional<RefreshTokenEntity> findByRefreshTokenAndIsActiveTrue(String refreshToken) {
         return refreshTokenJpaRepository.findByRefreshTokenAndIsActiveTrue(refreshToken);
+    }
+
+    @Override
+    public int deactivateByTokenAtomically(String token, LocalDateTime now) {
+        return refreshTokenJpaRepository.deactivateByTokenAtomically(token, now);
     }
 }
