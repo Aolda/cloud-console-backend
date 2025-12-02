@@ -3,11 +3,12 @@ package com.acc.local.repository.adapters;
 import com.acc.local.domain.enums.TaskStatus;
 import com.acc.local.entity.SnapshotTaskEntity;
 import com.acc.local.repository.jpa.SnapshotTaskJpaRepository;
+import com.acc.local.repository.modules.SnapshotTaskQueryDSLModule;
 import com.acc.local.repository.ports.SnapshotTaskRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.List;
 public class SnapshotTaskRepositoryAdapter implements SnapshotTaskRepositoryPort {
 
     private final SnapshotTaskJpaRepository jpaRepository;
+    private final SnapshotTaskQueryDSLModule snapshotTaskQueryDSLModule;
 
     @Override
     public SnapshotTaskEntity save(SnapshotTaskEntity entity) {
@@ -32,7 +34,7 @@ public class SnapshotTaskRepositoryAdapter implements SnapshotTaskRepositoryPort
 
     @Override
     public Page<SnapshotTaskEntity> findByPolicyIdAndStartedAtAfter(Long policyId, LocalDateTime since, Pageable pageable) {
-        return jpaRepository.findByPolicyIdAndStartedAtAfter(policyId, since, pageable);
+        return snapshotTaskQueryDSLModule.findByPolicyIdAndStartedAtAfter(policyId, since, pageable);
     }
 
     @Override
@@ -40,4 +42,3 @@ public class SnapshotTaskRepositoryAdapter implements SnapshotTaskRepositoryPort
         return jpaRepository.findByPolicyIdAndStatus(policyId, status);
     }
 }
-
