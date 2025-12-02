@@ -98,9 +98,6 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
 
         } catch (WebClientResponseException e) {
             HttpStatusCode status = e.getStatusCode();
-            if (status == HttpStatus.ACCEPTED || status == HttpStatus.NO_CONTENT) {
-                return ResponseEntity.status(status).build();
-            }
             if (status == HttpStatus.NOT_FOUND) {
                 throw new VolumeException(VolumeErrorCode.VOLUME_NOT_FOUND, e);
             } else if (status == HttpStatus.CONFLICT) {
