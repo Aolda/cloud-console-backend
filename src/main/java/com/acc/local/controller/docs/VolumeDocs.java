@@ -62,10 +62,10 @@ public interface VolumeDocs {
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "404", description = "볼륨을 찾을 수 없음", content = @Content())
     })
-    @GetMapping("/{volumeId}")
+    @GetMapping(params = "volumeId")
     ResponseEntity<VolumeResponse> getVolumeDetails(
             @Parameter(description = "조회할 볼륨 ID", required = true)
-            @PathVariable String volumeId,
+            @RequestParam String volumeId,
             @Parameter(hidden = true)
             Authentication authentication
     );
@@ -111,10 +111,10 @@ public interface VolumeDocs {
                     content = @Content()
             )
     })
-    @DeleteMapping("/{volumeId}")
+    @DeleteMapping(params = "volumeId")
     ResponseEntity<Void> deleteVolume(
             @Parameter(description = "삭제할 볼륨 ID", required = true, example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-            @PathVariable String volumeId,
+            @RequestParam String volumeId,
             @Parameter(hidden = true)
             Authentication authentication
     );
