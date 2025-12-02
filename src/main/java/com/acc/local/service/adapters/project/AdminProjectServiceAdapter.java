@@ -5,19 +5,15 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
-import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectRequestRequest;
-import com.acc.local.dto.project.CreateProjectRequestResponse;
 
 import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.GetProjectResponse;
 import com.acc.local.dto.project.ProjectListServiceDto;
 import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.dto.project.RepositoryPagination;
@@ -61,7 +57,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 			String projectOwnerId = createProjectRequest.projectOwnerId();
 
 			KeystoneProject createdProject = projectModule.createProject(adminToken, createProjectRequest, userId);
-			ProjectQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
+			ProjectGlobalQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
 
 			String createdProjectId = createdProject.getId();
 			projectModule.applyProjectAccessOnOpenstack(
@@ -82,8 +78,8 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		}
 	}
 
-	private ProjectQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
-		ProjectQuotaDto quota = createProjectRequest.quota();
+	private ProjectGlobalQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
+		ProjectGlobalQuotaDto quota = createProjectRequest.quota();
 		projectModule.updateProjectStorageQuota(adminToken, createdProject.getId(), quota.storage(), userId);
 		projectModule.updateProjectCPUAndRAMQuota(adminToken, createdProject.getId(), quota.vCpu(), quota.vRam(), userId);
 		return quota;

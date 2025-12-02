@@ -14,7 +14,7 @@ public record ProjectRequestResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto projectBrief
+	ProjectGlobalQuotaDto projectBrief
 ) {
 	public static ProjectRequestResponse from(ProjectRequestDto projectRequest, KeystoneUser createdBy) {
 		return ProjectRequestResponse.builder()
@@ -24,7 +24,7 @@ public record ProjectRequestResponse(
 			.createdBy(ProjectOwnerDto.from(createdBy))
 			.createdAt(projectRequest.createdAt().toString())
 			.status(projectRequest.status())
-			.projectBrief(ProjectQuotaDto.getDefault())
+			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.build();
 	}
 }

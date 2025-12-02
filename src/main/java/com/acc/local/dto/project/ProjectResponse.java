@@ -18,7 +18,7 @@ public record ProjectResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto projectBrief,
+	ProjectGlobalQuotaDto projectBrief,
 	List<ProjectParticipantDto> participants,
 	String rejectReason
 ) {
@@ -41,9 +41,9 @@ public record ProjectResponse(
 			);
 		}
 
-		ProjectQuotaDto quota = projectServiceDto.quota();
+		ProjectGlobalQuotaDto quota = projectServiceDto.quota();
 		if (quota == null) {
-			quota = ProjectQuotaDto.getDefault();
+			quota = ProjectGlobalQuotaDto.getDefault();
 		}
 
 		String createdAt = LocalDateTime.of(1900, 1, 1, 0, 0).toString();
@@ -71,7 +71,7 @@ public record ProjectResponse(
 			.createdBy(ProjectOwnerDto.from(projectRequestUser))
 			.createdAt(projectRequestDto.createdAt().toString())
 			.status(projectRequestDto.status())
-			.projectBrief(ProjectQuotaDto.getDefault())
+			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.rejectReason(projectRequestDto.rejectReason())
 			.participants(List.of(
 				ProjectParticipantDto.builder()

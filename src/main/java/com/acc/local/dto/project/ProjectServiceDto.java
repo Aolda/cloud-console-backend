@@ -6,7 +6,6 @@ import java.util.List;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.entity.ProjectEntity;
-import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 
 import lombok.Builder;
@@ -21,14 +20,14 @@ public record ProjectServiceDto(
 	String ownerKeystoneId,
 	LocalDateTime createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto quota,
+	ProjectGlobalQuotaDto quota,
 	List<ProjectParticipantDto> participants
 ) {
 	public static ProjectServiceDto from(ProjectEntity dbProject, KeystoneProject keystoneProject) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
 
-		ProjectQuotaDto projectQuotaDto = null;
+		ProjectGlobalQuotaDto projectGlobalQuotaDto = null;
 		if (dbProject.getQuotaVCpuCount() != null) {
-			ProjectQuotaDto.builder()
+			ProjectGlobalQuotaDto.builder()
 				.vCpu(Integer.parseInt(String.valueOf(dbProject.getQuotaVCpuCount())))
 				.vRam(Integer.parseInt(String.valueOf(dbProject.getQuotaVRamMB())))
 				.storage(Integer.parseInt(String.valueOf(dbProject.getQuotaStorageGB())))
@@ -45,7 +44,7 @@ public record ProjectServiceDto(
 			.ownerKeystoneId(dbProject.getOwnerKeystoneId())
 			.createdAt(dbProject.getCreatedAt())
 			.status(ProjectRequestStatus.APPROVED)
-			.quota(projectQuotaDto)
+			.quota(projectGlobalQuotaDto)
 			.participants(
 				dbProject.getParticipants().stream()
 					.map(ProjectParticipantDto::from)

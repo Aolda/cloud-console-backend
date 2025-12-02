@@ -3,14 +3,14 @@ package com.acc.local.dto.project;
 import lombok.Builder;
 
 @Builder
-public record ProjectQuotaDto(
+public record ProjectGlobalQuotaDto(
 	int vCpu,
 	int vRam,
 	int instance,
 	int storage
 ) {
-	public static ProjectQuotaDto getDefault() {
-		return ProjectQuotaDto.builder()
+	public static ProjectGlobalQuotaDto getDefault() {
+		return ProjectGlobalQuotaDto.builder()
 			.vCpu(8)
 			.vRam(32)
 			.instance(10)

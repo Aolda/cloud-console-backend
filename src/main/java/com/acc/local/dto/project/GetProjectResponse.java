@@ -2,13 +2,11 @@ package com.acc.local.dto.project;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
-import com.acc.local.entity.ProjectParticipantEntity;
-import com.acc.local.external.dto.keystone.KeystoneProject;
+
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Builder
 public record GetProjectResponse(
@@ -20,7 +18,7 @@ public record GetProjectResponse(
     String ownerKeystoneId,
     LocalDateTime createdAt,
     ProjectRequestStatus status,
-    ProjectQuotaDto quota,
+    ProjectGlobalQuotaDto quota,
     List<ProjectParticipantDto> participants
 ) {
     public static GetProjectResponse from(ProjectServiceDto project) {

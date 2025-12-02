@@ -10,9 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.acc.global.properties.SuperAdminProperties;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.dto.project.ProjectListDto;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.ProjectGlobalQuotaDto;
 import com.acc.local.entity.ProjectEntity;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.jpa.ProjectJpaRepository;
@@ -48,7 +47,7 @@ public class BaseProjectInitializer implements ApplicationRunner {
     }
 
     private void syncProjectSaveStatus(ProjectListDto keystoneProjects) {
-        ProjectQuotaDto defaultQuota = ProjectQuotaDto.getDefault();
+        ProjectGlobalQuotaDto defaultQuota = ProjectGlobalQuotaDto.getDefault();
 
         for (KeystoneProject keystoneProject: keystoneProjects.projectList()) {
             if (projectJpaRepository.findById(keystoneProject.getId()).isEmpty()) {
