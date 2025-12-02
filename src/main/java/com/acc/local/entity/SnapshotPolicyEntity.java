@@ -21,10 +21,10 @@ public class SnapshotPolicyEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "snapshot_policy_id")
     private Long id;
 
-    @Column(name = "name", length = 100, nullable = false)
+    @Column(name = "snapshot_policy_name", length = 100, nullable = false)
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -125,4 +125,3 @@ public class SnapshotPolicyEntity {
         this.enabled = false;
     }
 }
-
