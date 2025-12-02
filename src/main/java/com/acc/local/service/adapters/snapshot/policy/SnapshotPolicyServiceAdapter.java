@@ -1,5 +1,7 @@
 package com.acc.local.service.adapters.snapshot.policy;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
@@ -23,8 +25,10 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
     private final SnapshotPolicyModule policyModule;
 
     @Override
-    public Page<SnapshotPolicyResponse> getPolicies(Pageable pageable) {
-        return policyModule.getPolicies(pageable);
+    public PageResponse<SnapshotPolicyResponse> getPolicies(PageRequest page) {
+        Pageable pageable = toPageable(page);
+        Page<SnapshotPolicyResponse> policies = policyModule.getPolicies(pageable);
+        return toPageResponse(policies, page);
     }
 
     @Override
@@ -65,9 +69,51 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
     }
 
     @Override
-    public Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable) {
+    public PageResponse<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, PageRequest page) {
         validatePolicyId(policyId);
-        return policyModule.getPolicyRuns(policyId, since, pageable);
+        Pageable pageable = toPageable(page);
+        Page<SnapshotTaskResponse> tasks = policyModule.getPolicyRuns(policyId, since, pageable);
+        return toPageResponse(tasks, page);
+    }
+
+    private Pageable toPageable(PageRequest page) {
+        int pageNumber = 0;
+        int size = 10;
+
+        if (page != null) {
+            if (page.getLimit() != null) {
+                size = page.getLimit();
+            }
+            if (page.getMarker() != null) {
+                try {
+                    pageNumber = Integer.parseInt(page.getMarker());
+                } catch (NumberFormatException ignored) {
+                    // ignore and use default pageNumber
+                }
+            }
+        }
+
+        return org.springframework.data.domain.PageRequest.of(pageNumber, size);
+    }
+
+    private <T> PageResponse<T> toPageResponse(Page<T> page, PageRequest request) {
+        boolean isFirst = page.isFirst();
+        boolean isLast = page.isLast();
+        int size = page.getContent().size();
+
+        int pageNumber = page.getNumber();
+
+        String nextMarker = isLast ? null : String.valueOf(pageNumber + 1);
+        String prevMarker = isFirst || pageNumber == 0 ? null : String.valueOf(pageNumber - 1);
+
+        return PageResponse.<T>builder()
+                .contents(page.getContent())
+                .first(isFirst)
+                .last(isLast)
+                .size(size)
+                .nextMarker(nextMarker)
+                .prevMarker(prevMarker)
+                .build();
     }
 
     private void validatePolicyId(Long policyId) {

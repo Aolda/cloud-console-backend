@@ -1,5 +1,7 @@
 package com.acc.local.service.adapters.snapshot.policy;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.domain.enums.IntervalType;
@@ -14,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalTime;
@@ -35,9 +36,13 @@ class SnapshotPolicyServiceAdapterTest {
 
     @Test
     @DisplayName("정책 목록을 페이징하여 조회할 수 있다")
-    void givenPageable_whenGetPolicies_thenReturnPageResponse() {
+    void givenPageRequest_whenGetPolicies_thenReturnPageResponse() {
         // given
-        Pageable pageable = PageRequest.of(0, 10);
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setMarker("0");
+        pageRequest.setLimit(10);
+
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
 
         SnapshotPolicyResponse policy1 = SnapshotPolicyResponse.builder()
                 .policyId(1L)
@@ -61,12 +66,12 @@ class SnapshotPolicyServiceAdapterTest {
         when(policyModule.getPolicies(pageable)).thenReturn(expectedPage);
 
         // when
-        Page<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageable);
+        PageResponse<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageRequest);
 
         // then
         assertNotNull(actualPage);
-        assertEquals(2, actualPage.getTotalElements());
-        assertEquals("daily-backup", actualPage.getContent().get(0).getName());
+        assertEquals(2, actualPage.getSize());
+        assertEquals("daily-backup", actualPage.getContents().get(0).getName());
         verify(policyModule).getPolicies(pageable);
     }
 
