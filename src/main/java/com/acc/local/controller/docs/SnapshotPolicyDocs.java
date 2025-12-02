@@ -153,10 +153,10 @@ public interface SnapshotPolicyDocs {
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음", content = @Content())
     })
-    @PostMapping("/{policyId}/deactivate")
+    @PostMapping(path = "/deactivate", params = "policyId")
     ResponseEntity<Void> deactivatePolicy(
             @Parameter(description = "비활성화할 정책 ID", required = true)
-            @PathVariable Long policyId,
+            @RequestParam Long policyId,
             @Parameter(hidden = true)
             Authentication authentication
     );
@@ -175,10 +175,10 @@ public interface SnapshotPolicyDocs {
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음", content = @Content())
     })
-    @PostMapping("/{policyId}/activate")
+    @PostMapping(path = "/activate", params = "policyId")
     ResponseEntity<Void> activatePolicy(
             @Parameter(description = "활성화할 정책 ID", required = true)
-            @PathVariable Long policyId,
+            @RequestParam Long policyId,
             @Parameter(hidden = true)
             Authentication authentication
     );
@@ -198,10 +198,10 @@ public interface SnapshotPolicyDocs {
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음", content = @Content())
     })
-    @GetMapping("/{policyId}/runs")
+    @GetMapping(path = "/runs", params = "policyId")
     ResponseEntity<Page<SnapshotTaskResponse>> getPolicyRuns(
             @Parameter(description = "조회할 정책 ID", required = true)
-            @PathVariable Long policyId,
+            @RequestParam Long policyId,
             @Parameter(description = "조회 시작 일자 (YYYY-MM-DD)", required = false)
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate since,
             @Parameter(description = "페이지 정보", required = false)
