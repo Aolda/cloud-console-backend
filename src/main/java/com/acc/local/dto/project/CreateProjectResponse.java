@@ -1,5 +1,6 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 

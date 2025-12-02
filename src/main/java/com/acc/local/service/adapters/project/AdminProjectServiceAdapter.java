@@ -13,7 +13,7 @@ import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.dto.project.RepositoryPagination;

@@ -1,4 +1,4 @@
-package com.acc.local.dto.project;
+package com.acc.local.dto.project.quota;
 
 import lombok.Builder;
 

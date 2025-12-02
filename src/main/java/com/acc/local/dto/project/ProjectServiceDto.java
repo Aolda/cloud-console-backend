@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.entity.ProjectRequestEntity;
 
 import lombok.Builder;

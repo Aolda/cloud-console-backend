@@ -2,6 +2,7 @@ package com.acc.local.dto.project;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 
 import lombok.Builder;
 

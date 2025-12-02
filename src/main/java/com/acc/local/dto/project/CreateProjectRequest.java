@@ -1,5 +1,7 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CreateProjectRequest(

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.acc.global.properties.SuperAdminProperties;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.dto.project.ProjectListDto;
-import com.acc.local.dto.project.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;

@@ -32,8 +32,9 @@ import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.UpdateProjectRequest;
+import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.entity.ProjectRequestEntity;
@@ -187,11 +188,11 @@ public class ProjectModule {
 			.build();
 	}
 
-	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String unscopedToken) {
+	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String requestUserUnscopeToken, String adminTokenWithProject) {
 		ProjectListDto openstackProjectResponse = keystoneAPIExternalPort.getUserProjectsByProjectName(
 			keyword,
 			null, requestUserId,
-			unscopedToken
+			requestUserUnscopeToken
 		);
 
 		List<ProjectServiceDto> responseList = new ArrayList<>();
@@ -199,6 +200,8 @@ public class ProjectModule {
 			try {
 				String projectId = openstackProject.getId();
 				ProjectEntity databaseProject = getDatabaseProject(projectId);
+				InstanceQuotaResponse projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId,
+					adminTokenWithProject);
 				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
 			} catch (AuthServiceException e) {
 				throw e;
@@ -333,19 +336,19 @@ public class ProjectModule {
 		JsonNode instanceCountQuota = computeQuotaSet.get("instances");
 		JsonNode keypairCountQouta = computeQuotaSet.get("key_pairs");
 
-		InstanceQuotaResponse.QuotaInformation cpuInfo = InstanceQuotaResponse.QuotaInformation.builder()
+		QuotaInformation cpuInfo = QuotaInformation.builder()
 			.available(cpuCoreCountQuota.get("limit").asInt())
 			.used(cpuCoreCountQuota.get("in_use").asInt())
 			.build();
-		InstanceQuotaResponse.QuotaInformation ramInfo = InstanceQuotaResponse.QuotaInformation.builder()
+		QuotaInformation ramInfo = QuotaInformation.builder()
 			.available(ramMBSizeQuota.get("limit").asInt())
 			.used(ramMBSizeQuota.get("in_use").asInt())
 			.build();
-		InstanceQuotaResponse.QuotaInformation instanceInfo = InstanceQuotaResponse.QuotaInformation.builder()
+		QuotaInformation instanceInfo = QuotaInformation.builder()
 			.available(instanceCountQuota.get("limit").asInt())
 			.used(instanceCountQuota.get("in_use").asInt())
 			.build();
-		InstanceQuotaResponse.QuotaInformation keypairInfo = InstanceQuotaResponse.QuotaInformation.builder()
+		QuotaInformation keypairInfo = QuotaInformation.builder()
 			.available(keypairCountQouta.get("limit").asInt())
 			.used(keypairCountQouta.get("in_use").asInt())
 			.build();
