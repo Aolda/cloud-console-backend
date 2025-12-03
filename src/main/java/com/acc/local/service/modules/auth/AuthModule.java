@@ -430,7 +430,7 @@ public class AuthModule {
 
         // 2. 원자적으로 토큰 비활성화 (조회 + 검증 + 비활성화를 한 번에 처리)
         // 동시 요청 시 하나의 요청만 updatedCount > 0을 받게된다.
-        int updatedCount = refreshTokenRepositoryPort.deactivateByTokenAtomically(
+        long updatedCount = refreshTokenRepositoryPort.deactivateByTokenAtomically(
             refreshTokenValue,
             LocalDateTime.now()
         );

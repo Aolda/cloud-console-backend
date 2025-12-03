@@ -13,5 +13,5 @@ public interface RefreshTokenRepositoryPort {
 
     Optional<RefreshTokenEntity> findByRefreshTokenAndIsActiveTrue(String refreshToken);
 
-    int deactivateByTokenAtomically(String token, LocalDateTime now);
+    long deactivateByTokenAtomically(String token, LocalDateTime now);
 }
