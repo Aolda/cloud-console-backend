@@ -68,6 +68,10 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public InstanceQuotaResponse getQuota(String userId, String projectId) {
+        if (projectId == null) {
+            throw new InstanceException(InstanceErrorCode.INVALID_ACTION);
+        }
+
         String token = authModule.issueProjectScopeToken(projectId, userId);
         ProjectComputeQuotaDto projectComputeQuota = projectModule.getProjectComputeQuotaDetail(projectId, token);
         authModule.invalidateServiceTokensByUserId(userId);
