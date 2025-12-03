@@ -24,7 +24,7 @@ public class VolumeQuotaExternalAdapter implements VolumeQuotaExternalPort {
 	@Override
 	public ResponseEntity<JsonNode> callGetQuota(String token, String projectId) {
 		try {
-			return cinderQuotasModule.getQuotaSet(token, projectId);
+			return cinderQuotasModule.getQuotaUsage(token, projectId, true);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.ACCEPTED || status == HttpStatus.NO_CONTENT) {

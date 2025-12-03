@@ -20,6 +20,9 @@ import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.dto.project.UpdateProjectRequest;
 import com.acc.local.dto.project.UpdateProjectResponse;
 
+import com.acc.local.dto.project.quota.ProjectQuotaRequest;
+import com.acc.local.dto.project.quota.QuotaGroup;
+import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
@@ -79,10 +82,25 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	}
 
 	private ProjectGlobalQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
-		ProjectGlobalQuotaDto quota = createProjectRequest.quota();
+		ProjectQuotaRequest quota = createProjectRequest.quota();
 		projectModule.updateProjectStorageQuota(adminToken, createdProject.getId(), quota.storage(), userId);
 		projectModule.updateProjectCPUAndRAMQuota(adminToken, createdProject.getId(), quota.vCpu(), quota.vRam(), userId);
-		return quota;
+		return ProjectGlobalQuotaDto.builder()
+			.instance(QuotaInformation.builder()
+				.available(quota.instance())
+				.build())
+			.core(QuotaInformation.builder()
+				.available(quota.vCpu())
+				.build())
+			.ram(QuotaInformation.builder()
+				.available(quota.vRam())
+				.build())
+			.volume(QuotaGroup.builder()
+				.size(QuotaInformation.builder()
+					.available(quota.storage())
+					.build())
+				.build())
+			.build();
 	}
 
 	@Override

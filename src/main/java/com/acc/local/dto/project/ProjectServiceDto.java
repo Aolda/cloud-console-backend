@@ -32,8 +32,9 @@ public record ProjectServiceDto(
 	) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
 
 		ProjectGlobalQuotaDto projectGlobalQuotaDto = null;
-		if (dbProject.getQuotaVCpuCount() != null) {
-			ProjectGlobalQuotaDto.builder()
+		// if (dbProject.getQuotaVCpuCount() != null) {
+		if (computeQuota != null&& storageQuota != null) {
+			projectGlobalQuotaDto = ProjectGlobalQuotaDto.builder()
 				.core(computeQuota.core())
 				.ram(computeQuota.ram())
 				.instance(computeQuota.instance())

@@ -56,10 +56,10 @@ public class BaseProjectInitializer implements ApplicationRunner {
                     .projectId(keystoneProject.getId())
                     .projectType(ProjectRequestType.ETC)
                     .createdAt(LocalDateTime.of(1900, 1, 1, 0, 0))
-                    .quotaVRamMB((long)defaultQuota.vRam())
-                    .quotaVCpuCount((long)defaultQuota.vCpu())
-                    .quotaInstanceCount((long)defaultQuota.instance())
-                    .quotaStorageGB((long)defaultQuota.storage())
+                    .quotaVRamMB((long)defaultQuota.ram().available())
+                    .quotaVCpuCount((long)defaultQuota.core().available())
+                    .quotaInstanceCount((long)defaultQuota.instance().available())
+                    .quotaStorageGB((long)defaultQuota.volume().size().available())
                     .build()
                 );
             }

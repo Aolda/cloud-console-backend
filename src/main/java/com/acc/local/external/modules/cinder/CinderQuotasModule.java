@@ -24,7 +24,7 @@ public class CinderQuotasModule extends CinderAPIUtil {
     }
 
     public ResponseEntity<JsonNode> getQuotaSet(String token, String projectId) {
-        String uri = "/v3/os-quota-sets/" + projectId + "?usage=True";
+        String uri = "/v3/os-quota-sets/" + projectId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
