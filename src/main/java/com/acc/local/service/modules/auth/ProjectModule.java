@@ -110,6 +110,14 @@ public class ProjectModule {
 		);
 	}
 
+	public List<ProjectRequestDto> getAllProjectRequestList(String keyword, String requestUserId) {
+		String searchKeyword = (keyword == null) ? "" : keyword;
+
+		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword, requestUserId);
+
+		return savedProjectRequestList.stream().map(ProjectRequestDto::from).toList();
+	}
+
 	private static int getOffsetFromMarker(String marker) {
 		try {
 			Base64.Decoder decoder = Base64.getDecoder();
@@ -268,7 +276,7 @@ public class ProjectModule {
 		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
 
 		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getProjectDetail(projectId, scopedToken);
-		authModule.invalidateServiceTokensByUserId(requestUserId);
+		// authModule.invalidateServiceTokensByUserId(requestUserId);
 
 		if (response == null) {
 			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");

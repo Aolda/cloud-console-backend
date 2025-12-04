@@ -38,6 +38,7 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
         String defaultInterfaceId = null;
         String serverPort = null;
         String forwardingId = null;
+        Map<String, String> externalIpInfo = null;
         String networkId = neutronModule.getDefaultNetworkId(token, projectId);
         String sgId = neutronModule.getDefaultSecurityGroupId(token, projectId);
 
@@ -62,11 +63,21 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
             }
 
             try {
-            String externalIp = neutronModule.getExternalIpByInterfaceId(token, defaultInterfaceId).get("floating_ip_address");
-                Map<String, String> forwardingResult = apmModule.createSSHForwarding(token, projectId, externalIp, defaultInterfaceId);
+                neutronModule.allocateExternalIpToInterface(
+                        token,
+                        neutronModule.getProviderNetworkId(token),
+                        defaultInterfaceId
+                ); } catch (AccBaseException e) {
+                neutronModule.deleteInterface(token, defaultInterfaceId);
+            }
+
+            try {
+            externalIpInfo = neutronModule.getExternalIpByInterfaceId(token, defaultInterfaceId);
+                Map<String, String> forwardingResult = apmModule.createSSHForwarding(token, projectId, externalIpInfo.get("floating_ip_address"), defaultInterfaceId);
                 serverPort = forwardingResult.get("serverPort");
                 forwardingId = forwardingResult.get("id");
             } catch (AccBaseException e) {
+                neutronModule.releaseExternalIpFromInterface(token, externalIpInfo.get("id"));
                 neutronModule.deleteInterface(token, defaultInterfaceId);
                 throw new QuickStartException(QuickStartErrorCode.QUICK_START_FORWARDING_CREATE_FAILED);
             }
@@ -93,7 +104,9 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
         } catch (AccBaseException e) {
             if (request.getIsExternal()) {
                 if (forwardingId != null) apmModule.deleteForwarding(token, forwardingId);
-                if (defaultInterfaceId != null) neutronModule.deleteInterface(token, defaultInterfaceId);
+                if (defaultInterfaceId != null) {
+                    neutronModule.releaseExternalIpFromInterface(token, externalIpInfo.get("id"));
+                    neutronModule.deleteInterface(token, defaultInterfaceId);}
             }
             throw new QuickStartException(QuickStartErrorCode.QUICK_START_INSTANCE_CREATION_FAILED);
         }

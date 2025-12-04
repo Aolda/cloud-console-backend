@@ -28,8 +28,7 @@ public interface KeypairDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "키페어 목록 조회 성공",
-                    content = @Content()
+                    description = "키페어 목록 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -62,8 +61,7 @@ public interface KeypairDocs {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "키페어 생성 성공",
-                    content = @Content()
+                    description = "키페어 생성 성공"
             ),
             @ApiResponse(
                     responseCode = "400",

@@ -52,7 +52,7 @@ public class ProjectEntity {
 
     @Builder
     public ProjectEntity(String projectId, String ownerKeystoneId, ProjectRequestType projectType, Long quotaVCpuCount,
-        Long quotaVRamMB, Long quotaInstanceCount, Long quotaStorageGB, List<ProjectParticipantEntity> participants) {
+        Long quotaVRamMB, Long quotaInstanceCount, Long quotaStorageGB, List<ProjectParticipantEntity> participants, LocalDateTime createdAt) {
         this.projectId = projectId;
         this.ownerKeystoneId = ownerKeystoneId;
         this.projectType = projectType;

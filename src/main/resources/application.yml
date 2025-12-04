@@ -64,6 +64,8 @@ keycloak-temp:
 jwt:
   secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_MS}
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS}
+  oauth-verification-expiration-ms: ${JWT_OAUTH_VERIFICATION_EXPIRATION_MS}
 
 oauth:
   success:

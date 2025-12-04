@@ -19,7 +19,10 @@ public interface AuthServicePort {
     String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request);
     LoginTokens login(KeystonePasswordLoginRequest request);
     ProjectTokenResponse issueProjectAccessToken(String userId, String projectId);
-    LoginResponse refreshToken(String refreshToken);
+    LoginTokens refreshToken(String refreshToken);
     SignupResponse signup(SignupRequest request, String verificationToken);
 
+	LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId);
+
+	void logout(String userId);
 }

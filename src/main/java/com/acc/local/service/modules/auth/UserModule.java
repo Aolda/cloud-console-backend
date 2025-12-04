@@ -2,6 +2,7 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.model.auth.KeystoneUser;
@@ -45,12 +46,8 @@ public class UserModule {
      */
     @Transactional
     public String adminCreateUser(AdminCreateUserRequest request, String adminToken) {
-        // 1. Keystone 사용자 생성 요청 생성 (email을 name에 매핑!)
-        KeystoneUser newKeystoneUser = KeystoneUser.builder()
-                .name(request.email()) // email을 name(아이디)로 사용
-                .password(request.password())
-                .enabled(request.isEnabled())
-                .build();
+        // 1. Keystone 사용자 생성 요청 생성
+        KeystoneUser newKeystoneUser = KeystoneUser.from(request);
 
         Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newKeystoneUser);
 
@@ -163,6 +160,32 @@ public class UserModule {
                 .isAdmin(userDetail.getIsAdmin())
                 .isDeleted(userDetail.getIsDeleted())
                 .build();
+    }
+
+    public UserDetailEntity adminGetUserDetailDB(String userId) {
+        try {
+            UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
+
+            return userDetail;
+        } catch (AccBaseException e) {
+            if (e instanceof AccBaseException) {
+                throw e;
+            }
+
+            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, e.getMessage());
+        }
+    }
+
+    public AdminGetUserResponse adminGetUserWithoutAuthInfoResponse(String userId, String adminToken) {
+        try {
+            return adminGetUser(userId, adminToken);
+        } catch (AccBaseException e) {
+            if (e.getErrorCode().equals(AuthErrorCode.USER_NOT_FOUND)) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     /**

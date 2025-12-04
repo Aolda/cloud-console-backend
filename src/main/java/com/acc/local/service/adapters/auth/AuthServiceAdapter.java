@@ -1,13 +1,20 @@
 package com.acc.local.service.adapters.auth;
 
+import com.acc.global.exception.AccBaseException;
+import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
+import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.UserPermissionResponse;
+import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.ProjectModule;
+import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +29,8 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     private final AuthModule authModule;
     private final UserRepositoryPort userRepositoryPort;
+    private final UserModule userModule;
+    private final ProjectModule projectModule;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -128,10 +137,15 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public LoginResponse refreshToken(String refreshToken) {
-        // AuthModule에서 refresh token 검증 및 새 access token 발급
-        return LoginResponse.from(authModule.refreshAccessToken(refreshToken));
+    public LoginTokens refreshToken(String refreshToken) {
+        // 1. Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급 (동시 요청 방지를 위한 통합 로직)
+        RefreshToken rotatedRefreshToken = authModule.validateAndRotateRefreshToken(refreshToken);
+        String userId = rotatedRefreshToken.getUserId();
 
+        // 2. Keystone + Access Token 재발급
+        String newAccessToken = authModule.refreshKeystoneAndAccessToken(userId);
+
+        return LoginTokens.from(newAccessToken, rotatedRefreshToken.getRefreshToken());
     }
 
     @Override
@@ -149,5 +163,44 @@ public class AuthServiceAdapter implements AuthServicePort {
             // 3. 어드민 토큰 revoke (성공/실패 여부와 관계없이 항상 실행)
             authModule.invalidateSystemAdminToken(adminToken);
         }
+    }
+
+    @Override
+    public LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId) {
+        try {
+            String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
+            AdminGetUserResponse adminGetUserResponse = userModule.adminGetUserWithoutAuthInfoResponse(userId, adminToken);
+            authModule.invalidateSystemAdminToken(adminToken);
+
+            // projectId가 존재하면 프로젝트 정보 조회
+            ProjectServiceDto projectServiceDto = null;
+            if (projectId != null && !projectId.isBlank()) {
+                projectServiceDto = projectModule.getProjectDetail(projectId, userId);
+            }
+
+            if (adminGetUserResponse != null) {
+                return LoginedUserProfileResponse.builder()
+                    .userName(adminGetUserResponse.username())
+                    .univ(UnivDepartBriefDto.from(adminGetUserResponse))
+                    .project(projectServiceDto)
+                    .build();
+            }
+
+            UserDetailEntity userDetailEntity = userModule.adminGetUserDetailDB(userId);
+            return LoginedUserProfileResponse.builder()
+                .userName(userDetailEntity.getUserName())
+                .project(projectServiceDto)
+                .build();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+    public void logout(String userId) {
+        authModule.invalidateServiceTokensByUserId(userId);
+        log.info("logout - 유저 토큰 삭제 성공 user: {}", userId);
     }
 }

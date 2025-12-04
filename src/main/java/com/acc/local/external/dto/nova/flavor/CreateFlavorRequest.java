@@ -25,12 +25,11 @@ public class CreateFlavorRequest {
         private Integer ram;
         private Integer vcpus;
         private Integer disk;
-        private Integer swap;
-        private Boolean rxtx_factor;
-        @JsonProperty("os-flavor-access:is_public")
-        private Boolean is_public;
+
+        // ID를 null로 보내면 OpenStack이 UUID 자동 생성
         private String id;
-        @JsonProperty("OS-FLV-EXT-DATA:ephemeral")
-        private Integer ephemeral;
+        @JsonProperty("os-flavor-access:is_public")
+        private Boolean isPublic;
+        private String description;
     }
 }

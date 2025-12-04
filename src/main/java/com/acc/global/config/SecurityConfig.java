@@ -1,8 +1,6 @@
 package com.acc.global.config;
 
 import com.acc.global.security.jwt.JwtAuthenticationFilter;
-import com.acc.global.security.logout.handler.CustomLogoutHandler;
-import com.acc.global.security.logout.handler.CustomLogoutSuccessHandler;
 import com.acc.global.security.oauth.OAuth2CustomUserService;
 import com.acc.global.security.oauth.handler.OAuthFailureHandler;
 import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
@@ -34,11 +32,6 @@ public class SecurityConfig {
     private final OAuth2CustomUserService oAuth2CustomUserService;
     private final OAuthSuccessHandler oAuthSuccessHandler;
     private final OAuthFailureHandler oAuthFailureHandler;
-
-    //logout
-    private final CustomLogoutHandler customLogoutHandler;
-    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -72,23 +65,14 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/api/v1/images/**",
-                                "/api/v1/flavors/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
-                                "/api/v1/keypairs/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
 
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(
-                    logout -> logout
-                            .logoutUrl("/api/v1/auth/logout")
-                            .addLogoutHandler(customLogoutHandler)
-                            .logoutSuccessHandler(customLogoutSuccessHandler)
-                            .deleteCookies("acc-access-token","acc-refresh-token")
-                );
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -100,7 +84,11 @@ public class SecurityConfig {
                 "https://script.google.com",
                 "https://script.googleusercontent.com",
                 "https://console.aoldacloud.com",
-                "https://acc.jalju.com"
+                "https://acc.jalju.com",
+                "https://console.jalju.com",
+                "https://console.jalju.com:5173",
+                "https://aolda.cloud",
+                "https://console.aolda.cloud"
         ));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -108,7 +96,7 @@ public class SecurityConfig {
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/v1/google/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

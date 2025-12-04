@@ -98,6 +98,11 @@ public class UserServiceAdapter implements UserServicePort {
         // 권한 체크
         userModule.isAdminUser(requesterId);
 
+        // 1. 사용자의 모든 토큰 무효화 (Access Token + Keystone Token + Refresh Token)
+        authModule.invalidateServiceTokensByUserId(userId);
+        authModule.invalidateRefreshTokenByUserId(userId);
+
+        // 2. 사용자 삭제
         String adminToken = authModule.issueSystemAdminToken("admin-delete-user");
         try {
             userModule.adminDeleteUser(userId, adminToken);
