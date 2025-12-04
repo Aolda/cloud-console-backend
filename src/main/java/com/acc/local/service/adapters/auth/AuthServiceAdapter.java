@@ -5,6 +5,7 @@ import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.domain.model.auth.UserDetail;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.ProjectServiceDto;
@@ -136,10 +137,15 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public LoginResponse refreshToken(String refreshToken) {
-        // AuthModule에서 refresh token 검증 및 새 access token 발급
-        return LoginResponse.from(authModule.refreshAccessToken(refreshToken));
+    public LoginTokens refreshToken(String refreshToken) {
+        // 1. Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급 (동시 요청 방지를 위한 통합 로직)
+        RefreshToken rotatedRefreshToken = authModule.validateAndRotateRefreshToken(refreshToken);
+        String userId = rotatedRefreshToken.getUserId();
 
+        // 2. Keystone + Access Token 재발급
+        String newAccessToken = authModule.refreshKeystoneAndAccessToken(userId);
+
+        return LoginTokens.from(newAccessToken, rotatedRefreshToken.getRefreshToken());
     }
 
     @Override

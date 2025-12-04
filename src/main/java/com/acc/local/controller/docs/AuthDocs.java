@@ -29,6 +29,7 @@ public interface AuthDocs {
             @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content()),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content()),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
+            @ApiResponse(responseCode = "409", description = "사용자가 삭제된 사용자입니다.",  content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/login")
@@ -62,8 +63,9 @@ public interface AuthDocs {
 
     // ------------------------- REFRESH TOKEN -------------------------
     @Operation(
-            summary = "Access Token 재발급",
-            description = "Refresh Token Cookie를 기반으로 새로운 Access Token을 발급합니다."
+            summary = "Access Token 및 Refresh Token 재발급",
+            description = "Refresh Token Cookie를 기반으로 새로운 Access Token과 Refresh Token을 발급합니다.<br>" +
+                    "Refresh Token Rotation 패턴이 적용되어 기존 Refresh Token은 말소되고 새로운 토큰이 Cookie에 저장됩니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "토큰 재발급 성공", content = @Content()),
@@ -74,7 +76,8 @@ public interface AuthDocs {
     ResponseEntity<LoginResponse> refreshToken(
             @CookieValue("acc-refresh-token")
             @Parameter(description = "Refresh Token Cookie", required = true)
-            String refreshToken
+            String refreshToken,
+            HttpServletResponse response
     );
 
 

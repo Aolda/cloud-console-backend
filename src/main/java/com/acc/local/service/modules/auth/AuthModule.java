@@ -325,6 +325,8 @@ public class AuthModule {
         String userId = keystoneToken.userId();
         invalidateServiceTokensByUserId(userId);
 
+        validateUserIsDeleted(userId);
+
         // 2. UserToken 모델 생성 및 저장
         UserToken userToken = createUserToken(userId, keystoneToken);
 
@@ -384,7 +386,7 @@ public class AuthModule {
         RefreshToken refreshToken = RefreshToken.builder()
             .userId(userId)
             .refreshToken(refreshTokenValue)
-            .expiresAt(LocalDateTime.now().plusDays(7))
+            .expiresAt(jwtUtils.calculateRefreshTokenExpirationDateTime())
             .build();
 
         RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(refreshToken.toEntity());
@@ -413,39 +415,64 @@ public class AuthModule {
     }
 
     /**
-     * Refresh Token으로 새로운 Access Token 발급
-     * 기존 Keystone Token도 재발급하여 완전히 새로운 세션 생성
-     * 가장 최근 발급된 토큰에 projectId가 있었다면 새 토큰에도 포함
+     * Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급을 한 번에 처리
+     * 동시 요청 시 하나의 요청만 성공하도록 보장
+     * @param refreshTokenValue 검증할 refresh token 값
+     * @return 새로 발급된 RefreshToken (userId, newRefreshToken 포함)
+     * @throws JwtAuthenticationException 토큰이 유효하지 않거나 만료된 경우
      */
     @Transactional
-    public String refreshAccessToken(String refreshTokenValue) {
-        // 1. Refresh Token 검증
+    public RefreshToken validateAndRotateRefreshToken(String refreshTokenValue) {
+        // 1. JWT 형식 검증
         if (!jwtUtils.validateRefreshToken(refreshTokenValue)) {
             throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
         }
 
-        // 2. Refresh Token에서 userId 추출
-        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+        // 2. 원자적으로 토큰 비활성화 (조회 + 검증 + 비활성화를 한 번에 처리)
+        // 동시 요청 시 하나의 요청만 updatedCount > 0을 받게된다.
+        long updatedCount = refreshTokenRepositoryPort.deactivateByTokenAtomically(
+            refreshTokenValue,
+            LocalDateTime.now()
+        );
 
-        // 3. DB에서 Refresh Token 확인
-        RefreshTokenEntity refreshTokenEntity = refreshTokenRepositoryPort
-            .findByRefreshTokenAndIsActiveTrue(refreshTokenValue)
-            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
-
-        // 4. Refresh Token 만료 확인
-        if (refreshTokenEntity.isExpired()) {
-            throw new JwtAuthenticationException(AuthErrorCode.TOKEN_EXPIRED);
+        // 3. 업데이트된 행이 없으면 토큰이 유효하지 않거나 이미 사용됨
+        if (updatedCount == 0) {
+            throw new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN);
         }
 
-        // 5. 기존 UserToken 조회
+        String userId = jwtUtils.extractUserIdFromRefreshToken(refreshTokenValue);
+
+        // 4. 새 Refresh Token 발급
+        String newRefreshTokenValue = jwtUtils.generateRefreshToken(userId);
+        LocalDateTime newExpiresAt = jwtUtils.calculateRefreshTokenExpirationDateTime();
+
+        // 5. 기존 엔티티 업데이트 -- 이 시점에서 jwt가 변경된다.
+        RefreshTokenEntity existingTokenEntity = refreshTokenRepositoryPort
+            .findById(userId)
+            .orElseThrow(() -> new JwtAuthenticationException(AuthErrorCode.INVALID_TOKEN));
+
+        existingTokenEntity.updateRefreshToken(newRefreshTokenValue, newExpiresAt);
+        RefreshTokenEntity savedEntity = refreshTokenRepositoryPort.save(existingTokenEntity);
+
+        return RefreshToken.from(savedEntity);
+    }
+
+    /**
+     * Keystone Token + Access Token 재발급
+     * @param userId 사용자 ID
+     * @return 새로 발급된 accessToken
+     */
+    @Transactional
+    public String refreshKeystoneAndAccessToken(String userId) {
+        // 1. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
         UserToken existingUserToken = UserToken.from(existingTokenEntity);
 
-        // 6. 가장 최근 발급된 토큰에서 projectId 추출
+        // 2. 가장 최근 발급된 토큰에서 projectId 추출
         String projectId = extractProjectIdFromLatestToken(userId);
         log.info("[Refresh Token] userId: {}, projectId: {}", userId, projectId);
 
-        // 7. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        // 3. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
 
@@ -453,18 +480,32 @@ public class AuthModule {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
         }
 
-        // 8. 기존 Keystone Token revoke
+        // 4. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 9. 새로운 JWT Access Token 발급 (projectId 포함)
+        // 5. 새로운 JWT Access Token 발급 (projectId 포함)
         String newAccessToken = jwtUtils.generateToken(userId, projectId);
 
-        // 10. 새로운 UserToken 생성 및 저장
-        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken( existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
-
+        // 6. 새로운 UserToken 생성 및 저장
+        UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
+        log.info("[Access Token Refresh] userId: {}, 새로운 access token 발급 완료", userId);
+
         return newAccessToken;
+    }
+
+    /**
+     * Refresh Token 비활성화
+     * 회원 삭제, 로그아웃 시 사용
+     * @param userId 사용자 ID
+     */
+    @Transactional
+    public void invalidateRefreshTokenByUserId(String userId) {
+        refreshTokenRepositoryPort.findById(userId).ifPresent(refreshTokenEntity -> {
+            refreshTokenEntity.deactivate();
+            refreshTokenRepositoryPort.save(refreshTokenEntity);
+        });
     }
 
     /**
@@ -571,5 +612,15 @@ public class AuthModule {
 
         // 5. 토큰 삭제 (일회성 토큰이므로 하드 딜리트)
         oAuthVerificationTokenRepositoryPort.delete(tokenEntity);
+    }
+
+    private void validateUserIsDeleted(String userId){
+        // 사용자 삭제되었는지 검증
+        UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (userDetail.getIsDeleted()) {
+            throw new AuthServiceException(AuthErrorCode.USER_IS_DELETED);
+        }
     }
 }

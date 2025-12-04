@@ -12,5 +12,12 @@ public class JwtProperties {
 
     private String secret;
 
+    /** Access Token 만료 시간 (ms) */
     private Long expirationMs;
+
+    /** Refresh Token 만료 시간 (ms) - 기본값 7일 */
+    private Long refreshExpirationMs;
+
+    /** OAuth 검증 토큰 만료 시간 (ms) - 기본값 15분 */
+    private Long oauthVerificationExpirationMs;
 }
