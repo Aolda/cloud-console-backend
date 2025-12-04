@@ -37,6 +37,7 @@ public enum AuthErrorCode implements ErrorCode {
     // 409 Conflict
     CONFLICT(409, "ACC-AUTH-CONFLICT", "리소스가 충돌되었습니다. 이미 존재하거나 삭제할 수 없는 상태입니다."),
     OAUTH2_USER_ALREADY_EXISTS(409, "ACC-AUTH-OAUTH2-USER-ALREADY-EXISTS", "이미 존재하는 계정입니다."),
+    USER_IS_DELETED(409,"ACC-USER-IS-DELETED","삭제된 사용자입니다."),
 
     // 500 Internal Server Error
     KEYSTONE_API_FAILURE(500, "ACC-AUTH-KEYSTONE-API-FAILURE", "OpenStack Keystone API 통신 중 오류가 발생하였습니다."),
