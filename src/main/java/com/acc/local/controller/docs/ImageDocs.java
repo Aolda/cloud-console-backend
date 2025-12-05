@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springdoc.core.annotations.ParameterObject;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Images", description = "Glance 이미지 관리 API")
 @RequestMapping("/api/v1/images")
+@SecurityRequirement(name = "access-token")
 public interface ImageDocs {
 
     // ------------------------------------------------------------------------
@@ -151,7 +153,7 @@ public interface ImageDocs {
     })
     @GetMapping
     ResponseEntity<?> getImages(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam(value = "imageId", required = false) String imageId,
             @ParameterObject @ModelAttribute PageRequest pageRequest,
             @ParameterObject @ModelAttribute ImageFilterRequest filterRequest
@@ -244,7 +246,7 @@ public interface ImageDocs {
     })
     @PostMapping("/import")
     ResponseEntity<ImageUploadAckResponse> importImageByUrl(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestBody ImageUrlImportRequest request
     );
 
@@ -267,7 +269,7 @@ public interface ImageDocs {
     @Deprecated
     @PostMapping("/metadata")
     ResponseEntity<ImageUploadAckResponse> createImageMetadata(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestBody ImageMetadataRequest request
     );
 
@@ -290,7 +292,7 @@ public interface ImageDocs {
     @Deprecated
     @PutMapping(value = "/file", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     ResponseEntity<Void> uploadImageFileStream(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam("imageId") String imageId,
             HttpServletRequest request
     );
@@ -366,7 +368,7 @@ public interface ImageDocs {
     })
     @DeleteMapping
     ResponseEntity<Void> deleteImage(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam("imageId") String imageId
     );
 
