@@ -10,7 +10,8 @@ public interface SnapshotPolicyRepositoryPort {
     SnapshotPolicyEntity save(SnapshotPolicyEntity entity);
     Optional<SnapshotPolicyEntity> findById(Long id);
     Page<SnapshotPolicyEntity> findAll(Pageable pageable);
+    Page<SnapshotPolicyEntity> findByProjectId(String projectId, Pageable pageable);
+    Optional<SnapshotPolicyEntity> findByIdAndProjectId(Long id, String projectId);
     Page<SnapshotPolicyEntity> findByVolumeId(String volumeId, Pageable pageable);
     void deleteById(Long id);
 }
-

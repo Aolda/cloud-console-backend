@@ -5,9 +5,12 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.domain.enums.IntervalType;
+import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.snapshot.policy.SnapshotPolicyModule;
+import com.acc.local.service.modules.volume.VolumeModule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +34,12 @@ class SnapshotPolicyServiceAdapterTest {
     @Mock
     private SnapshotPolicyModule policyModule;
 
+    @Mock
+    private VolumeModule volumeModule;
+
+    @Mock
+    private AuthModule authModule;
+
     @InjectMocks
     private SnapshotPolicyServiceAdapter policyServiceAdapter;
 
@@ -38,6 +47,8 @@ class SnapshotPolicyServiceAdapterTest {
     @DisplayName("정책 목록을 페이징하여 조회할 수 있다")
     void givenPageRequest_whenGetPolicies_thenReturnPageResponse() {
         // given
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
         PageRequest pageRequest = new PageRequest();
         pageRequest.setMarker("0");
         pageRequest.setLimit(10);
@@ -72,19 +83,21 @@ class SnapshotPolicyServiceAdapterTest {
                 .prevMarker(null)
                 .build();
 
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.VIEW);
         when(policyModule.toPageable(pageRequest)).thenReturn(pageable);
-        when(policyModule.getPolicies(pageable)).thenReturn(expectedPage);
+        when(policyModule.getPolicies(projectId, pageable)).thenReturn(expectedPage);
         when(policyModule.toPageResponse(expectedPage, pageRequest)).thenReturn(expectedResponse);
 
         // when
-        PageResponse<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageRequest);
+        PageResponse<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageRequest, userId, projectId);
 
         // then
         assertNotNull(actualPage);
         assertEquals(2, actualPage.getSize());
         assertEquals("daily-backup", actualPage.getContents().get(0).getName());
+        verify(authModule).getProjectPermission(projectId, userId);
         verify(policyModule).toPageable(pageRequest);
-        verify(policyModule).getPolicies(pageable);
+        verify(policyModule).getPolicies(projectId, pageable);
         verify(policyModule).toPageResponse(expectedPage, pageRequest);
     }
 
@@ -93,6 +106,8 @@ class SnapshotPolicyServiceAdapterTest {
     void givenValidPolicyId_whenGetPolicyDetails_thenReturnPolicyResponse() {
         // given
         Long policyId = 1L;
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
 
         SnapshotPolicyResponse expectedPolicy = SnapshotPolicyResponse.builder()
                 .policyId(policyId)
@@ -104,16 +119,17 @@ class SnapshotPolicyServiceAdapterTest {
                 .dailyTime(LocalTime.of(2, 0))
                 .build();
 
-        when(policyModule.getPolicyDetails(policyId)).thenReturn(expectedPolicy);
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.VIEW);
+        when(policyModule.getPolicyDetails(policyId, projectId)).thenReturn(expectedPolicy);
 
         // when
-        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.getPolicyDetails(policyId);
+        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.getPolicyDetails(policyId, userId, projectId);
 
         // then
         assertNotNull(actualPolicy);
         assertEquals(policyId, actualPolicy.getPolicyId());
         assertEquals("daily-backup", actualPolicy.getName());
-        verify(policyModule).getPolicyDetails(policyId);
+        verify(policyModule).getPolicyDetails(policyId, projectId);
     }
 
     @Test
@@ -126,12 +142,11 @@ class SnapshotPolicyServiceAdapterTest {
                 .when(policyModule).validatePolicyId(invalidPolicyId);
 
         // when & then
-        VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyServiceAdapter.getPolicyDetails(invalidPolicyId);
-        });
+        VolumeException exception = assertThrows(VolumeException.class,
+                () -> policyServiceAdapter.getPolicyDetails(invalidPolicyId, "user", "project"));
 
         assertEquals(VolumeErrorCode.INVALID_POLICY_ID, exception.getErrorCode());
-        verify(policyModule, never()).getPolicyDetails(anyLong());
+        verify(policyModule, never()).getPolicyDetails(anyLong(), anyString());
     }
 
     @Test
@@ -155,17 +170,26 @@ class SnapshotPolicyServiceAdapterTest {
                 .dailyTime(LocalTime.of(2, 0))
                 .build();
 
-        when(policyModule.createPolicy(request)).thenReturn(expectedPolicy);
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
+
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
+        when(policyModule.createPolicy(request, projectId)).thenReturn(expectedPolicy);
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn("keystone-token");
+        when(volumeModule.getVolumeDetails("keystone-token", projectId, "volume-1")).thenReturn(null);
 
         // when
-        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.createPolicy(request);
+        SnapshotPolicyResponse actualPolicy = policyServiceAdapter.createPolicy(request, userId, projectId);
 
         // then
         assertNotNull(actualPolicy);
         assertEquals(1L, actualPolicy.getPolicyId());
         assertEquals("daily-backup", actualPolicy.getName());
+        verify(authModule).getProjectPermission(projectId, userId);
         verify(policyModule).validateRequest(request);
-        verify(policyModule).createPolicy(request);
+        verify(authModule).issueProjectScopeToken(projectId, userId);
+        verify(volumeModule).getVolumeDetails("keystone-token", projectId, "volume-1");
+        verify(policyModule).createPolicy(request, projectId);
     }
 
     @Test
@@ -177,16 +201,19 @@ class SnapshotPolicyServiceAdapterTest {
         request.setVolumeId("volume-1");
         request.setIntervalType(IntervalType.DAILY);
 
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
+
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
         doThrow(new VolumeException(VolumeErrorCode.INVALID_POLICY_NAME))
                 .when(policyModule).validateRequest(request);
 
         // when & then
-        VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyServiceAdapter.createPolicy(request);
-        });
+        VolumeException exception = assertThrows(VolumeException.class,
+                () -> policyServiceAdapter.createPolicy(request, userId, projectId));
 
         assertEquals(VolumeErrorCode.INVALID_POLICY_NAME, exception.getErrorCode());
-        verify(policyModule, never()).createPolicy(any());
+        verify(policyModule, never()).createPolicy(any(), anyString());
     }
 
     @Test
@@ -194,15 +221,18 @@ class SnapshotPolicyServiceAdapterTest {
     void givenValidPolicyId_whenActivatePolicy_thenSuccess() {
         // given
         Long policyId = 1L;
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
 
-        doNothing().when(policyModule).activatePolicy(policyId);
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
+        doNothing().when(policyModule).activatePolicy(policyId, projectId);
 
         // when & then
         assertDoesNotThrow(() -> {
-            policyServiceAdapter.activatePolicy(policyId);
+            policyServiceAdapter.activatePolicy(policyId, userId, projectId);
         });
 
-        verify(policyModule).activatePolicy(policyId);
+        verify(policyModule).activatePolicy(policyId, projectId);
     }
 
     @Test
@@ -210,14 +240,17 @@ class SnapshotPolicyServiceAdapterTest {
     void givenValidPolicyId_whenDeactivatePolicy_thenSuccess() {
         // given
         Long policyId = 1L;
+        String userId = "test-user-id";
+        String projectId = "test-project-id";
 
-        doNothing().when(policyModule).deactivatePolicy(policyId);
+        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
+        doNothing().when(policyModule).deactivatePolicy(policyId, projectId);
 
         // when & then
         assertDoesNotThrow(() -> {
-            policyServiceAdapter.deactivatePolicy(policyId);
+            policyServiceAdapter.deactivatePolicy(policyId, userId, projectId);
         });
 
-        verify(policyModule).deactivatePolicy(policyId);
+        verify(policyModule).deactivatePolicy(policyId, projectId);
     }
 }

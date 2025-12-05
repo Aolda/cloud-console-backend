@@ -24,6 +24,9 @@ public class SnapshotPolicyEntity {
     @Column(name = "snapshot_policy_id")
     private Long id;
 
+    @Column(name = "project_id", length = 64, nullable = false)
+    private String projectId;
+
     @Column(name = "snapshot_policy_name", length = 100, nullable = false)
     private String name;
 
@@ -85,13 +88,14 @@ public class SnapshotPolicyEntity {
     }
 
     @Builder
-    public SnapshotPolicyEntity(String name, String description, String volumeId,
+    public SnapshotPolicyEntity(String name, String description, String volumeId, String projectId,
                                 IntervalType intervalType, Boolean enabled, LocalDateTime expirationDate,
                                 LocalTime dailyTime, Integer weeklyDayOfWeek, LocalTime weeklyTime,
                                 Integer monthlyDayOfMonth, LocalTime monthlyTime, String timezone) {
         this.name = name;
         this.description = description;
         this.volumeId = volumeId;
+        this.projectId = projectId;
         this.intervalType = intervalType;
         this.enabled = enabled;
         this.expirationDate = expirationDate;

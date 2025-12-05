@@ -34,6 +34,16 @@ public class SnapshotPolicyRepositoryAdapter implements SnapshotPolicyRepository
     }
 
     @Override
+    public Page<SnapshotPolicyEntity> findByProjectId(String projectId, Pageable pageable) {
+        return jpaRepository.findByProjectId(projectId, pageable);
+    }
+
+    @Override
+    public Optional<SnapshotPolicyEntity> findByIdAndProjectId(Long id, String projectId) {
+        return jpaRepository.findByIdAndProjectId(id, projectId);
+    }
+
+    @Override
     public Page<SnapshotPolicyEntity> findByVolumeId(String volumeId, Pageable pageable) {
         return jpaRepository.findByVolumeId(volumeId, pageable);
     }
@@ -43,4 +53,3 @@ public class SnapshotPolicyRepositoryAdapter implements SnapshotPolicyRepository
         jpaRepository.deleteById(id);
     }
 }
-
