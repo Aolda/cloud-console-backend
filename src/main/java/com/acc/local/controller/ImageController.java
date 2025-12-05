@@ -34,7 +34,7 @@ public class ImageController implements ImageDocs {
         String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
 
-        boolean hasPaginationParams = pageRequest.getLimit() != null || pageRequest.getMarker() != null || pageRequest.getDirection() != null;
+        boolean hasPaginationParams = pageRequest.getMarker() != null;
 
         if (imageId != null && hasPaginationParams) {
             throw new ImageException(ImageErrorCode.INVALID_PAGINATION_WITH_IMAGE_ID);
