@@ -1,6 +1,5 @@
 package com.acc.local.service.modules.snapshot.policy;
 
-import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
@@ -16,6 +15,7 @@ import com.acc.local.repository.ports.SnapshotTaskRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -44,7 +44,7 @@ public class SnapshotPolicyModule {
         }
     }
 
-    public Pageable toPageable(PageRequest page) {
+    public Pageable toPageable(com.acc.global.common.PageRequest page) {
         int pageNumber = 0;
         int size = 10;
 
@@ -61,10 +61,10 @@ public class SnapshotPolicyModule {
             }
         }
 
-        return org.springframework.data.domain.PageRequest.of(pageNumber, size);
+        return PageRequest.of(pageNumber, size);
     }
 
-    public <T> PageResponse<T> toPageResponse(Page<T> page, PageRequest request) {
+    public <T> PageResponse<T> toPageResponse(Page<T> page, com.acc.global.common.PageRequest request) {
         boolean isFirst = page.isFirst();
         boolean isLast = page.isLast();
         int size = page.getContent().size();
@@ -170,7 +170,7 @@ public class SnapshotPolicyModule {
         return tasks.map(this::convertTaskToResponse);
     }
 
-    private void validateScheduleParameters(SnapshotPolicyRequest request) {
+    public void validateScheduleParameters(SnapshotPolicyRequest request) {
         if (request.getIntervalType() == null) {
             throw new VolumeException(VolumeErrorCode.INVALID_INTERVAL_TYPE);
         }
@@ -194,7 +194,7 @@ public class SnapshotPolicyModule {
         }
     }
 
-    private SnapshotPolicyResponse convertToResponse(SnapshotPolicyEntity entity) {
+    public SnapshotPolicyResponse convertToResponse(SnapshotPolicyEntity entity) {
         return SnapshotPolicyResponse.builder()
                 .policyId(entity.getId())
                 .name(entity.getName())
@@ -214,7 +214,7 @@ public class SnapshotPolicyModule {
                 .build();
     }
 
-    private SnapshotTaskResponse convertTaskToResponse(SnapshotTaskEntity entity) {
+    public SnapshotTaskResponse convertTaskToResponse(SnapshotTaskEntity entity) {
         return SnapshotTaskResponse.builder()
                 .taskId(entity.getId())
                 .policyId(entity.getPolicyId())
