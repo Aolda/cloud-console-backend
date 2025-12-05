@@ -6,6 +6,7 @@ import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotRequest;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.volume.snapshot.VolumeSnapshotModule;
 import com.acc.local.service.modules.volume.snapshot.VolumeSnapshotUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +34,9 @@ class VolumeSnapshotServiceAdapterTest {
     @Mock
     private VolumeSnapshotUtil volumeSnapshotUtil;
 
+    @Mock
+    private AuthModule authModule;
+
     @InjectMocks
     private VolumeSnapshotServiceAdapter volumeSnapshotServiceAdapter;
 
@@ -40,6 +44,7 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("스냅샷 목록을 페이징하여 조회할 수 있다")
     void givenPageRequest_whenGetSnapshots_thenReturnPageResponse() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         PageRequest pageRequest = new PageRequest();
@@ -70,11 +75,12 @@ class VolumeSnapshotServiceAdapterTest {
                 .last(true)
                 .build();
 
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
         when(volumeSnapshotModule.getSnapshots(eq(pageRequest), eq(projectId), eq(keystoneToken)))
                 .thenReturn(expectedResponse);
 
         // when
-        PageResponse<VolumeSnapshotResponse> actualResponse = volumeSnapshotServiceAdapter.getSnapshots(pageRequest, projectId, keystoneToken);
+        PageResponse<VolumeSnapshotResponse> actualResponse = volumeSnapshotServiceAdapter.getSnapshots(pageRequest, userId, projectId);
 
         // then
         assertNotNull(actualResponse);
@@ -87,6 +93,7 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("유효한 스냅샷 ID로 스냅샷 상세 정보를 조회할 수 있다")
     void givenValidSnapshotId_whenGetSnapshotDetails_thenReturnSnapshotResponse() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         String snapshotId = "e1f2a3b4-c5d6-e7f8-a9b0-c1d2e3f4a5b6";
@@ -100,12 +107,13 @@ class VolumeSnapshotServiceAdapterTest {
                 .createdAt("2025-01-01T00:00:00.000000")
                 .build();
 
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(snapshotId)).thenReturn(true);
         when(volumeSnapshotModule.getSnapshotDetails(eq(keystoneToken), eq(projectId), eq(snapshotId)))
                 .thenReturn(expectedSnapshot);
 
         // when
-        VolumeSnapshotResponse actualSnapshot = volumeSnapshotServiceAdapter.getSnapshotDetails(projectId, keystoneToken, snapshotId);
+        VolumeSnapshotResponse actualSnapshot = volumeSnapshotServiceAdapter.getSnapshotDetails(userId, projectId, snapshotId);
 
         // then
         assertNotNull(actualSnapshot);
@@ -119,15 +127,17 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("유효하지 않은 스냅샷 ID로 조회 시 예외가 발생한다")
     void givenInvalidSnapshotId_whenGetSnapshotDetails_thenThrowException() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         String invalidSnapshotId = "invalid-id";
 
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(invalidSnapshotId)).thenReturn(false);
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeSnapshotServiceAdapter.getSnapshotDetails(projectId, keystoneToken, invalidSnapshotId);
+            volumeSnapshotServiceAdapter.getSnapshotDetails(userId, projectId, invalidSnapshotId);
         });
 
         assertEquals(VolumeErrorCode.INVALID_SNAPSHOT_ID, exception.getErrorCode());
@@ -139,6 +149,7 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("유효한 요청으로 스냅샷을 생성할 수 있다")
     void givenValidRequest_whenCreateSnapshot_thenReturnCreatedSnapshot() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         VolumeSnapshotRequest request = new VolumeSnapshotRequest();
@@ -153,13 +164,14 @@ class VolumeSnapshotServiceAdapterTest {
                 .sourceVolumeId("b8f6a3b2-9d3a-4a6e-8b1e-2e4a6d8c2e1f")
                 .build();
 
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateVolumeId(request.getSourceVolumeId())).thenReturn(true);
         when(volumeSnapshotUtil.validateSnapshotName(request.getName())).thenReturn(true);
         when(volumeSnapshotModule.createSnapshot(eq(keystoneToken), eq(projectId), eq(request)))
                 .thenReturn(expectedSnapshot);
 
         // when
-        VolumeSnapshotResponse actualSnapshot = volumeSnapshotServiceAdapter.createSnapshot(projectId, keystoneToken, request);
+        VolumeSnapshotResponse actualSnapshot = volumeSnapshotServiceAdapter.createSnapshot(userId, projectId, request);
 
         // then
         assertNotNull(actualSnapshot);
@@ -174,6 +186,7 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("유효하지 않은 볼륨 ID로 스냅샷 생성 시 예외가 발생한다")
     void givenInvalidVolumeId_whenCreateSnapshot_thenThrowException() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         VolumeSnapshotRequest request = new VolumeSnapshotRequest();
@@ -184,7 +197,7 @@ class VolumeSnapshotServiceAdapterTest {
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
-            volumeSnapshotServiceAdapter.createSnapshot(projectId, keystoneToken, request);
+            volumeSnapshotServiceAdapter.createSnapshot(userId, projectId, request);
         });
 
         assertEquals(VolumeErrorCode.INVALID_VOLUME_ID, exception.getErrorCode());
@@ -196,16 +209,18 @@ class VolumeSnapshotServiceAdapterTest {
     @DisplayName("유효한 스냅샷 ID로 스냅샷을 삭제할 수 있다")
     void givenValidSnapshotId_whenDeleteSnapshot_thenReturnSuccessResponse() {
         // given
+        String userId = "test-user-id";
         String projectId = "test-project-id";
         String keystoneToken = "test-keystone-token";
         String snapshotId = "e1f2a3b4-c5d6-e7f8-a9b0-c1d2e3f4a5b6";
 
+        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(snapshotId)).thenReturn(true);
         when(volumeSnapshotModule.deleteSnapshot(eq(keystoneToken), eq(projectId), eq(snapshotId)))
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
 
         // when
-        ResponseEntity<Void> response = volumeSnapshotServiceAdapter.deleteSnapshot(projectId, keystoneToken, snapshotId);
+        ResponseEntity<Void> response = volumeSnapshotServiceAdapter.deleteSnapshot(userId, projectId, snapshotId);
 
         // then
         assertNotNull(response);
@@ -214,4 +229,3 @@ class VolumeSnapshotServiceAdapterTest {
         verify(volumeSnapshotModule).deleteSnapshot(eq(keystoneToken), eq(projectId), eq(snapshotId));
     }
 }
-
