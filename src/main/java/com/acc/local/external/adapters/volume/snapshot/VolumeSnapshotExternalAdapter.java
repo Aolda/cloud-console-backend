@@ -133,6 +133,7 @@ public class VolumeSnapshotExternalAdapter implements VolumeSnapshotExternalPort
         } catch (WebClientResponseException e) {
             HttpStatusCode status = e.getStatusCode();
             String errorBody = e.getResponseBodyAsString();
+            System.err.println("Snapshot creation failed - Status: " + status + ", Body: " + errorBody);
             if (status == HttpStatus.BAD_REQUEST) {
                 if (errorBody != null && (errorBody.contains("in-use") || errorBody.contains("Invalid volume state"))) {
                     throw new VolumeException(VolumeErrorCode.SNAPSHOT_IN_USE, e);
@@ -143,6 +144,10 @@ public class VolumeSnapshotExternalAdapter implements VolumeSnapshotExternalPort
             } else if (status == HttpStatus.FORBIDDEN) {
                 throw new VolumeException(VolumeErrorCode.FORBIDDEN_ACCESS, e);
             }
+            throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE, e);
+        } catch (Exception e) {
+            System.err.println("Unexpected error during snapshot creation: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
             throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE, e);
         }
     }
