@@ -63,7 +63,18 @@ class SnapshotPolicyServiceAdapterTest {
         Page<SnapshotPolicyResponse> expectedPage = new PageImpl<>(
                 Arrays.asList(policy1, policy2), pageable, 2);
 
+        PageResponse<SnapshotPolicyResponse> expectedResponse = PageResponse.<SnapshotPolicyResponse>builder()
+                .contents(Arrays.asList(policy1, policy2))
+                .first(true)
+                .last(true)
+                .size(2)
+                .nextMarker(null)
+                .prevMarker(null)
+                .build();
+
+        when(policyModule.toPageable(pageRequest)).thenReturn(pageable);
         when(policyModule.getPolicies(pageable)).thenReturn(expectedPage);
+        when(policyModule.toPageResponse(expectedPage, pageRequest)).thenReturn(expectedResponse);
 
         // when
         PageResponse<SnapshotPolicyResponse> actualPage = policyServiceAdapter.getPolicies(pageRequest);
@@ -72,7 +83,9 @@ class SnapshotPolicyServiceAdapterTest {
         assertNotNull(actualPage);
         assertEquals(2, actualPage.getSize());
         assertEquals("daily-backup", actualPage.getContents().get(0).getName());
+        verify(policyModule).toPageable(pageRequest);
         verify(policyModule).getPolicies(pageable);
+        verify(policyModule).toPageResponse(expectedPage, pageRequest);
     }
 
     @Test
@@ -108,6 +121,9 @@ class SnapshotPolicyServiceAdapterTest {
     void givenInvalidPolicyId_whenGetPolicyDetails_thenThrowException() {
         // given
         Long invalidPolicyId = 0L;
+
+        doThrow(new VolumeException(VolumeErrorCode.INVALID_POLICY_ID))
+                .when(policyModule).validatePolicyId(invalidPolicyId);
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {
@@ -148,6 +164,7 @@ class SnapshotPolicyServiceAdapterTest {
         assertNotNull(actualPolicy);
         assertEquals(1L, actualPolicy.getPolicyId());
         assertEquals("daily-backup", actualPolicy.getName());
+        verify(policyModule).validateRequest(request);
         verify(policyModule).createPolicy(request);
     }
 
@@ -159,6 +176,9 @@ class SnapshotPolicyServiceAdapterTest {
         request.setName(""); // 빈 이름
         request.setVolumeId("volume-1");
         request.setIntervalType(IntervalType.DAILY);
+
+        doThrow(new VolumeException(VolumeErrorCode.INVALID_POLICY_NAME))
+                .when(policyModule).validateRequest(request);
 
         // when & then
         VolumeException exception = assertThrows(VolumeException.class, () -> {

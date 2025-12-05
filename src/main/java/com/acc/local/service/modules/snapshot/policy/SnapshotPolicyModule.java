@@ -1,5 +1,7 @@
 package com.acc.local.service.modules.snapshot.policy;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.domain.enums.IntervalType;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +28,61 @@ public class SnapshotPolicyModule {
 
     private final SnapshotPolicyRepositoryPort policyRepository;
     private final SnapshotTaskRepositoryPort taskRepository;
+
+    public void validatePolicyId(Long policyId) {
+        if (policyId == null || policyId <= 0) {
+            throw new VolumeException(VolumeErrorCode.INVALID_POLICY_ID);
+        }
+    }
+
+    public void validateRequest(SnapshotPolicyRequest request) {
+        if (request.getName() == null || request.getName().trim().isEmpty() || request.getName().length() > 100) {
+            throw new VolumeException(VolumeErrorCode.INVALID_POLICY_NAME);
+        }
+        if (request.getVolumeId() == null || request.getVolumeId().trim().isEmpty()) {
+            throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
+        }
+    }
+
+    public Pageable toPageable(PageRequest page) {
+        int pageNumber = 0;
+        int size = 10;
+
+        if (page != null) {
+            if (page.getLimit() != null) {
+                size = page.getLimit();
+            }
+            if (page.getMarker() != null) {
+                try {
+                    pageNumber = Integer.parseInt(page.getMarker());
+                } catch (NumberFormatException ignored) {
+                    // ignore and use default pageNumber
+                }
+            }
+        }
+
+        return org.springframework.data.domain.PageRequest.of(pageNumber, size);
+    }
+
+    public <T> PageResponse<T> toPageResponse(Page<T> page, PageRequest request) {
+        boolean isFirst = page.isFirst();
+        boolean isLast = page.isLast();
+        int size = page.getContent().size();
+
+        int pageNumber = page.getNumber();
+
+        String nextMarker = isLast ? null : String.valueOf(pageNumber + 1);
+        String prevMarker = isFirst || pageNumber == 0 ? null : String.valueOf(pageNumber - 1);
+
+        return PageResponse.<T>builder()
+                .contents(page.getContent())
+                .first(isFirst)
+                .last(isLast)
+                .size(size)
+                .nextMarker(nextMarker)
+                .prevMarker(prevMarker)
+                .build();
+    }
 
     public Page<SnapshotPolicyResponse> getPolicies(Pageable pageable) {
         Page<SnapshotPolicyEntity> entities = policyRepository.findAll(pageable);
