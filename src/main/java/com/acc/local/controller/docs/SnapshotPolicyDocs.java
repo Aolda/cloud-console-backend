@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 
 @Tag(name = "Snapshot Policy", description = "스냅샷 수명관리자 정책 API")
 @RequestMapping("/api/v1/snapshot-policies")
+@SecurityRequirement(name = "access-token")
 public interface SnapshotPolicyDocs {
 
     @Operation(
