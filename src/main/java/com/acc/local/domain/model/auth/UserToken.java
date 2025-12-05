@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * UserToken 도메인 모델
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class UserToken {
 
     private Long id;
@@ -44,10 +44,15 @@ public class UserToken {
 
     public UserTokenEntity toEntity() {
         return UserTokenEntity.builder()
+                .id(this.id)
                 .userId(this.userId)
                 .jwtToken(this.jwtToken)
                 .keystoneUnscopedToken(this.keystoneUnscopedToken)
                 .keystoneExpiresAt(this.keystoneExpiresAt)
+                .isActive(this.isActive)
+                .expiresAt(this.expiresAt)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
                 .build();
     }
 
@@ -65,12 +70,15 @@ public class UserToken {
                 .build();
     }
 
-    public static UserToken updateKeystoneByRefreshToken(String newAccessToken, KeystoneToken newKeystoneToken, String userId) {
-         return UserToken.builder()
+    public static UserToken updateKeystoneByRefreshToken( UserToken existingUserToken,String newAccessToken, KeystoneToken newKeystoneToken, String userId, LocalDateTime expiresAt) {
+         return existingUserToken.toBuilder()
                 .userId(userId)
                 .jwtToken(newAccessToken)
                 .keystoneUnscopedToken(newKeystoneToken.token())
                 .keystoneExpiresAt(newKeystoneToken.expiresAt())
+                 .isActive(true)
+                 .expiresAt(expiresAt)
+                 .updatedAt(LocalDateTime.now())
                 .build();
     }
 

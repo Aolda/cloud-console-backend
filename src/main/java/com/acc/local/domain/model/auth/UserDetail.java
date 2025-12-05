@@ -28,6 +28,18 @@ public class UserDetail {
                 .isAdmin(false) // 회원가입은 항상 일반 사용자
                 .build();
     }
+
+    /**
+     * AdminCreateUserRequest로부터 UserDetail 생성 (관리자 사용자 생성용)
+     */
+    public static UserDetail createForAdmin(String userId, com.acc.local.dto.auth.AdminCreateUserRequest request) {
+        return UserDetail.builder()
+                .userId(userId)
+                .userName(request.username())
+                .userPhoneNumber(request.phoneNumber())
+                .isAdmin(request.isAdmin())
+                .build();
+    }
     /**
      * Entity로 변환
      */

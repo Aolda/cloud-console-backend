@@ -64,12 +64,19 @@ keycloak-temp:
 jwt:
   secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_MS}
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS}
+  oauth-verification-expiration-ms: ${JWT_OAUTH_VERIFICATION_EXPIRATION_MS}
 
 oauth:
   success:
     redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL}
   failure:
     redirect-url: ${OAUTH_FAILURE_REDIRECT_URL}
+  cookie:
+    domain: ${OAUTH_COOKIE_DOMAIN}
 
 apm:
     server-url: ${APM_SERVER_URL}
+logging:
+  level:
+    reactor.netty.http.client: TRACE

@@ -44,7 +44,7 @@ class KeystoneProjectAPIModuleTest {
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 
 		when(openstackAPICallModule.callPostAPI(
-			eq(KeystoneRoutes.CREATE_PROJECT),
+			eq(KeystoneRoutes.PROJECT_DEFAULT),
 			eq(Collections.singletonMap("X-Auth-Token", token)),
 			eq(projectRequest),
 			eq(5000)
@@ -58,7 +58,7 @@ class KeystoneProjectAPIModuleTest {
 		assertEquals(HttpStatus.CREATED, actualResponse.getStatusCode());
 		assertEquals(responseBody, actualResponse.getBody());
 		verify(openstackAPICallModule).callPostAPI(
-			eq(KeystoneRoutes.CREATE_PROJECT),
+			eq(KeystoneRoutes.PROJECT_DEFAULT),
 			anyMap(),
 			eq(projectRequest),
 			eq(5000)

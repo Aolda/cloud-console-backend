@@ -13,11 +13,12 @@ import java.util.List;
 @Component
 public class FlavorModule {
 
-    private final WebClient computeWebClient;
+    private final WebClient instanceWebClient;
 
+    @Deprecated(since = "2025-09-24")
     public List<FlavorDto> getAllFlavors(String token) {
-        JsonNode listResponse = computeWebClient.get()
-                .uri("/compute/v2.1/flavors")
+        JsonNode listResponse = instanceWebClient.get()
+                .uri("/instance/v2.1/flavors")
                 .header("X-Auth-Token", token)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
@@ -32,9 +33,10 @@ public class FlavorModule {
         return flavors;
     }
 
+    @Deprecated(since = "2025-09-24")
     public FlavorDto getFlavorById(String token, String id) {
-        JsonNode flavorDetail = computeWebClient.get()
-                .uri("/compute/v2.1/flavors/{id}", id)
+        JsonNode flavorDetail = instanceWebClient.get()
+                .uri("/instance/v2.1/flavors/{id}", id)
                 .header("X-Auth-Token", token)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
@@ -44,6 +46,7 @@ public class FlavorModule {
         return parseFlavorDto(flavorDetail);
     }
 
+    @Deprecated(since = "2025-09-24")
     private FlavorDto parseFlavorDto(JsonNode node) {
         return new FlavorDto(
                 node.path("id").asText(),

@@ -9,23 +9,27 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/networks")
 @Tag(name = "Network", description = "네트워크 API")
+@SecurityRequirement(name = "access-token")
 public interface NetworkDocs {
 
     @Operation(
-            summary = "네트워크 목록 조회",
-            description = "프로젝트에 속한 네트워크 목록을 조회합니다."
+            summary = "네트워크 조회",
+            description = "프로젝트에 속한 네트워크를 조회합니다.<br>"+
+            "networkId를 통해 특정 네트워크를 조회하거나, page를 통해 페이지 정보를 전달하여 네트워크 목록을 조회할 수 있습니다.<br>" +
+            "networkId를 통한 상세 조회는 추후 구현할 예정입니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "네트워크 목록 조회 성공",
-                    content = @Content()
+                    description = "네트워크 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -50,9 +54,7 @@ public interface NetworkDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<ViewNetworksResponse>> viewNetworks(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -90,9 +92,7 @@ public interface NetworkDocs {
     })
     @PostMapping
     ResponseEntity<Object> createNetwork(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestBody
             @Parameter(description = "네트워크 생성 요청 정보", required = true)
             CreateNetworkRequest request);
@@ -131,6 +131,6 @@ public interface NetworkDocs {
     })
     @DeleteMapping
     ResponseEntity<Object> deleteNetwork(
-            @RequestHeader("Authorization") String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam String networkId);
 }

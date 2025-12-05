@@ -34,6 +34,19 @@ public class UserAuthDetail {
     }
 
     /**
+     * AdminCreateUserRequest로부터 UserAuthDetail 생성 (관리자 사용자 생성용)
+     */
+    public static UserAuthDetail createForAdmin(String userId, com.acc.local.dto.auth.AdminCreateUserRequest request) {
+        return UserAuthDetail.builder()
+                .userId(userId)
+                .department(request.department())
+                .studentId(request.studentId())
+                .authType(request.authType())
+                .userEmail(request.email())
+                .build();
+    }
+
+    /**
      * Entity로 변환
      * @param userDetailEntity 연관관계 설정을 위한 UserDetailEntity
      */

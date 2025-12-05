@@ -5,6 +5,9 @@ import java.util.List;
 
 import com.acc.local.domain.enums.auth.KeystoneTokenType;
 
+import lombok.Builder;
+
+@Builder
 public record KeystoneToken(
 	KeystoneTokenType tokenType,
 	List<String> auditIds,

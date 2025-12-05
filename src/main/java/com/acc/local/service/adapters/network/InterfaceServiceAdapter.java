@@ -6,6 +6,7 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateInterfaceRequest;
 import com.acc.local.dto.network.ViewInterfacesResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.ApmModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
@@ -24,11 +25,11 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     private final NetworkUtil networkUtil;
     private final NeutronModule neutronModule;
     private final ApmModule apmModule;
+    private final AuthModule authModule;
 
     @Override
-    public void createInterface(String token, CreateInterfaceRequest request) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
-
+    public void createInterface(String userId, String projectId, CreateInterfaceRequest request) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         /* --- Quota 검증 --- */
 
         /* --- 인터페이스 생성 --- */
@@ -44,14 +45,14 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_SECURITY_GROUP_IDS);
         }
 
-        if (networkUtil.isNullOrEmpty(request.getExternal())) {
+        if (networkUtil.isNullOrEmpty(request.getIsExternal())) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_EXTERNAL);
         }
 
         String interfaceId = neutronModule.createInterface(token, request);
 
         /* --- 외부 네트워크 연결 시, Floating IP 할당 --- */
-        if (request.getExternal()) {
+        if (request.getIsExternal()) {
             String providerNetworkId = neutronModule.getProviderNetworkId(token);
 
             /* --- Floating IP 할당 실패 시, 생성된 인터페이스 삭제 처리 --- */
@@ -63,8 +64,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void deleteInterface(String token, String interfaceId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void deleteInterface(String userId, String projectId, String interfaceId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -76,7 +77,7 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
 
             /* --- SSH 포트포워딩 삭제 --- */
             String forwardingId = apmModule.getForwardingId(token,
-                    "project",
+                    projectId,
                     externalIpInfo.get("floating_ip_address"));
             if (forwardingId != null) {
                 apmModule.deleteForwarding(token, forwardingId);
@@ -89,11 +90,11 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String token, String interfaceId, String networkId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String userId, String projectId, String interfaceId, String networkId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         return neutronModule.listInterfaces(token,
-                "project",
+                projectId,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit(),
@@ -102,8 +103,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void allocateExternalIp(String token, String interfaceId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void allocateExternalIp(String userID, String projectId, String interfaceId) {
+        String token = authModule.issueProjectScopeToken(projectId, userID);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -117,8 +118,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void releaseExternalIp(String token, String interfaceId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void releaseExternalIp(String userId, String projectId, String interfaceId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -131,7 +132,7 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
 
         /* --- SSH 포트포워딩 삭제 --- */
         String forwardingId = apmModule.getForwardingId(token,
-                "project",
+                projectId,
                 externalIpInfo.get("floating_ip_address"));
         if (forwardingId != null) {
             apmModule.deleteForwarding(token, forwardingId);
@@ -141,8 +142,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void createSSHForwarding(String token, String interfaceId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void createSSHForwarding(String userId, String projectId, String interfaceId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -153,12 +154,12 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
             throw new NetworkException(NetworkErrorCode.HAS_NOT_EXTERNAL_IP);
         }
 
-        apmModule.createSSHForwarding(token, "project", externalIpInfo.get("floating_ip_address"), interfaceId);
+        apmModule.createSSHForwarding(token, projectId, externalIpInfo.get("floating_ip_address"), interfaceId);
     }
 
     @Override
-    public void deleteSSHForwarding(String token, String interfaceId) {
-        /* --- token 검증 ( 프로젝트, Role 권한 검증 ) --- */
+    public void deleteSSHForwarding(String userId, String projectId, String interfaceId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -171,7 +172,7 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
 
         /* --- SSH 포트포워딩 삭제 --- */
         String forwardingId = apmModule.getForwardingId(token,
-                "project",
+                projectId,
                 externalIpInfo.get("floating_ip_address"));
         if (forwardingId == null) {
             throw new NetworkException(NetworkErrorCode.NOT_FOUND_SSH_FORWARDING);

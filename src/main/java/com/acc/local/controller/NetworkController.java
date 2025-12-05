@@ -2,12 +2,14 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.NetworkDocs;
 import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
 import com.acc.local.service.ports.NetworkServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,28 +20,29 @@ public class NetworkController implements NetworkDocs {
 
     @Override
     public ResponseEntity<PageResponse<ViewNetworksResponse>> viewNetworks(
-            String token,
+            Authentication authentication,
             PageRequest page) {
-
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         PageResponse<ViewNetworksResponse> response =
-                networkServicePort.listNetworks(page, token);
+                networkServicePort.listNetworks(page, jwtInfo.getUserId(), jwtInfo.getProjectId());
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Object> createNetwork(
-            String token,
+            Authentication authentication,
             CreateNetworkRequest request) {
-
-        networkServicePort.createNetwork(request, token);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        networkServicePort.createNetwork(request, jwtInfo.getUserId(), jwtInfo.getProjectId());
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<Object> deleteNetwork(
-            String token,
+            Authentication authentication,
             String networkId) {
-        networkServicePort.deleteNetwork(networkId, token);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        networkServicePort.deleteNetwork(networkId, jwtInfo.getUserId(), jwtInfo.getProjectId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,6 +41,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public List<UserDetailEntity> findUserDetailsByIds(List<String> userIds) {
+        return userDetailJpaRepository.findAllById(userIds);
+    }
+
+    @Override
+    public List<UserAuthDetailEntity> findUserAuthsByIds(List<String> userIds) {
+        return userAuthDetailJpaRepository.findAllById(userIds);
+    }
+
+    @Override
     public void deleteUserDetailById(String userId) {
         userDetailJpaRepository.deleteById(userId);
     }
@@ -47,5 +58,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public void deleteUserAuthById(String userId) {
         userAuthDetailJpaRepository.deleteById(userId);
+    }
+
+    @Override
+    public List<UserDetailEntity> findUserByUserName(String userName) {
+        return userDetailJpaRepository.findAllByUserName(userName);
     }
 }

@@ -1,6 +1,6 @@
 package com.acc.local.external.dto.nova.serverAction;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class StartServerRequest {
-    private Object osStart; // 변수명 변환 필요
-} 
+    @JsonProperty("os-start")
+    private String osStart = null;
+}

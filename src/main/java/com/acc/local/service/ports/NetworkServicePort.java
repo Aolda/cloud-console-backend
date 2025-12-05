@@ -8,8 +8,10 @@ import org.springframework.data.domain.Pageable;
 
 public interface NetworkServicePort {
 
-    void createNetwork(CreateNetworkRequest request, String token);
-    void deleteNetwork(String networkId, String token);
-    PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String token);
 
+    void createNetwork(CreateNetworkRequest request, String userId, String projectId);
+
+    void deleteNetwork(String networkId, String userId, String projectID);
+
+    PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String userId, String projectId);
 }

@@ -9,23 +9,28 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1/interfaces")
 @Tag(name = "Interface", description = "인터페이스 API")
+@SecurityRequirement(name = "access-token")
 public interface InterfaceDocs {
 
     @Operation(
-            summary = "인터페이스 목록 조회",
-            description = "프로젝트에 속한 인터페이스 목록을 조회합니다."
+            summary = "인터페이스 조회",
+            description = "프로젝트에 속한 인터페이스를 조회합니다.<br>"+
+            "interfaceId를 통해 특정 인터페이스를 조회하거나, page를 통해 페이지 정보를 전달하여 인터페이스 목록을 조회할 수 있습니다.<br>" +
+            "instanceId와 networkId를 제공하면 특정 인스턴스 혹은 네트워크에 속한 인터페이스를 조회합니다.<br>" +
+            "interfaceId를 통한 상세 조회는 추후 구현할 예정입니다."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "인터페이스 목록 조회 성공",
-                    content = @Content()
+                    description = "인터페이스 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -50,9 +55,7 @@ public interface InterfaceDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<ViewInterfacesResponse>> viewInterfaces(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(description = "인스턴스 ID 필터", required = false, example = "instance-1234")
@@ -94,9 +97,7 @@ public interface InterfaceDocs {
     })
     @PostMapping
     ResponseEntity<Object> createInterface(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestBody
             @Parameter(description = "인터페이스 생성 요청 정보", required = true)
             CreateInterfaceRequest request);
@@ -135,7 +136,7 @@ public interface InterfaceDocs {
     })
     @DeleteMapping
     ResponseEntity<Object> deleteInterface(
-            @RequestHeader("Authorization") String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam String interfaceId);
 
     @Operation(
@@ -171,9 +172,7 @@ public interface InterfaceDocs {
     })
     @PostMapping("/external-ip")
     ResponseEntity<Object> allocateExternalIp(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam
             @Parameter(description = "인터페이스 ID", required = true, example = "interface-1234")
             String interfaceId);
@@ -211,9 +210,7 @@ public interface InterfaceDocs {
     })
     @DeleteMapping(path = "/external-ip")
     ResponseEntity<Object> releaseExternalIp(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam
             @Parameter(description = "인터페이스 ID", required = true, example = "interface-1234")
             String interfaceId);
@@ -256,9 +253,7 @@ public interface InterfaceDocs {
     })
     @PostMapping("/forwarding" )
     ResponseEntity<Object> createPortForwarding(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam
             @Parameter(description = "인터페이스 ID", required = true, example = "interface-1234")
             String interfaceId);
@@ -296,9 +291,7 @@ public interface InterfaceDocs {
     })
     @DeleteMapping("/forwarding" )
     ResponseEntity<Object> deletePortForwarding(
-            @RequestHeader("Authorization")
-            @Parameter(description = "인증 토큰", required = true, example = "{access_token}")
-            String token,
+            @Parameter(hidden = true) Authentication authentication,
             @RequestParam
             @Parameter(description = "인터페이스 ID", required = true, example = "interface-1234")
             String interfaceId);

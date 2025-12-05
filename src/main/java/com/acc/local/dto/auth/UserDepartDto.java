@@ -17,8 +17,8 @@ public record UserDepartDto(
 	public static UserDepartDto create(GoogleDepartResponse userDepartInfo, UnivDepartInfoEntity predictedUserDepartment) {
 		return new UserDepartDto(
 			userDepartInfo.major(),
-			predictedUserDepartment.getCollege(),
-			predictedUserDepartment.getDepartment(),
+			predictedUserDepartment != null ? predictedUserDepartment.getCollege() : null,
+			predictedUserDepartment != null ? predictedUserDepartment.getDepartment() : null,
 			predictUserGrade(userDepartInfo),
 			UnivAccountType.getType(userDepartInfo.status()),
 			UnivDepartStatus.getUnivDepartStatus(userDepartInfo.status())
