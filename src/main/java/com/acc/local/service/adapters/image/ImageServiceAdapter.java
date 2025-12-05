@@ -27,31 +27,31 @@ public class ImageServiceAdapter implements ImageServicePort {
 
     @Override
     public ImageDetailResponse getImageDetail(String userId, String projectId, String imageId) {
-        String token = authModule.issueProjectScopeToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         return imageServiceModule.getImageDetail(token, imageId);
     }
 
     @Override
     public ImageUploadAckResponse importImageByUrl(String userId, String projectId, ImageUrlImportRequest request) {
-        String token = authModule.issueProjectScopeToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         return imageServiceModule.importImageByUrl(token, request);
     }
 
     @Override
     public ImageUploadAckResponse createImageMetadata(String userId, String projectId, ImageMetadataRequest req) {
-        String token = authModule.issueProjectScopeToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         return imageServiceModule.createImageMetadata(token, req);
     }
 
     @Override
     public void deleteImage(String userId, String projectId, String imageId) {
-        String token = authModule.issueProjectScopeToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         imageServiceModule.deleteImage(token, imageId);
     }
 
     @Override
     public void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType) {
-        String token = authModule.issueProjectScopeToken(userId, projectId);
+        String token = authModule.issueProjectScopeToken(projectId, userId);
         imageServiceModule.uploadFileStream(token, imageId, input, contentType);
         authModule.invalidateServiceTokensByUserId(userId);
     }
