@@ -35,7 +35,7 @@ public class VolumeSnapshotController implements VolumeSnapshotDocs {
     }
 
     @Override
-    public ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(@PathVariable String snapshotId, Authentication authentication) {
+    public ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(@RequestParam String snapshotId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
@@ -45,7 +45,7 @@ public class VolumeSnapshotController implements VolumeSnapshotDocs {
     }
     @Override
     public ResponseEntity<Void> deleteSnapshot(
-            String snapshotId, Authentication authentication) {
+            @RequestParam String snapshotId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());

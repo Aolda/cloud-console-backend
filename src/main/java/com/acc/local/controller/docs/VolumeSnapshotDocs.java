@@ -64,11 +64,10 @@ public interface VolumeSnapshotDocs {
             @ApiResponse(responseCode = "404", description = "스냅샷을 찾을 수 없음", content = @Content())
     })
 
-    //@GetMapping(params = "snapshotId")
-    @GetMapping("/{snapshotId}")
+    @GetMapping(params = "snapshotId")
     ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
-            @PathVariable String snapshotId,
+            @RequestParam String snapshotId,
             @Parameter(hidden = true)
             Authentication authentication
     );
