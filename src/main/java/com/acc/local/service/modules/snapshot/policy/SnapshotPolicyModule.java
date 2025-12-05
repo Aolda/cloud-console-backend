@@ -84,24 +84,25 @@ public class SnapshotPolicyModule {
                 .build();
     }
 
-    public Page<SnapshotPolicyResponse> getPolicies(Pageable pageable) {
-        Page<SnapshotPolicyEntity> entities = policyRepository.findAll(pageable);
+    public Page<SnapshotPolicyResponse> getPolicies(String projectId, Pageable pageable) {
+        Page<SnapshotPolicyEntity> entities = policyRepository.findByProjectId(projectId, pageable);
         return entities.map(this::convertToResponse);
     }
 
-    public SnapshotPolicyResponse getPolicyDetails(Long policyId) {
-        return policyRepository.findById(policyId)
+    public SnapshotPolicyResponse getPolicyDetails(Long policyId, String projectId) {
+        return policyRepository.findByIdAndProjectId(policyId, projectId)
                 .map(this::convertToResponse)
                 .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
     }
 
-    public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request) {
+    public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request, String projectId) {
         validateScheduleParameters(request);
 
         SnapshotPolicyEntity entity = SnapshotPolicyEntity.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .volumeId(request.getVolumeId())
+                .projectId(projectId)
                 .intervalType(request.getIntervalType())
                 .expirationDate(request.getExpirationDate())
                 .dailyTime(request.getDailyTime())
@@ -116,8 +117,8 @@ public class SnapshotPolicyModule {
         return convertToResponse(saved);
     }
 
-    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request) {
-        SnapshotPolicyEntity entity = policyRepository.findById(policyId)
+    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String projectId) {
+        SnapshotPolicyEntity entity = policyRepository.findByIdAndProjectId(policyId, projectId)
                 .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
 
         validateScheduleParameters(request);
@@ -138,28 +139,31 @@ public class SnapshotPolicyModule {
         return convertToResponse(updated);
     }
 
-    public void deletePolicy(Long policyId) {
-        if (!policyRepository.findById(policyId).isPresent()) {
-            throw new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND);
-        }
-        policyRepository.deleteById(policyId);
+    public void deletePolicy(Long policyId, String projectId) {
+        SnapshotPolicyEntity entity = policyRepository.findByIdAndProjectId(policyId, projectId)
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
+        policyRepository.deleteById(entity.getId());
     }
 
-    public void activatePolicy(Long policyId) {
-        SnapshotPolicyEntity entity = policyRepository.findById(policyId)
+    public void activatePolicy(Long policyId, String projectId) {
+        SnapshotPolicyEntity entity = policyRepository.findByIdAndProjectId(policyId, projectId)
                 .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
         entity.activate();
         policyRepository.save(entity);
     }
 
-    public void deactivatePolicy(Long policyId) {
-        SnapshotPolicyEntity entity = policyRepository.findById(policyId)
+    public void deactivatePolicy(Long policyId, String projectId) {
+        SnapshotPolicyEntity entity = policyRepository.findByIdAndProjectId(policyId, projectId)
                 .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
         entity.deactivate();
         policyRepository.save(entity);
     }
 
-    public Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, Pageable pageable) {
+    public Page<SnapshotTaskResponse> getPolicyRuns(Long policyId, String projectId, LocalDate since, Pageable pageable) {
+        // Ensure policy belongs to the given project before exposing task history
+        policyRepository.findByIdAndProjectId(policyId, projectId)
+                .orElseThrow(() -> new VolumeException(VolumeErrorCode.POLICY_NOT_FOUND));
+
         LocalDateTime sinceDateTime = since != null 
                 ? since.atStartOfDay() 
                 : LocalDateTime.of(1970, 1, 1, 0, 0);

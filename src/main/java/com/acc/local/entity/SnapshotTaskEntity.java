@@ -24,6 +24,9 @@ public class SnapshotTaskEntity {
     @Column(name = "snapshot_task_id")
     private Long id;
 
+    @Column(name = "project_id", length = 64, nullable = false)
+    private String projectId;
+
     @Column(name = "policy_id", nullable = false)
     private Long policyId;
 
@@ -58,10 +61,11 @@ public class SnapshotTaskEntity {
     }
 
     @Builder
-    public SnapshotTaskEntity(Long policyId, String volumeId, String snapshotId,
+    public SnapshotTaskEntity(Long policyId, String projectId, String volumeId, String snapshotId,
                              String policyNameAtExecution, IntervalType intervalTypeAtExecution,
                              TaskStatus status, LocalDateTime startedAt, LocalDateTime finishedAt) {
         this.policyId = policyId;
+        this.projectId = projectId;
         this.volumeId = volumeId;
         this.snapshotId = snapshotId;
         this.policyNameAtExecution = policyNameAtExecution;

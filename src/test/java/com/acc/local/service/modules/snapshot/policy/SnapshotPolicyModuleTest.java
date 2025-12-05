@@ -46,6 +46,7 @@ class SnapshotPolicyModuleTest {
     @DisplayName("정책을 생성할 수 있다")
     void givenValidRequest_whenCreatePolicy_thenReturnPolicyResponse() {
         // given
+        String projectId = "test-project-id";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName("daily-backup");
         request.setDescription("Daily backup policy");
@@ -74,7 +75,7 @@ class SnapshotPolicyModuleTest {
         });
 
         // when
-        SnapshotPolicyResponse response = policyModule.createPolicy(request);
+        SnapshotPolicyResponse response = policyModule.createPolicy(request, projectId);
 
         // then
         assertNotNull(response);
@@ -88,6 +89,7 @@ class SnapshotPolicyModuleTest {
     @DisplayName("DAILY 타입 정책 생성 시 dailyTime이 없으면 예외가 발생한다")
     void givenDailyTypeWithoutTime_whenCreatePolicy_thenThrowException() {
         // given
+        String projectId = "test-project-id";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName("daily-backup");
         request.setVolumeId("volume-1");
@@ -95,9 +97,8 @@ class SnapshotPolicyModuleTest {
         // dailyTime이 null
 
         // when & then
-        VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyModule.createPolicy(request);
-        });
+        VolumeException exception = assertThrows(VolumeException.class,
+                () -> policyModule.createPolicy(request, projectId));
 
         assertEquals(VolumeErrorCode.INVALID_SCHEDULE_PARAMETER, exception.getErrorCode());
         verify(policyRepository, never()).save(any());
@@ -108,6 +109,7 @@ class SnapshotPolicyModuleTest {
     void givenValidRequest_whenUpdatePolicy_thenReturnUpdatedPolicy() {
         // given
         Long policyId = 1L;
+        String projectId = "test-project-id";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName("updated-backup");
         request.setDescription("Updated backup policy");
@@ -125,15 +127,15 @@ class SnapshotPolicyModuleTest {
         SnapshotPolicyEntity entityWithId = spy(existingEntity);
         when(entityWithId.getId()).thenReturn(policyId);
 
-        when(policyRepository.findById(policyId)).thenReturn(Optional.of(entityWithId));
+        when(policyRepository.findByIdAndProjectId(policyId, projectId)).thenReturn(Optional.of(entityWithId));
         when(policyRepository.save(any(SnapshotPolicyEntity.class))).thenReturn(entityWithId);
 
         // when
-        SnapshotPolicyResponse response = policyModule.updatePolicy(policyId, request);
+        SnapshotPolicyResponse response = policyModule.updatePolicy(policyId, request, projectId);
 
         // then
         assertNotNull(response);
-        verify(policyRepository).findById(policyId);
+        verify(policyRepository).findByIdAndProjectId(policyId, projectId);
         verify(policyRepository).save(any(SnapshotPolicyEntity.class));
     }
 
@@ -142,17 +144,17 @@ class SnapshotPolicyModuleTest {
     void givenNonExistentPolicy_whenUpdatePolicy_thenThrowException() {
         // given
         Long policyId = 999L;
+        String projectId = "test-project-id";
         SnapshotPolicyRequest request = new SnapshotPolicyRequest();
         request.setName("updated-backup");
         request.setIntervalType(IntervalType.DAILY);
         request.setDailyTime(LocalTime.of(2, 0));
 
-        when(policyRepository.findById(policyId)).thenReturn(Optional.empty());
+        when(policyRepository.findByIdAndProjectId(policyId, projectId)).thenReturn(Optional.empty());
 
         // when & then
-        VolumeException exception = assertThrows(VolumeException.class, () -> {
-            policyModule.updatePolicy(policyId, request);
-        });
+        VolumeException exception = assertThrows(VolumeException.class,
+                () -> policyModule.updatePolicy(policyId, request, projectId));
 
         assertEquals(VolumeErrorCode.POLICY_NOT_FOUND, exception.getErrorCode());
     }
@@ -162,23 +164,24 @@ class SnapshotPolicyModuleTest {
     void givenValidPolicyId_whenActivatePolicy_thenSuccess() {
         // given
         Long policyId = 1L;
+        String projectId = "test-project-id";
         SnapshotPolicyEntity entity = SnapshotPolicyEntity.builder()
                 .name("daily-backup")
                 .enabled(false)
                 .build();
 
-        when(policyRepository.findById(policyId)).thenReturn(Optional.of(entity));
+        when(policyRepository.findByIdAndProjectId(policyId, projectId)).thenReturn(Optional.of(entity));
         when(policyRepository.save(any(SnapshotPolicyEntity.class))).thenAnswer(invocation -> {
             SnapshotPolicyEntity saved = invocation.getArgument(0);
             return saved;
         });
 
         // when
-        policyModule.activatePolicy(policyId);
+        policyModule.activatePolicy(policyId, projectId);
 
         // then
         assertTrue(entity.getEnabled());
-        verify(policyRepository).findById(policyId);
+        verify(policyRepository).findByIdAndProjectId(policyId, projectId);
         verify(policyRepository).save(entity);
     }
 
@@ -187,23 +190,24 @@ class SnapshotPolicyModuleTest {
     void givenValidPolicyId_whenDeactivatePolicy_thenSuccess() {
         // given
         Long policyId = 1L;
+        String projectId = "test-project-id";
         SnapshotPolicyEntity entity = SnapshotPolicyEntity.builder()
                 .name("daily-backup")
                 .enabled(true)
                 .build();
         
-        when(policyRepository.findById(policyId)).thenReturn(Optional.of(entity));
+        when(policyRepository.findByIdAndProjectId(policyId, projectId)).thenReturn(Optional.of(entity));
         when(policyRepository.save(any(SnapshotPolicyEntity.class))).thenAnswer(invocation -> {
             SnapshotPolicyEntity saved = invocation.getArgument(0);
             return saved;
         });
 
         // when
-        policyModule.deactivatePolicy(policyId);
+        policyModule.deactivatePolicy(policyId, projectId);
 
         // then
         assertFalse(entity.getEnabled());
-        verify(policyRepository).findById(policyId);
+        verify(policyRepository).findByIdAndProjectId(policyId, projectId);
         verify(policyRepository).save(entity);
     }
 }

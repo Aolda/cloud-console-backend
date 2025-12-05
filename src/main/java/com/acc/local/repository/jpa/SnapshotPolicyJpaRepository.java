@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface SnapshotPolicyJpaRepository extends JpaRepository<SnapshotPolicyEntity, Long> {
     Page<SnapshotPolicyEntity> findAll(Pageable pageable);
     Optional<SnapshotPolicyEntity> findById(Long id);
+    Page<SnapshotPolicyEntity> findByProjectId(String projectId, Pageable pageable);
+    Optional<SnapshotPolicyEntity> findByIdAndProjectId(Long id, String projectId);
     Page<SnapshotPolicyEntity> findByVolumeId(String volumeId, Pageable pageable);
 }
-
