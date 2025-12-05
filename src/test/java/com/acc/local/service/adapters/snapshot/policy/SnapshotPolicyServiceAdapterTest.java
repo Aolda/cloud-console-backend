@@ -5,7 +5,6 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.domain.enums.IntervalType;
-import com.acc.local.domain.enums.auth.ProjectPermission;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
 import com.acc.local.service.modules.auth.AuthModule;
@@ -83,7 +82,6 @@ class SnapshotPolicyServiceAdapterTest {
                 .prevMarker(null)
                 .build();
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.VIEW);
         when(policyModule.toPageable(pageRequest)).thenReturn(pageable);
         when(policyModule.getPolicies(projectId, pageable)).thenReturn(expectedPage);
         when(policyModule.toPageResponse(expectedPage, pageRequest)).thenReturn(expectedResponse);
@@ -95,7 +93,6 @@ class SnapshotPolicyServiceAdapterTest {
         assertNotNull(actualPage);
         assertEquals(2, actualPage.getSize());
         assertEquals("daily-backup", actualPage.getContents().get(0).getName());
-        verify(authModule).getProjectPermission(projectId, userId);
         verify(policyModule).toPageable(pageRequest);
         verify(policyModule).getPolicies(projectId, pageable);
         verify(policyModule).toPageResponse(expectedPage, pageRequest);
@@ -119,7 +116,6 @@ class SnapshotPolicyServiceAdapterTest {
                 .dailyTime(LocalTime.of(2, 0))
                 .build();
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.VIEW);
         when(policyModule.getPolicyDetails(policyId, projectId)).thenReturn(expectedPolicy);
 
         // when
@@ -173,7 +169,6 @@ class SnapshotPolicyServiceAdapterTest {
         String userId = "test-user-id";
         String projectId = "test-project-id";
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
         when(policyModule.createPolicy(request, projectId)).thenReturn(expectedPolicy);
         when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn("keystone-token");
         when(volumeModule.getVolumeDetails("keystone-token", projectId, "volume-1")).thenReturn(null);
@@ -185,7 +180,6 @@ class SnapshotPolicyServiceAdapterTest {
         assertNotNull(actualPolicy);
         assertEquals(1L, actualPolicy.getPolicyId());
         assertEquals("daily-backup", actualPolicy.getName());
-        verify(authModule).getProjectPermission(projectId, userId);
         verify(policyModule).validateRequest(request);
         verify(authModule).issueProjectScopeToken(projectId, userId);
         verify(volumeModule).getVolumeDetails("keystone-token", projectId, "volume-1");
@@ -204,7 +198,6 @@ class SnapshotPolicyServiceAdapterTest {
         String userId = "test-user-id";
         String projectId = "test-project-id";
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
         doThrow(new VolumeException(VolumeErrorCode.INVALID_POLICY_NAME))
                 .when(policyModule).validateRequest(request);
 
@@ -224,7 +217,6 @@ class SnapshotPolicyServiceAdapterTest {
         String userId = "test-user-id";
         String projectId = "test-project-id";
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
         doNothing().when(policyModule).activatePolicy(policyId, projectId);
 
         // when & then
@@ -243,7 +235,6 @@ class SnapshotPolicyServiceAdapterTest {
         String userId = "test-user-id";
         String projectId = "test-project-id";
 
-        when(authModule.getProjectPermission(projectId, userId)).thenReturn(ProjectPermission.ROOT);
         doNothing().when(policyModule).deactivatePolicy(policyId, projectId);
 
         // when & then
