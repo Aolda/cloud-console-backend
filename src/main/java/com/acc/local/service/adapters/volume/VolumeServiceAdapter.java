@@ -6,6 +6,7 @@ import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
+import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.volume.VolumeModule;
 import com.acc.local.service.modules.volume.VolumeUtil;
 import com.acc.local.service.ports.VolumeServicePort;
@@ -21,14 +22,17 @@ public class VolumeServiceAdapter implements VolumeServicePort {
 
     private final VolumeModule volumeModule;
     private final VolumeUtil volumeUtil;
+    private final AuthModule authModule;
 
     @Override
-    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String projectId, String keystoneToken) {
+    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String userId, String projectId) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         return volumeModule.getVolumes(page, projectId, keystoneToken);
     }
 
     @Override
-    public VolumeResponse getVolumeDetails(String projectId, String keystoneToken, String volumeId) {
+    public VolumeResponse getVolumeDetails(String userId, String projectId, String volumeId) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
@@ -36,7 +40,8 @@ public class VolumeServiceAdapter implements VolumeServicePort {
     }
 
     @Override
-    public ResponseEntity<Void> deleteVolume(String projectId, String keystoneToken, String volumeId) {
+    public ResponseEntity<Void> deleteVolume(String userId, String projectId, String volumeId) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
@@ -44,7 +49,8 @@ public class VolumeServiceAdapter implements VolumeServicePort {
     }
 
     @Override
-    public VolumeResponse createVolume(String projectId, String keystoneToken, VolumeRequest request) {
+    public VolumeResponse createVolume(String userId, String projectId, VolumeRequest request) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeUtil.validateVolumeSize(request.getSize())) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_SIZE);
         }

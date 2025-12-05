@@ -6,7 +6,6 @@ import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.VolumeDocs;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.ports.VolumeServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class VolumeController implements VolumeDocs {
 
     private final VolumeServicePort volumeServicePort;
-    private final AuthModule authModule;
 
     @Override
     public ResponseEntity<PageResponse<VolumeResponse>> getVolumes(
@@ -27,39 +25,39 @@ public class VolumeController implements VolumeDocs {
             Authentication authentication
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
-        
-        PageResponse<VolumeResponse> response = volumeServicePort.getVolumes(page, projectId, keystoneToken);
+
+        PageResponse<VolumeResponse> response = volumeServicePort.getVolumes(page, userId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<VolumeResponse> getVolumeDetails(String volumeId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
-        
-        VolumeResponse volumeDto = volumeServicePort.getVolumeDetails(projectId, keystoneToken, volumeId);
+
+        VolumeResponse volumeDto = volumeServicePort.getVolumeDetails(userId, projectId, volumeId);
         return ResponseEntity.ok(volumeDto);
     }
 
     @Override
     public ResponseEntity<Void> deleteVolume(String volumeId, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
-        
-        return volumeServicePort.deleteVolume(projectId, keystoneToken, volumeId);
+
+        return volumeServicePort.deleteVolume(userId, projectId, volumeId);
     }
 
     @Override
     public ResponseEntity<VolumeResponse> createVolume(VolumeRequest request, Authentication authentication) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, jwtInfo.getUserId());
-        
-        VolumeResponse createdVolume = volumeServicePort.createVolume(projectId, keystoneToken, request);
+
+        VolumeResponse createdVolume = volumeServicePort.createVolume(userId, projectId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(createdVolume);
     }
 }

@@ -21,7 +21,7 @@ public class SnapshotTaskEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "snapshot_task_id")
     private Long id;
 
     @Column(name = "policy_id", nullable = false)
@@ -86,4 +86,3 @@ public class SnapshotTaskEntity {
         this.finishedAt = LocalDateTime.now();
     }
 }
-
