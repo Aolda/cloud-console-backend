@@ -179,18 +179,14 @@ public class ProjectModule {
 
 		List<ProjectServiceDto> responseList = new ArrayList<>();
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
-			try {
-				String projectId = openstackProject.getId();
-				ProjectEntity databaseProject = getDatabaseProject(projectId);
-				ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, adminToken);
-				ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, adminToken);
-				responseList.add(ProjectServiceDto.from(
-					databaseProject, openstackProject,
-					projectComputeQuotaDetail, projectStorageQuotaDetail
-				));
-			} catch (AuthServiceException e) {
-				throw e;
-			}
+			String projectId = openstackProject.getId();
+			ProjectEntity databaseProject = getDatabaseProject(projectId);
+			ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, adminToken);
+			ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, adminToken);
+			responseList.add(ProjectServiceDto.from(
+				databaseProject, openstackProject,
+				projectComputeQuotaDetail, projectStorageQuotaDetail
+			));
 		}
 
 		return ProjectListServiceDto.builder()
