@@ -21,7 +21,6 @@ import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
-import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.project.InvitableUser;
 import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.dto.project.CreateProjectRequest;
@@ -32,8 +31,11 @@ import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.UpdateProjectRequest;
+import com.acc.local.dto.project.quota.ProjectStorageQuotaDto;
+import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.entity.ProjectRequestEntity;
@@ -150,14 +152,13 @@ public class ProjectModule {
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
 			try {
 				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
-				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
+				ProjectEntity databaseProject = getDatabaseProject(projectId);
+				ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, adminToken);
+				ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, adminToken);
+				responseList.add(ProjectServiceDto.from(
+					databaseProject, openstackProject,
+					projectComputeQuotaDetail, projectStorageQuotaDetail
+				));
 			} catch (AuthServiceException e) {
 				throw e;
 			}
@@ -178,19 +179,14 @@ public class ProjectModule {
 
 		List<ProjectServiceDto> responseList = new ArrayList<>();
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
-			try {
-				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
-				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
-			} catch (AuthServiceException e) {
-				throw e;
-			}
+			String projectId = openstackProject.getId();
+			ProjectEntity databaseProject = getDatabaseProject(projectId);
+			ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, adminToken);
+			ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, adminToken);
+			responseList.add(ProjectServiceDto.from(
+				databaseProject, openstackProject,
+				projectComputeQuotaDetail, projectStorageQuotaDetail
+			));
 		}
 
 		return ProjectListServiceDto.builder()
@@ -199,31 +195,41 @@ public class ProjectModule {
 			.build();
 	}
 
-	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String adminToken) {
+	public List<ProjectServiceDto> getAllProjectListForUser(String keyword, String requestUserId, String requestUserUnscopeToken, String adminTokenWithProject) {
 		ProjectListDto openstackProjectResponse = keystoneAPIExternalPort.getUserProjectsByProjectName(
 			keyword,
 			null, requestUserId,
-			adminToken
+			requestUserUnscopeToken
 		);
 
 		List<ProjectServiceDto> responseList = new ArrayList<>();
 		for (KeystoneProject openstackProject: openstackProjectResponse.projectList()) {
 			try {
 				String projectId = openstackProject.getId();
-				Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
-
-				if (databaseProjectOrNull.isEmpty()) {
-					throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-				}
-
-				ProjectEntity databaseProject = databaseProjectOrNull.get();
-				responseList.add(ProjectServiceDto.from(databaseProject, openstackProject));
+				ProjectEntity databaseProject = getDatabaseProject(projectId);
+				ProjectComputeQuotaDto projectComputeQuota = getProjectComputeQuotaDetail(projectId, adminTokenWithProject);
+				ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, adminTokenWithProject);
+				responseList.add(ProjectServiceDto.from(
+					databaseProject, openstackProject,
+					projectComputeQuota, projectStorageQuotaDetail
+				));
 			} catch (AuthServiceException e) {
+				e.printStackTrace();
 				throw e;
 			}
 		}
 
 		return responseList;
+	}
+
+	private ProjectEntity getDatabaseProject(String projectId) {
+		Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
+
+		if (databaseProjectOrNull.isEmpty()) {
+			throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
+		}
+
+		return databaseProjectOrNull.get();
 	}
 
 	public KeystoneProject createProject(String adminToken, CreateProjectRequest request, String commandUserId) {
@@ -272,26 +278,23 @@ public class ProjectModule {
 	}
 
 	@Transactional
-	public ProjectServiceDto getProjectDetail(String projectId, String requestUserId) {
-		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
-
+	public ProjectServiceDto getProjectDetail(String projectId, String scopedToken) {
 		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getProjectDetail(projectId, scopedToken);
-		// authModule.invalidateServiceTokensByUserId(requestUserId);
 
 		if (response == null) {
 			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");
 		}
 
 		KeystoneProject openstackProject = KeystoneAPIUtils.parseKeystoneProjectResponse(response);
-		Optional<ProjectEntity> databaseProjectOrNull = projectRepositoryPort.findById(projectId);
+		ProjectEntity databaseProject = getDatabaseProject(projectId);
 
-		if (databaseProjectOrNull.isEmpty()) {
-			throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND, projectId);
-		}
+		ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, scopedToken);
+		ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, scopedToken);
 
-		ProjectEntity databaseProject = databaseProjectOrNull.get();
-
-		return ProjectServiceDto.from(databaseProject, openstackProject);
+		return ProjectServiceDto.from(
+			databaseProject, openstackProject,
+			projectComputeQuotaDetail, projectStorageQuotaDetail
+		);
 	}
 
 	@Transactional
@@ -319,55 +322,56 @@ public class ProjectModule {
 	}
 
 	// ============ Quota ============
-	public ProjectQuotaDto getProjectQuota(String projectId, String adminToken) {
-		ResponseEntity<JsonNode> jsonNodeResponseEntity = computeQuotaExternalPort.callGetQuota(adminToken, projectId);
-		volumeQuotaExternalPort.callGetQuota(adminToken, projectId);
-		JsonNode computeQuotaSet = jsonNodeResponseEntity.getBody().get("quota_set");
-		JsonNode volumeQuotaSet = jsonNodeResponseEntity.getBody().get("quota_set");
 
-		int cpuCoreCountQuota = computeQuotaSet.get("cores").asInt();
-		int ramMBSizeQuota = computeQuotaSet.get("ram").asInt();
-		int storageCountQuota = volumeQuotaSet.get("volumes").asInt();
-		int instanceCountQuota = computeQuotaSet.get("instances").asInt();
-
-		return ProjectQuotaDto.builder()
-			.vCpu(cpuCoreCountQuota)
-			.vRam(ramMBSizeQuota)
-			.storage(storageCountQuota)
-			.instance(instanceCountQuota)
-			.build();
+	public ProjectComputeQuotaDto getProjectComputeQuotaDetail(String projectId, String privilegedToken) {
+		ResponseEntity<JsonNode> jsonNodeResponseEntity = computeQuotaExternalPort.callGetQuotaDetail(privilegedToken, projectId);
+		return getComputeQuotaFromResponse(jsonNodeResponseEntity);
 	}
 
-	public InstanceQuotaResponse getProjectComputeQuotaDetail(String projectId, String adminToken) {
-		ResponseEntity<JsonNode> jsonNodeResponseEntity = computeQuotaExternalPort.callGetQuotaDetail(adminToken, projectId);
+	public ProjectStorageQuotaDto getProjectStorageQuotaDetail(String projectId, String privilegedToken) {
+		ResponseEntity<JsonNode> jsonNodeResponseEntity = volumeQuotaExternalPort.callGetQuota(privilegedToken, projectId);
+		return getStorageQuotaFromResponse(jsonNodeResponseEntity);
+	}
+
+	private static ProjectComputeQuotaDto getComputeQuotaFromResponse(ResponseEntity<JsonNode> jsonNodeResponseEntity) {
 		JsonNode computeQuotaSet = jsonNodeResponseEntity.getBody().get("quota_set");
 
-		JsonNode cpuCoreCountQuota = computeQuotaSet.get("cores");
-		JsonNode ramMBSizeQuota = computeQuotaSet.get("ram");
-		JsonNode instanceCountQuota = computeQuotaSet.get("instances");
-		JsonNode keypairCountQouta = computeQuotaSet.get("key_pairs");
+		QuotaInformation cpuInfo = getQuotaInformation(computeQuotaSet, "cores");
+		QuotaInformation ramInfo = getQuotaInformation(computeQuotaSet, "ram");
+		QuotaInformation instanceInfo = getQuotaInformation(computeQuotaSet, "instances");
+		QuotaInformation keypairInfo = getQuotaInformation(computeQuotaSet, "key_pairs");
 
-		InstanceQuotaResponse.QuotaInformation cpuInfo = InstanceQuotaResponse.QuotaInformation.builder()
-			.available(cpuCoreCountQuota.get("limit").asInt())
-			.used(cpuCoreCountQuota.get("in_use").asInt())
-			.build();
-		InstanceQuotaResponse.QuotaInformation ramInfo = InstanceQuotaResponse.QuotaInformation.builder()
-			.available(ramMBSizeQuota.get("limit").asInt())
-			.used(ramMBSizeQuota.get("in_use").asInt())
-			.build();
-		InstanceQuotaResponse.QuotaInformation instanceInfo = InstanceQuotaResponse.QuotaInformation.builder()
-			.available(instanceCountQuota.get("limit").asInt())
-			.used(instanceCountQuota.get("in_use").asInt())
-			.build();
-		InstanceQuotaResponse.QuotaInformation keypairInfo = InstanceQuotaResponse.QuotaInformation.builder()
-			.available(keypairCountQouta.get("limit").asInt())
-			.used(keypairCountQouta.get("in_use").asInt())
-			.build();
-		return InstanceQuotaResponse.builder()
+		return ProjectComputeQuotaDto.builder()
 			.core(cpuInfo)
 			.ram(ramInfo)
 			.instance(instanceInfo)
 			.keypair(keypairInfo)
+			.build();
+	}
+
+	private static ProjectStorageQuotaDto getStorageQuotaFromResponse(ResponseEntity<JsonNode> jsonNodeResponseEntity) {
+		JsonNode storageQuotaSet = jsonNodeResponseEntity.getBody().get("quota_set");
+
+		QuotaInformation volumesCount = getQuotaInformation(storageQuotaSet, "volumes");
+		QuotaInformation volumesSize = getQuotaInformation(storageQuotaSet, "gigabytes");
+
+		QuotaInformation backupsCount = getQuotaInformation(storageQuotaSet, "backups");
+		QuotaInformation backupsSize = getQuotaInformation(storageQuotaSet, "backup_gigabytes");
+
+		QuotaInformation snapshotCount = getQuotaInformation(storageQuotaSet, "snapshots");
+
+		return ProjectStorageQuotaDto.from(
+			volumesCount, volumesSize,
+			backupsCount, backupsSize,
+			snapshotCount
+		);
+	}
+
+	private static QuotaInformation getQuotaInformation(JsonNode computeQuotaSet, String infoType) {
+		JsonNode cpuCoreCountQuota = computeQuotaSet.get(infoType);
+		return QuotaInformation.builder()
+			.available(cpuCoreCountQuota.get("limit").asInt())
+			.used(cpuCoreCountQuota.get("in_use").asInt())
 			.build();
 	}
 
@@ -386,6 +390,7 @@ public class ProjectModule {
 
 	}
 
+	// ============ Participant ============
 	public List<ProjectParticipantDto> getProjectParticipantList(String projectId) {
 		List<ProjectParticipantEntity> projectParticipants = projectParticipantRepositoryPort.findByProjectId(projectId);
 		return projectParticipants.stream()

@@ -5,8 +5,10 @@ import java.util.List;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectStorageQuotaDto;
 import com.acc.local.entity.ProjectEntity;
-import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 
 import lombok.Builder;
@@ -21,18 +23,22 @@ public record ProjectServiceDto(
 	String ownerKeystoneId,
 	LocalDateTime createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto quota,
+	ProjectGlobalQuotaDto quota,
 	List<ProjectParticipantDto> participants
 ) {
-	public static ProjectServiceDto from(ProjectEntity dbProject, KeystoneProject keystoneProject) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
+	public static ProjectServiceDto from(
+		ProjectEntity dbProject, KeystoneProject keystoneProject,
+		ProjectComputeQuotaDto computeQuota, ProjectStorageQuotaDto storageQuota
+	) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
 
-		ProjectQuotaDto projectQuotaDto = null;
-		if (dbProject.getQuotaVCpuCount() != null) {
-			ProjectQuotaDto.builder()
-				.vCpu(Integer.parseInt(String.valueOf(dbProject.getQuotaVCpuCount())))
-				.vRam(Integer.parseInt(String.valueOf(dbProject.getQuotaVRamMB())))
-				.storage(Integer.parseInt(String.valueOf(dbProject.getQuotaStorageGB())))
-				.instance(Integer.parseInt(String.valueOf(dbProject.getQuotaInstanceCount())))
+		ProjectGlobalQuotaDto projectGlobalQuotaDto = null;
+		// if (dbProject.getQuotaVCpuCount() != null) {
+		if (computeQuota != null&& storageQuota != null) {
+			projectGlobalQuotaDto = ProjectGlobalQuotaDto.builder()
+				.core(computeQuota.core())
+				.ram(computeQuota.ram())
+				.instance(computeQuota.instance())
+				.volume(storageQuota.volume())
 				.build();
 		}
 
@@ -45,7 +51,7 @@ public record ProjectServiceDto(
 			.ownerKeystoneId(dbProject.getOwnerKeystoneId())
 			.createdAt(dbProject.getCreatedAt())
 			.status(ProjectRequestStatus.APPROVED)
-			.quota(projectQuotaDto)
+			.quota(projectGlobalQuotaDto)
 			.participants(
 				dbProject.getParticipants().stream()
 					.map(ProjectParticipantDto::from)

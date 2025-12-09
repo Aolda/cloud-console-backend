@@ -48,9 +48,11 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	public List<ProjectResponse> getProjects(String keyword, String requestUserId) {
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String unscopedToken = authModule.getUnscopedTokenByUserId(requestUserId);
+		String adminTokenWithProject = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
 
 		try {
-			List<ProjectServiceDto> projectServiceDataList = projectModule.getAllProjectListForUser(keyword, requestUserId, unscopedToken);
+			List<ProjectServiceDto> projectServiceDataList = projectModule.getAllProjectListForUser(keyword, requestUserId, unscopedToken, adminTokenWithProject);
+			authModule.invalidateSystemAdminToken(adminTokenWithProject);
 
 			List<ProjectResponse> projectResponseList = new ArrayList<>();
 			for (ProjectServiceDto projectInfo : projectServiceDataList) {
@@ -77,15 +79,17 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 			return projectResponseList;
 		} catch(Exception e) {
+			authModule.invalidateSystemAdminToken(adminTokenWithProject);
 			e.printStackTrace();
 			throw e;
 		}
 	}
 
 	@Override
-	public GetProjectResponse getProjectDetail(String projectId, String requesterId) {
+	public GetProjectResponse getProjectDetail(String projectId, String requestUserId) {
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-		ProjectServiceDto project = projectModule.getProjectDetail(projectId, requesterId);
+		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
+		ProjectServiceDto project = projectModule.getProjectDetail(projectId, scopedToken);
 		return GetProjectResponse.from(project);
 	}
 

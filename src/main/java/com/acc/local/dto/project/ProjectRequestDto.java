@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.entity.ProjectRequestEntity;
 
 import lombok.Builder;
@@ -18,7 +19,7 @@ public record ProjectRequestDto(
 	LocalDateTime createdAt,
 	ProjectRequestStatus status,
 	String rejectReason,
-	ProjectQuotaDto projectBrief
+	ProjectGlobalQuotaDto projectBrief
 ) {
 	public static ProjectRequestDto from(ProjectRequestEntity projectRequestEntity) {
 		return ProjectRequestDto.builder()
@@ -30,7 +31,7 @@ public record ProjectRequestDto(
 			.createdAt(projectRequestEntity.getCreatedAt())
 			.status(projectRequestEntity.getStatus())
 			.rejectReason(projectRequestEntity.getRejectReason())
-			.projectBrief(ProjectQuotaDto.getDefault())
+			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.build();
 	}
 }

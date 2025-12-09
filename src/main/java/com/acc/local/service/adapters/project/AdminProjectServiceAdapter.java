@@ -5,25 +5,24 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
-import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectRequestRequest;
-import com.acc.local.dto.project.CreateProjectRequestResponse;
 
 import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.GetProjectResponse;
 import com.acc.local.dto.project.ProjectListServiceDto;
 import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.dto.project.UpdateProjectRequest;
 import com.acc.local.dto.project.UpdateProjectResponse;
 
+import com.acc.local.dto.project.quota.ProjectQuotaRequest;
+import com.acc.local.dto.project.quota.QuotaGroup;
+import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
@@ -61,7 +60,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 			String projectOwnerId = createProjectRequest.projectOwnerId();
 
 			KeystoneProject createdProject = projectModule.createProject(adminToken, createProjectRequest, userId);
-			ProjectQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
+			ProjectGlobalQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
 
 			String createdProjectId = createdProject.getId();
 			projectModule.applyProjectAccessOnOpenstack(
@@ -82,11 +81,26 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		}
 	}
 
-	private ProjectQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
-		ProjectQuotaDto quota = createProjectRequest.quota();
+	private ProjectGlobalQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
+		ProjectQuotaRequest quota = createProjectRequest.quota();
 		projectModule.updateProjectStorageQuota(adminToken, createdProject.getId(), quota.storage(), userId);
 		projectModule.updateProjectCPUAndRAMQuota(adminToken, createdProject.getId(), quota.vCpu(), quota.vRam(), userId);
-		return quota;
+		return ProjectGlobalQuotaDto.builder()
+			.instance(QuotaInformation.builder()
+				.available(quota.instance())
+				.build())
+			.core(QuotaInformation.builder()
+				.available(quota.vCpu())
+				.build())
+			.ram(QuotaInformation.builder()
+				.available(quota.vRam())
+				.build())
+			.volume(QuotaGroup.builder()
+				.size(QuotaInformation.builder()
+					.available(quota.storage())
+					.build())
+				.build())
+			.build();
 	}
 
 	@Override
@@ -147,7 +161,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	@Override
 	public PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String requestUserId) {
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
-		String adminToken = authModule.issueSystemAdminToken(requestUserId);
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
 		log.info(adminToken);
 
 		try {

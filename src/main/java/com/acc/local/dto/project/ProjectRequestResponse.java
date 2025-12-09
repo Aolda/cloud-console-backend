@@ -3,6 +3,7 @@ package com.acc.local.dto.project;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 
 import lombok.Builder;
 
@@ -14,7 +15,7 @@ public record ProjectRequestResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto projectBrief
+	ProjectGlobalQuotaDto projectBrief
 ) {
 	public static ProjectRequestResponse from(ProjectRequestDto projectRequest, KeystoneUser createdBy) {
 		return ProjectRequestResponse.builder()
@@ -24,7 +25,7 @@ public record ProjectRequestResponse(
 			.createdBy(ProjectOwnerDto.from(createdBy))
 			.createdAt(projectRequest.createdAt().toString())
 			.status(projectRequest.status())
-			.projectBrief(ProjectQuotaDto.getDefault())
+			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.build();
 	}
 }
