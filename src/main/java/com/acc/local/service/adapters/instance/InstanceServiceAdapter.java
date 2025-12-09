@@ -8,13 +8,13 @@ import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
 import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
-import com.acc.local.dto.project.ProjectQuotaDto;
+import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.instance.InstanceModule;
 import com.acc.local.service.modules.instance.InstanceUtil;
 import com.acc.local.service.ports.InstanceServicePort;
-import jakarta.mail.Quota;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -68,10 +68,14 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public InstanceQuotaResponse getQuota(String userId, String projectId) {
+        if (projectId == null) {
+            throw new InstanceException(InstanceErrorCode.INVALID_ACTION);
+        }
+
         String token = authModule.issueProjectScopeToken(projectId, userId);
-        InstanceQuotaResponse projectComputeQuotaDetail = projectModule.getProjectComputeQuotaDetail(projectId, token);
+        ProjectComputeQuotaDto projectComputeQuota = projectModule.getProjectComputeQuotaDetail(projectId, token);
         authModule.invalidateServiceTokensByUserId(userId);
 
-        return projectComputeQuotaDetail;
+        return InstanceQuotaResponse.from(projectComputeQuota);
     }
 }

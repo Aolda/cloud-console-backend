@@ -7,6 +7,7 @@ import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 
 import lombok.Builder;
 
@@ -18,7 +19,8 @@ public record ProjectResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	ProjectQuotaDto projectBrief,
+	@Deprecated ProjectGlobalQuotaDto projectBrief,
+	ProjectGlobalQuotaDto quota,
 	List<ProjectParticipantDto> participants,
 	String rejectReason
 ) {
@@ -41,9 +43,9 @@ public record ProjectResponse(
 			);
 		}
 
-		ProjectQuotaDto quota = projectServiceDto.quota();
+		ProjectGlobalQuotaDto quota = projectServiceDto.quota();
 		if (quota == null) {
-			quota = ProjectQuotaDto.getDefault();
+			quota = ProjectGlobalQuotaDto.getDefault();
 		}
 
 		String createdAt = LocalDateTime.of(1900, 1, 1, 0, 0).toString();
@@ -59,6 +61,7 @@ public record ProjectResponse(
 			.createdAt(createdAt)
 			.status(projectServiceDto.status())
 			.projectBrief(quota)
+			.quota(quota)
 			.participants(participants)
 			.build();
 	}
@@ -71,7 +74,8 @@ public record ProjectResponse(
 			.createdBy(ProjectOwnerDto.from(projectRequestUser))
 			.createdAt(projectRequestDto.createdAt().toString())
 			.status(projectRequestDto.status())
-			.projectBrief(ProjectQuotaDto.getDefault())
+			.projectBrief(ProjectGlobalQuotaDto.getDefault())
+			.quota(ProjectGlobalQuotaDto.getDefault())
 			.rejectReason(projectRequestDto.rejectReason())
 			.participants(List.of(
 				ProjectParticipantDto.builder()

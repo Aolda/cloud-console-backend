@@ -1,19 +1,19 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Builder
 public record CreateProjectResponse(
     String projectId,
     String projectName,
-    ProjectQuotaDto quota,
+    ProjectGlobalQuotaDto quota,
     String createdAt
 ) {
-    public static CreateProjectResponse from(KeystoneProject project, ProjectQuotaDto quota) {
+    public static CreateProjectResponse from(KeystoneProject project, ProjectGlobalQuotaDto quota) {
         return CreateProjectResponse.builder()
             .projectId(project.getId())
             .projectName(project.getName())
