@@ -8,7 +8,6 @@ import com.acc.global.properties.QuickStartProperties;
 import com.acc.local.dto.image.*;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.v3.core.util.Json;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,7 @@ import java.util.List;
 public class ImageServiceModule {
 
     private final GlanceExternalPort glanceExternalPort;
-    private final ImageJsonMapperModule mapper;
+    private final ImageMapperUtil mapper;
     private final QuickStartProperties quickStartProperties;
 
     public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {

@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-public class ImageJsonMapperModule {
+public class ImageMapperUtil {
 
     public List<GlanceImageSummary> toImageListResponse(JsonNode json) {
         try {
