@@ -8,6 +8,16 @@ default:
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
     - chmod +x gradlew
 
+claude_review:
+  stage: check
+  image: python:3.11
+  tags: [acc]
+  before_script: []
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - python scripts/claude_review.py
+
 check_runner:
   stage: check
   script:
