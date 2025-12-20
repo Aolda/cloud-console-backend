@@ -44,7 +44,7 @@ public interface VolumeSnapshotDocs {
     })
     @GetMapping
     ResponseEntity<PageResponse<VolumeSnapshotResponse>> getSnapshots(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -68,7 +68,7 @@ public interface VolumeSnapshotDocs {
     //@GetMapping(params = "snapshotId")
     @GetMapping("/{snapshotId}")
     ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
             @PathVariable String snapshotId
     );
@@ -118,7 +118,7 @@ public interface VolumeSnapshotDocs {
     })
     @DeleteMapping(params ="snapshotId")
     ResponseEntity<Void> deleteSnapshot(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "삭제할 볼륨 스냅샷 ID", required = true, example = "92f53cf1-ae3e-4cc2-b5b7-462201a2d847")
             @RequestParam String snapshotId
     );
@@ -162,7 +162,7 @@ public interface VolumeSnapshotDocs {
     })
     @PostMapping
     ResponseEntity<VolumeSnapshotResponse> createSnapshot(
-            Authentication authentication,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "스냅샷을 생성할 원본 볼륨 정보", required = true)
             @RequestBody VolumeSnapshotRequest request
     );
