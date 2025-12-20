@@ -42,7 +42,7 @@ public interface VolumeSnapshotDocs {
                     content = @Content()
             )
     })
-    @GetMapping
+    @GetMapping(params="!snapshotId")
     ResponseEntity<PageResponse<VolumeSnapshotResponse>> getSnapshots(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
@@ -65,12 +65,11 @@ public interface VolumeSnapshotDocs {
             @ApiResponse(responseCode = "404", description = "스냅샷을 찾을 수 없음", content = @Content())
     })
 
-    //@GetMapping(params = "snapshotId")
-    @GetMapping("/{snapshotId}")
+    @GetMapping(params = "snapshotId")
     ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
-            @PathVariable String snapshotId
+            @RequestParam String snapshotId
     );
 
 
@@ -137,27 +136,27 @@ public interface VolumeSnapshotDocs {
             @ApiResponse(
                     responseCode = "400",
                     description = "잘못된 요청 - (예: 볼륨 ID 누락, 유효하지 않은 볼륨 상태)",
-                    content = @Content
+                    content = @Content()
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - 유효하지 않은 토큰",
-                    content = @Content
+                    content = @Content()
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "권한 없음",
-                    content = @Content
+                    content = @Content()
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "충돌 - (예: 볼륨이 사용 중, 스냅샷 생성 불가능 상태)",
-                    content = @Content
+                    content = @Content()
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "서버 내부 오류 (Cinder API 실패)",
-                    content = @Content
+                    content = @Content()
             )
     })
     @PostMapping

@@ -33,7 +33,7 @@ public class VolumeSnapshotController implements VolumeSnapshotDocs {
 
     @Override
     public ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
-            Authentication authentication, @PathVariable String snapshotId) {
+            Authentication authentication, @RequestParam("snapshotId") String snapshotId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String projectId = jwtInfo.getProjectId();
         String userId= jwtInfo.getUserId();
@@ -42,7 +42,7 @@ public class VolumeSnapshotController implements VolumeSnapshotDocs {
     }
     @Override
     public ResponseEntity<Void> deleteSnapshot(
-            Authentication authentication, String snapshotId) {
+            Authentication authentication, @RequestParam("snapshotId") String snapshotId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
         String projectId = jwtInfo.getProjectId();
