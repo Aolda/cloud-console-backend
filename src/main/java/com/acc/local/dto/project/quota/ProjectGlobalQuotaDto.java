@@ -20,13 +20,13 @@ public record ProjectGlobalQuotaDto(
 	@Builder
 	public ProjectGlobalQuotaDto {
 		if (instance == null) {
-			instance = baseCoreQuota;
+			instance = baseInstanceQuota;
 		}
 		if (core == null) {
-			core = baseRamQuota;
+			core = baseCoreQuota;
 		}
 		if (ram == null) {
-			ram = baseInstanceQuota;
+			ram = baseRamQuota;
 		}
 		if (volume == null) {
 			volume = baseVolumeQuotaGroup;
