@@ -31,16 +31,18 @@ public record ProjectServiceDto(
 		ProjectComputeQuotaDto computeQuota, ProjectStorageQuotaDto storageQuota
 	) { // TODO: AdminGetUserResponse로 변경 필요 (데이터 부족)
 
-		ProjectGlobalQuotaDto projectGlobalQuotaDto = null;
-		// if (dbProject.getQuotaVCpuCount() != null) {
-		if (computeQuota != null&& storageQuota != null) {
-			projectGlobalQuotaDto = ProjectGlobalQuotaDto.builder()
-				.core(computeQuota.core())
-				.ram(computeQuota.ram())
-				.instance(computeQuota.instance())
-				.volume(storageQuota.volume())
-				.build();
+		ProjectGlobalQuotaDto.ProjectGlobalQuotaDtoBuilder quotaBuilder = ProjectGlobalQuotaDto.builder();
+		if (computeQuota != null) {
+			quotaBuilder
+			.core(computeQuota.core())
+			.ram(computeQuota.ram())
+			.instance(computeQuota.instance());
 		}
+		if (storageQuota != null) {
+			quotaBuilder
+			.volume(storageQuota.volume());
+		}
+		ProjectGlobalQuotaDto projectGlobalQuotaDto = quotaBuilder.build();
 
 		return ProjectServiceDto.builder()
 			.projectId(keystoneProject.getId())

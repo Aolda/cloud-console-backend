@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -395,7 +396,7 @@ public class ProjectModule {
 		List<ProjectParticipantEntity> projectParticipants = projectParticipantRepositoryPort.findByProjectId(projectId);
 		return projectParticipants.stream()
 			.map(ProjectParticipantDto::from)
-			.toList();
+			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	public void inviteParticipants(String projectId, List<String> userIds, ProjectRole role, String token) {
