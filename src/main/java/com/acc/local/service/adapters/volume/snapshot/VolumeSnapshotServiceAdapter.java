@@ -27,7 +27,7 @@ public class VolumeSnapshotServiceAdapter implements VolumeSnapshotServicePort {
     @Override
     public PageResponse<VolumeSnapshotResponse> getSnapshots(PageRequest page, String userId, String projectId){
         String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
-        return volumeSnapshotModule.getSnapshots(page, projectId, keystoneToken);
+        return volumeSnapshotModule.getSnapshots(keystoneToken, projectId, page);
     }
     @Override
     public VolumeSnapshotResponse getSnapshotDetails(String userId, String projectId, String snapshotId) {
