@@ -25,36 +25,36 @@ public class VolumeSnapshotServiceAdapter implements VolumeSnapshotServicePort {
     private final AuthModule authModule;
 
     @Override
-    public PageResponse<VolumeSnapshotResponse> getSnapshots(String userId,String projectId,PageRequest page){
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
+    public PageResponse<VolumeSnapshotResponse> getSnapshots(PageRequest page, String userId, String projectId){
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         return volumeSnapshotModule.getSnapshots(keystoneToken, projectId, page);
     }
     @Override
     public VolumeSnapshotResponse getSnapshotDetails(String userId, String projectId, String snapshotId) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeSnapshotUtil.validateSnapshotId(snapshotId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_SNAPSHOT_ID);
         }
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
         return volumeSnapshotModule.getSnapshotDetails(keystoneToken, projectId, snapshotId);
     }
 
     @Override
     public ResponseEntity<Void> deleteSnapshot(String userId, String projectId, String snapshotId) {
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeSnapshotUtil.validateSnapshotId(snapshotId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_SNAPSHOT_ID);
         }
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
         return volumeSnapshotModule.deleteSnapshot(keystoneToken, projectId, snapshotId);
     }
     @Override
     public VolumeSnapshotResponse createSnapshot(String userId, String projectId, VolumeSnapshotRequest request){
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
         if (!volumeSnapshotUtil.validateVolumeId(request.getSourceVolumeId())) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
         if (!volumeSnapshotUtil.validateSnapshotName(request.getName())) {
             throw new VolumeException(VolumeErrorCode.INVALID_SNAPSHOT_NAME);
         }
-        String keystoneToken = authModule.issueProjectScopeToken(userId, projectId);
-        return volumeSnapshotModule.createSnapshot(keystoneToken, projectId,request);
+        return volumeSnapshotModule.createSnapshot(keystoneToken, projectId, request);
     }
 }

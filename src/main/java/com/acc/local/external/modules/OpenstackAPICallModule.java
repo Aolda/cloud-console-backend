@@ -77,7 +77,8 @@ public class OpenstackAPICallModule {
                 .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                 .headers(httpHeaders -> headers.forEach(httpHeaders::add))
                 .retrieve()
-                .toEntity(JsonNode.class)
+                .toBodilessEntity()
+                .map(response -> ResponseEntity.status(response.getStatusCode()).body((JsonNode) null))
                 .block();
     }
 
