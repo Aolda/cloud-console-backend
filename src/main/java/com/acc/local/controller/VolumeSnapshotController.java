@@ -2,6 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.VolumeSnapshotDocs;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotRequest;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotResponse;
@@ -9,6 +10,7 @@ import com.acc.local.service.ports.VolumeSnapshotServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,26 +21,40 @@ public class VolumeSnapshotController implements VolumeSnapshotDocs {
 
     @Override
     public ResponseEntity<PageResponse<VolumeSnapshotResponse>> getSnapshots(
-            String token,
+            Authentication authentication,
             PageRequest page
     ) {
-        PageResponse<VolumeSnapshotResponse> response = volumeSnapshotServicePort.getSnapshots(page,token);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String projectId = jwtInfo.getProjectId();
+        String userId= jwtInfo.getUserId();
+        PageResponse<VolumeSnapshotResponse> response = volumeSnapshotServicePort.getSnapshots(userId, projectId, page);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(String token, @PathVariable String snapshotId) {
-        VolumeSnapshotResponse snapshotDto = volumeSnapshotServicePort.getSnapshotDetails(token, snapshotId);
+    public ResponseEntity<VolumeSnapshotResponse> getSnapshotDetails(
+            Authentication authentication, @RequestParam("snapshotId") String snapshotId) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String projectId = jwtInfo.getProjectId();
+        String userId= jwtInfo.getUserId();
+        VolumeSnapshotResponse snapshotDto = volumeSnapshotServicePort.getSnapshotDetails(userId, projectId, snapshotId);
         return ResponseEntity.ok(snapshotDto);
     }
     @Override
     public ResponseEntity<Void> deleteSnapshot(
-            String token, String snapshotId) {
-        return volumeSnapshotServicePort.deleteSnapshot(token, snapshotId);
+            Authentication authentication, @RequestParam("snapshotId") String snapshotId) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+        return volumeSnapshotServicePort.deleteSnapshot(userId, projectId, snapshotId);
     }
     @Override
-    public ResponseEntity<VolumeSnapshotResponse> createSnapshot(String token, VolumeSnapshotRequest request){
-        VolumeSnapshotResponse createdSnapshot = volumeSnapshotServicePort.createSnapshot(token, request);
+    public ResponseEntity<VolumeSnapshotResponse> createSnapshot(
+            Authentication authentication, VolumeSnapshotRequest request){
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+        VolumeSnapshotResponse createdSnapshot = volumeSnapshotServicePort.createSnapshot(userId, projectId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(createdSnapshot);
     }
 
