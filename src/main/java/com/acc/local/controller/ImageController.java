@@ -1,62 +1,139 @@
 package com.acc.local.controller;
 
-import com.acc.local.dto.image.CreateImageRequestDto;
-import com.acc.local.dto.image.CreateImageResponseDto;
-import com.acc.local.dto.image.ImageResponse;
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
+import com.acc.global.exception.image.ImageErrorCode;
+import com.acc.global.exception.image.ImageException;
+import com.acc.global.security.jwt.JwtInfo;
+import com.acc.local.controller.docs.ImageDocs;
+import com.acc.local.dto.image.*;
 import com.acc.local.service.ports.ImageServicePort;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import jdk.jfr.Description;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/images")
-public class ImageController {
+public class ImageController implements ImageDocs {
 
     private final ImageServicePort imageServicePort;
-    @Autowired
-    private ObjectMapper objectMapper;
+
     @GetMapping
-    public List<ImageResponse> getImages(@RequestHeader("X-Auth-Token") String token) {
-        return imageServicePort.getImages(token);
-    }
-
-    @GetMapping("/{id}")
-    public ImageResponse getImageDetail(@RequestHeader("X-Auth-Token") String token,
-                                        @PathVariable("id") String imageId) {
-        return imageServicePort.getImageDetail(token, imageId);
-    }
-
-    @GetMapping("/public")
-    public List<ImageResponse> getPublicImages(@RequestHeader("X-Auth-Token") String token) {
-        return imageServicePort.getPublicImages(token);
-    }
-
-    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public CreateImageResponseDto createImage(
-            @RequestHeader("X-Auth-Token") String token,
-            @Parameter(description = """
-        JSON 문자열 형태로 metadata를 전달해야 합니다.
-        """)
-            @RequestPart("metadata") String metadata,
-            @RequestPart("file") MultipartFile file
+    public ResponseEntity<?> getImages(
+            Authentication authentication,
+            @RequestParam(value = "imageId", required = false) String imageId,
+            @ModelAttribute PageRequest pageRequest,
+            @ModelAttribute ImageFilterRequest filterRequest
     ) {
-        return imageServicePort.createImage(token, metadata, file);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        boolean hasPaginationParams = pageRequest.getMarker() != null;
+
+        if (imageId != null && hasPaginationParams) {
+            throw new ImageException(ImageErrorCode.INVALID_PAGINATION_WITH_IMAGE_ID);
+        }
+
+        if (imageId == null) {
+
+            // marker 단독 금지
+            if (pageRequest.getMarker() != null && pageRequest.getLimit() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
+            }
+
+            // direction 단독 금지
+            if (pageRequest.getDirection() != null && pageRequest.getLimit() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
+            }
+        }
+
+        if (imageId != null) {
+            ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
+            return ResponseEntity.ok(detail);
+        }
+
+        PageResponse<GlanceImageSummary> page =
+                imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
+
+        return ResponseEntity.ok(page);
     }
-    @DeleteMapping("/{imageId}")
-    public ResponseEntity<Void> deleteProjectImage(@RequestHeader("X-Auth-Token") String token,
-                                                   @PathVariable String imageId) {
-        imageServicePort.deleteProjectImage(token, imageId);
-        return ResponseEntity.noContent().build();
+
+
+
+
+    @PostMapping("/import")
+    public ResponseEntity<ImageUploadAckResponse> importImageByUrl(
+            Authentication authentication,
+            @RequestBody ImageUrlImportRequest request
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        ImageUploadAckResponse res =
+                imageServicePort.importImageByUrl(userId, projectId, request);
+
+        return ResponseEntity.ok(res);
+    }
+
+
+    @Deprecated
+    @PostMapping("/metadata")
+    public ResponseEntity<ImageUploadAckResponse> createImageMetadata(
+            Authentication authentication,
+            @RequestBody ImageMetadataRequest request
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        ImageUploadAckResponse res =
+                imageServicePort.createImageMetadata(userId, projectId, request);
+
+        return ResponseEntity.ok(res);
+    }
+
+
+    @Deprecated
+    @PutMapping(value = "/file", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<Void> uploadImageFileStream(
+            Authentication authentication,
+            @RequestParam("imageId") String imageId,
+            HttpServletRequest request
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        try {
+            InputStream bodyStream = request.getInputStream();
+            imageServicePort.uploadFileStream(
+                    userId, projectId, imageId, bodyStream, MediaType.APPLICATION_OCTET_STREAM_VALUE
+            );
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            throw new ImageException(ImageErrorCode.IMAGE_UPLOAD_FAILURE, e);
+        }
+    }
+
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteImage(
+            Authentication authentication,
+            @RequestParam("imageId") String imageId
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+        String projectId = jwtInfo.getProjectId();
+
+        imageServicePort.deleteImage(userId, projectId, imageId);
+
+        return ResponseEntity.ok().build();
     }
 }

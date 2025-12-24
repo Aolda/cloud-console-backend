@@ -8,7 +8,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FetchImagesRequestParam {
+public class GlanceFetchImagesRequestParam {
 
     // Pagination
     private Integer limit;
@@ -19,8 +19,11 @@ public class FetchImagesRequestParam {
     private String visibility;   // public|private|shared|community|all
     private String status;       // active|queued|saving
     private String owner;
-    private Boolean deleteProtected; // maps to "protected"
 
+    private String architecture;
+    private Boolean hidden;
+
+    private Boolean deleteProtected; // maps to "protected"
     private List<String> tags;
 
     private String containerFormat;
@@ -45,6 +48,9 @@ public class FetchImagesRequestParam {
         if (visibility != null) map.put("visibility", visibility);
         if (status != null) map.put("status", status);
         if (owner != null) map.put("owner", owner);
+        if (architecture != null) map.put("architecture", architecture);
+        if (hidden != null) map.put("os_hidden", String.valueOf(hidden));
+
         if (deleteProtected != null) map.put("protected", String.valueOf(deleteProtected));
         if (tags != null && !tags.isEmpty()) map.put("tag", String.join(",", tags));
         if (containerFormat != null) map.put("container_format", containerFormat);

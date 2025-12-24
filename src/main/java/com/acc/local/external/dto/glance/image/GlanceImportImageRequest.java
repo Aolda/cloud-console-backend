@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ImportImageRequest {
+public class GlanceImportImageRequest {
 
     @JsonProperty("method")
     private Method method;
@@ -29,21 +29,11 @@ public class ImportImageRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Method {
         @JsonProperty("name")
         private String name;
 
         @JsonProperty("uri")
         private String uri;
-
-        @JsonProperty("glance_image_id")
-        private String glanceImageId;
-
-        @JsonProperty("glance_region")
-        private String glanceRegion;
-
-        @JsonProperty("glance_service_interface")
-        private String glanceServiceInterface;
     }
 }
