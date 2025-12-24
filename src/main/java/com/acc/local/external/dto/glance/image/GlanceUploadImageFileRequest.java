@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UploadImageFileRequest {
+public class GlanceUploadImageFileRequest {
 
     @JsonProperty("X-Image-Meta-Store")
     private String xImageMetaStore;

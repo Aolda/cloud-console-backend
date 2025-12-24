@@ -10,7 +10,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UpdateImageRequest extends ArrayList<UpdateImageRequest.Operation> {
+public class GlanceUpdateImageRequest extends ArrayList<GlanceUpdateImageRequest.Operation> {
 // body 가 배열
 
     @Data
