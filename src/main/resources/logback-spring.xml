@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOKI_URL" value="${LOKI_URL}"/>
+    <property name="APP_NAME" value="acc-backend"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http><url>${LOKI_URL}</url></http>
+        <format>
+            <label>
+                <pattern>app=${APP_NAME},level=%level,domain=%X{domain:-system}</pattern>
+            </label>
+            <message>
+                <pattern>
+                    {
+                    "ts": "%d{ISO8601}",
+                    "level": "%level",
+                    "traceId": "%X{traceId:-}",
+                    "domain": "%X{domain:-system}",
+                    "class": "%logger{36}",
+                    "msg": "%msg",
+                    "ctx": "%mdc"
+                    }
+                </pattern>
+            </message>
+        </format>
+    </appender>
+
+    <SpringProfile name="!prod">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </SpringProfile>
+    <SpringProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LOKI"/>
+        </root>
+    </SpringProfile>
+</configuration>

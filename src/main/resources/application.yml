@@ -4,7 +4,7 @@ server:
   port: ${SERVICE_PORT:8080}
 spring:
   profiles:
-    active: db, google, discord, mail
+    active: {SPRING_PROFILES_ACTIVE:db,google,discord,mail}
   servlet:
     multipart:
       max-file-size: 1GB
