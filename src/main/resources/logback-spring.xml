@@ -10,6 +10,10 @@
     </appender>
 
     <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        
         <http><url>${LOKI_URL}</url></http>
         <format>
             <label>
@@ -23,23 +27,22 @@
                     "traceId": "%X{traceId:-}",
                     "domain": "%X{domain:-system}",
                     "class": "%logger{36}",
-                    "msg": "%msg",
-                    "ctx": "%mdc"
+                    "msg": "%msg"
                     }
                 </pattern>
             </message>
         </format>
     </appender>
 
-    <SpringProfile name="!prod">
+    <springProfile name="!prod">
         <root level="DEBUG">
             <appender-ref ref="CONSOLE"/>
         </root>
-    </SpringProfile>
-    <SpringProfile name="prod">
+    </springProfile>
+    <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="LOKI"/>
         </root>
-    </SpringProfile>
+    </springProfile>
 </configuration>

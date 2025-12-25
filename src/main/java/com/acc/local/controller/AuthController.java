@@ -1,5 +1,6 @@
 package com.acc.local.controller;
 
+import com.acc.global.annotation.LogDomain;
 import com.acc.global.properties.JwtProperties;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.dto.project.UserPermissionResponse;
@@ -24,6 +25,7 @@ import java.net.URI;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 @Slf4j
+@LogDomain("auth")
 public class AuthController implements AuthDocs {
 
 

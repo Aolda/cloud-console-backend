@@ -1,5 +1,6 @@
 package com.acc.local.controller;
 
+import com.acc.global.annotation.LogDomain;
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.security.jwt.JwtInfo;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@LogDomain("network")
 public class NetworkController implements NetworkDocs {
 
     private final NetworkServicePort networkServicePort;
