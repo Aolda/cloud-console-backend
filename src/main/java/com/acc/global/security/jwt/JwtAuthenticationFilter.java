@@ -35,12 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && authServicePort.validateJwt(jwt)) {
                 String userId = jwtUtils.getUserIdFromToken(jwt);
-                String projectId = jwtUtils.getProjectIdFromToken(jwt); // null 가능
 
-                // JwtInfo 객체 생성 (projectId는 null일 수 있음)
+                // JwtInfo 객체 생성
                 JwtInfo jwtInfo = JwtInfo.builder()
                         .userId(userId)
-                        .projectId(projectId)  // 프로젝트 진입 전에는 null
                         .build();
 
                 // 사용자 인증 객체 생성 (JwtInfo를 principal로 설정)
@@ -51,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Security Context에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("JWT 인증 성공: userId={}, projectId={}", userId, projectId);
+                log.debug("JWT 인증 성공: userId={}", userId);
             }
         } catch (JwtAuthenticationException ex) {
             // 인증 실패 시 SecurityContext를 비움

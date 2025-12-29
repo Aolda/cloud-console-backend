@@ -16,7 +16,6 @@ import java.security.Principal;
 public class JwtInfo implements Principal {
 
     private final String userId;
-    private final String projectId;  // nullable - 로그인 시점에는 없을 수 있음
 
     @Override
     public String getName() {

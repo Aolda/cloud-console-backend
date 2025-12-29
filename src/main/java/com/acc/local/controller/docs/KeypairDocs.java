@@ -51,7 +51,10 @@ public interface KeypairDocs {
             @Parameter(hidden = true)
             Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
-            PageRequest page);
+            PageRequest page,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
 
     @Operation(
@@ -100,7 +103,10 @@ public interface KeypairDocs {
             Authentication authentication,
             @RequestBody
             @Parameter(description = "키페어 생성 요청 정보", required = true)
-            CreateKeypairRequest request);
+            CreateKeypairRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
 
     @Operation(
@@ -140,5 +146,8 @@ public interface KeypairDocs {
             Authentication authentication,
             @RequestParam
             @Parameter(description = "삭제할 키페어의 ID (핑거프린트)", required = true)
-            String keypairId);
+            String keypairId,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 }

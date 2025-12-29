@@ -599,7 +599,10 @@ public interface ProjectDocs {
 	@PostMapping("/participants")
 	ResponseEntity<List<ProjectParticipantDto>> inviteProjectParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody InviteProjectRequest inviteProjectRequest
+		@RequestBody InviteProjectRequest inviteProjectRequest,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 	@Operation(
@@ -638,7 +641,10 @@ public interface ProjectDocs {
 	@DeleteMapping("/participants")
 	ResponseEntity<List<ProjectParticipantDto>> kickOutProjectParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody KickOutProjectRequest inviteProjectRequest
+		@RequestBody KickOutProjectRequest inviteProjectRequest,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 	@Operation(
@@ -679,7 +685,10 @@ public interface ProjectDocs {
 	@GetMapping("/participants/available")
 	ResponseEntity<List<InvitableUser>> getInvitableParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@Parameter(description = "검색하고자 하는 사용자 이름 혹은 이메일") @RequestParam(required = false) String keyword
+		@Parameter(description = "검색하고자 하는 사용자 이름 혹은 이메일") @RequestParam(required = false) String keyword,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 }

@@ -21,29 +21,26 @@ public class KeypairController implements KeypairDocs {
     private final KeypairServicePort keypairServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(Authentication authentication, PageRequest page) {
+    public ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(Authentication authentication, PageRequest page, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String projectId = jwtInfo.getProjectId();
 
         PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<CreateKeypairResponse> createKeypair(Authentication authentication, CreateKeypairRequest request) {
+    public ResponseEntity<CreateKeypairResponse> createKeypair(Authentication authentication, CreateKeypairRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         CreateKeypairResponse response = keypairServicePort.createKeypair(request, userId, projectId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
-    public ResponseEntity<Object> deleteKeypair(Authentication authentication, String keypairId) {
+    public ResponseEntity<Object> deleteKeypair(Authentication authentication, String keypairId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         keypairServicePort.deleteKeypair(keypairId, userId, projectId);
         return ResponseEntity.noContent().build();

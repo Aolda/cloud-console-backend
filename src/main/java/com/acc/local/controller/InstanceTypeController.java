@@ -19,21 +19,21 @@ public class InstanceTypeController implements InstanceTypeDocs {
     private final InstanceTypeServicePort instanceTypeServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<InstanceTypeResponse>> getUserInstanceTypes(Authentication authentication, PageRequest page, String architect) {
+    public ResponseEntity<PageResponse<InstanceTypeResponse>> getUserInstanceTypes(Authentication authentication, PageRequest page, String architect, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(instanceTypeServicePort.listUserInstanceTypes(jwtInfo.getUserId(), jwtInfo.getProjectId(), architect, page));
+        return ResponseEntity.ok(instanceTypeServicePort.listUserInstanceTypes(jwtInfo.getUserId(), projectId, architect, page));
     }
 
     @Override
-    public ResponseEntity<PageResponse<InstanceTypeResponse>> getAdminInstanceTypes(Authentication authentication, PageRequest page, String architect) {
+    public ResponseEntity<PageResponse<InstanceTypeResponse>> getAdminInstanceTypes(Authentication authentication, PageRequest page, String architect, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(instanceTypeServicePort.listAdminInstanceTypes(jwtInfo.getUserId(), jwtInfo.getProjectId(), architect, page));
+        return ResponseEntity.ok(instanceTypeServicePort.listAdminInstanceTypes(jwtInfo.getUserId(), projectId, architect, page));
     }
 
     @Override
-    public ResponseEntity<Object> createInstanceType(Authentication authentication, InstanceTypeCreateRequest request) {
+    public ResponseEntity<Object> createInstanceType(Authentication authentication, InstanceTypeCreateRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        instanceTypeServicePort.createInstanceType(jwtInfo.getUserId(), jwtInfo.getProjectId(), request);
+        instanceTypeServicePort.createInstanceType(jwtInfo.getUserId(), projectId, request);
         return ResponseEntity.created(null).build();
     }
 }

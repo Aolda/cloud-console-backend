@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/api/v1/quick-start")
 @Tag(name = "Quick Start", description = "빠른 생성 관련 API")
@@ -64,5 +65,8 @@ public interface QuickStartDocs {
     ResponseEntity<QuickStartResponse> create(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
-            @RequestBody QuickStartRequest request);
+            @RequestBody QuickStartRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 }
