@@ -55,6 +55,9 @@ public interface NetworkDocs {
     @GetMapping
     ResponseEntity<PageResponse<ViewNetworksResponse>> viewNetworks(
             @Parameter(hidden = true) Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page);
 
@@ -93,6 +96,9 @@ public interface NetworkDocs {
     @PostMapping
     ResponseEntity<Object> createNetwork(
             @Parameter(hidden = true) Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @RequestBody
             @Parameter(description = "네트워크 생성 요청 정보", required = true)
             CreateNetworkRequest request);
@@ -132,5 +138,8 @@ public interface NetworkDocs {
     @DeleteMapping
     ResponseEntity<Object> deleteNetwork(
             @Parameter(hidden = true) Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @RequestParam String networkId);
 }

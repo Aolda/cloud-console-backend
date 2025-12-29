@@ -19,23 +19,23 @@ public class RouterController implements RouterDocs {
     private final RouterServicePort routerServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<ViewRoutersResponse>> viewRouters(Authentication authentication, PageRequest page) {
+    public ResponseEntity<PageResponse<ViewRoutersResponse>> viewRouters(Authentication authentication, PageRequest page, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(routerServicePort.listRouters(page, jwtInfo.getUserId(), jwtInfo.getProjectId()));
+        return ResponseEntity.ok(routerServicePort.listRouters(page, jwtInfo.getUserId(), projectId));
     }
 
     @Override
-    public ResponseEntity<Object> createRouter(Authentication authentication, CreateRouterRequest request) {
+    public ResponseEntity<Object> createRouter(Authentication authentication, CreateRouterRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        routerServicePort.createRouter(request, jwtInfo.getUserId(), jwtInfo.getProjectId());
+        routerServicePort.createRouter(request, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok().build();
     }
 
     @Override
-    public ResponseEntity<Object> deleteNetwork(Authentication authentication, String routerId) {
+    public ResponseEntity<Object> deleteNetwork(Authentication authentication, String routerId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 
-        routerServicePort.deleteRouter(routerId, jwtInfo.getUserId(), jwtInfo.getProjectId());
+        routerServicePort.deleteRouter(routerId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.noContent().build();
     }
 }

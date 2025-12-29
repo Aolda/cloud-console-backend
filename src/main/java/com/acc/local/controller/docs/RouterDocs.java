@@ -56,7 +56,10 @@ public interface RouterDocs {
     ResponseEntity<PageResponse<ViewRoutersResponse>> viewRouters(
             @Parameter(hidden = true) Authentication authentication,
             @Parameter(description = "페이지 정보", required = false)
-            PageRequest page);
+            PageRequest page,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
     @Operation(
             summary = "라우터 생성",
@@ -94,7 +97,10 @@ public interface RouterDocs {
             @Parameter(hidden = true) Authentication authentication,
             @RequestBody
             @Parameter(description = "라우터 생성 요청 정보", required = true)
-            CreateRouterRequest request);
+            CreateRouterRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
     @Operation(
             summary = "라우터 삭제",
@@ -130,5 +136,8 @@ public interface RouterDocs {
     @DeleteMapping
     ResponseEntity<Object> deleteNetwork(
             @Parameter(hidden = true) Authentication authentication,
-            @RequestParam String routerId);
+            @RequestParam String routerId,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 }
