@@ -156,7 +156,10 @@ public interface ImageDocs {
             @Parameter(hidden = true) Authentication authentication,
             @RequestParam(value = "imageId", required = false) String imageId,
             @ParameterObject @ModelAttribute PageRequest pageRequest,
-            @ParameterObject @ModelAttribute ImageFilterRequest filterRequest
+            @ParameterObject @ModelAttribute ImageFilterRequest filterRequest,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
 
@@ -247,7 +250,10 @@ public interface ImageDocs {
     @PostMapping("/import")
     ResponseEntity<ImageUploadAckResponse> importImageByUrl(
             @Parameter(hidden = true) Authentication authentication,
-            @RequestBody ImageUrlImportRequest request
+            @RequestBody ImageUrlImportRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
 
@@ -270,7 +276,10 @@ public interface ImageDocs {
     @PostMapping("/metadata")
     ResponseEntity<ImageUploadAckResponse> createImageMetadata(
             @Parameter(hidden = true) Authentication authentication,
-            @RequestBody ImageMetadataRequest request
+            @RequestBody ImageMetadataRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
 
@@ -294,7 +303,10 @@ public interface ImageDocs {
     ResponseEntity<Void> uploadImageFileStream(
             @Parameter(hidden = true) Authentication authentication,
             @RequestParam("imageId") String imageId,
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
 
@@ -369,7 +381,10 @@ public interface ImageDocs {
     @DeleteMapping
     ResponseEntity<Void> deleteImage(
             @Parameter(hidden = true) Authentication authentication,
-            @RequestParam("imageId") String imageId
+            @RequestParam("imageId") String imageId,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
 }

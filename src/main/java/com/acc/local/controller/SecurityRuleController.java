@@ -16,16 +16,16 @@ public class SecurityRuleController implements SecurityRuleDocs {
     private final SecurityRuleServicePort securityRuleServicePort;
 
     @Override
-    public ResponseEntity<Object> createSecurityRule(Authentication authentication, String sgId, CreateSecurityRuleRequest request) {
+    public ResponseEntity<Object> createSecurityRule(Authentication authentication, String sgId, CreateSecurityRuleRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        securityRuleServicePort.createSecurityRule(sgId, jwtInfo.getProjectId(), jwtInfo.getUserId(), request);
+        securityRuleServicePort.createSecurityRule(sgId, projectId, jwtInfo.getUserId(), request);
         return ResponseEntity.created(null).build();
     }
 
     @Override
-    public ResponseEntity<Object> deleteSecurityRule(Authentication authentication, String srId) {
+    public ResponseEntity<Object> deleteSecurityRule(Authentication authentication, String srId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        securityRuleServicePort.deleteSecurityRule(srId, jwtInfo.getProjectId(), jwtInfo.getUserId());
+        securityRuleServicePort.deleteSecurityRule(srId, projectId, jwtInfo.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

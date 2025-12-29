@@ -118,7 +118,10 @@ public interface AuthDocs {
     @GetMapping("/profile")
     ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(
         @Parameter(hidden = true)
-        Authentication authentication
+        Authentication authentication,
+        @RequestParam
+        @Parameter(description = "프로젝트 ID", required = false)
+        String projectId
     );
 
 

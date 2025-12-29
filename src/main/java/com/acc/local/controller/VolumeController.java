@@ -22,40 +22,37 @@ public class VolumeController implements VolumeDocs {
     @Override
     public ResponseEntity<PageResponse<VolumeResponse>> getVolumes(
             PageRequest page,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         PageResponse<VolumeResponse> response = volumeServicePort.getVolumes(page, userId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<VolumeResponse> getVolumeDetails(String volumeId, Authentication authentication) {
+    public ResponseEntity<VolumeResponse> getVolumeDetails(String volumeId, Authentication authentication, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         VolumeResponse volumeDto = volumeServicePort.getVolumeDetails(userId, projectId, volumeId);
         return ResponseEntity.ok(volumeDto);
     }
 
     @Override
-    public ResponseEntity<Void> deleteVolume(String volumeId, Authentication authentication) {
+    public ResponseEntity<Void> deleteVolume(String volumeId, Authentication authentication, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         return volumeServicePort.deleteVolume(userId, projectId, volumeId);
     }
 
     @Override
-    public ResponseEntity<VolumeResponse> createVolume(VolumeRequest request, Authentication authentication) {
+    public ResponseEntity<VolumeResponse> createVolume(VolumeRequest request, Authentication authentication, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         VolumeResponse createdVolume = volumeServicePort.createVolume(userId, projectId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(createdVolume);

@@ -25,10 +25,11 @@ public class QuickStartController implements QuickStartDocs {
     @Override
     public ResponseEntity<QuickStartResponse> create(
             Authentication authentication,
-            QuickStartRequest request) {
+            QuickStartRequest request,
+            String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 
-        return ResponseEntity.ok(quickStartServicePort.create(jwtInfo.getUserId(), jwtInfo.getProjectId(), request));
+        return ResponseEntity.ok(quickStartServicePort.create(jwtInfo.getUserId(), projectId, request));
     }
 
 }

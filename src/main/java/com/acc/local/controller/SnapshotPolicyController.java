@@ -26,39 +26,36 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
     @Override
     public ResponseEntity<PageResponse<SnapshotPolicyResponse>> getPolicies(
             PageRequest page,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, userId, projectId);
+        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<SnapshotPolicyResponse> getPolicyDetails(
             Long policyId,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, userId, projectId);
+        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<SnapshotPolicyResponse> createPolicy(
             SnapshotPolicyRequest request,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        SnapshotPolicyResponse response = policyServicePort.createPolicy(request, userId, projectId);
+        SnapshotPolicyResponse response = policyServicePort.createPolicy(request, jwtInfo.getUserId(), projectId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -66,52 +63,48 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
     public ResponseEntity<SnapshotPolicyResponse> updatePolicy(
             Long policyId,
             SnapshotPolicyRequest request,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, userId, projectId);
+        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deletePolicy(
             Long policyId,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        policyServicePort.deletePolicy(policyId, userId, projectId);
+        policyServicePort.deletePolicy(policyId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Void> deactivatePolicy(
             Long policyId,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        policyServicePort.deactivatePolicy(policyId, userId, projectId);
+        policyServicePort.deactivatePolicy(policyId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> activatePolicy(
             Long policyId,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        policyServicePort.activatePolicy(policyId, userId, projectId);
+        policyServicePort.activatePolicy(policyId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -120,13 +113,12 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Long policyId,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate since,
             PageRequest page,
-            Authentication authentication
+            Authentication authentication,
+            String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
-        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, userId, projectId);
+        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok(response);
     }
 }

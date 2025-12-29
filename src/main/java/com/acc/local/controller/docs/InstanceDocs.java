@@ -51,6 +51,9 @@ public interface InstanceDocs {
     ResponseEntity<PageResponse<InstanceResponse>> getInstances(
             @Parameter(hidden = true)
             Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page
     );
@@ -100,6 +103,9 @@ public interface InstanceDocs {
     ResponseEntity<Object> createInstance(
             @Parameter(hidden = true)
             Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @RequestBody
             @Parameter(description = "인스턴스 생성 요청 정보", required = true)
             InstanceCreateRequest request
@@ -133,7 +139,10 @@ public interface InstanceDocs {
     @GetMapping("/quota")
     ResponseEntity<InstanceQuotaResponse> getQuota(
             @Parameter(hidden = true)
-            Authentication authentication
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
     );
 
     @Operation(
@@ -212,6 +221,9 @@ public interface InstanceDocs {
     ResponseEntity<Object> controlInstance(
             @Parameter(hidden = true)
             Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId,
             @RequestParam("instanceId")
             @Parameter(description = "인스턴스 고유 ID", required = true, example = "vm-uuid-1234-5678")
             String instanceId,

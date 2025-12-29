@@ -58,7 +58,10 @@ public interface InstanceTypeDocs {
             @Parameter(hidden = true) Authentication authentication,
             @RequestBody
             @Parameter(description = "인스턴스 타입 생성 요청 정보", required = true)
-            InstanceTypeCreateRequest request);
+            InstanceTypeCreateRequest request,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
 
     @Operation(
@@ -87,7 +90,10 @@ public interface InstanceTypeDocs {
             @Parameter(description = "페이지 정보 (Marker 기반)", required = false)
             PageRequest page,
             @Parameter(description = "아키텍처 필터 (예: X86)", required = false)
-            @RequestParam(required = false) String architect);
+            @RequestParam(required = false) String architect,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 
 
     @Operation(
@@ -111,5 +117,8 @@ public interface InstanceTypeDocs {
             @Parameter(description = "페이지 정보 (Marker 기반)", required = false)
             PageRequest page,
             @Parameter(description = "아키텍처 필터 (예: X86)", required = false)
-            @RequestParam(required = false) String architect);
+            @RequestParam(required = false) String architect,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
 }

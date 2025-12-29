@@ -28,11 +28,11 @@ public class ImageController implements ImageDocs {
             Authentication authentication,
             @RequestParam(value = "imageId", required = false) String imageId,
             @ModelAttribute PageRequest pageRequest,
-            @ModelAttribute ImageFilterRequest filterRequest
+            @ModelAttribute ImageFilterRequest filterRequest,
+            @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         boolean hasPaginationParams = pageRequest.getMarker() != null;
 
@@ -70,11 +70,11 @@ public class ImageController implements ImageDocs {
     @PostMapping("/import")
     public ResponseEntity<ImageUploadAckResponse> importImageByUrl(
             Authentication authentication,
-            @RequestBody ImageUrlImportRequest request
+            @RequestBody ImageUrlImportRequest request,
+            @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         ImageUploadAckResponse res =
                 imageServicePort.importImageByUrl(userId, projectId, request);
@@ -87,11 +87,11 @@ public class ImageController implements ImageDocs {
     @PostMapping("/metadata")
     public ResponseEntity<ImageUploadAckResponse> createImageMetadata(
             Authentication authentication,
-            @RequestBody ImageMetadataRequest request
+            @RequestBody ImageMetadataRequest request,
+            @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         ImageUploadAckResponse res =
                 imageServicePort.createImageMetadata(userId, projectId, request);
@@ -105,11 +105,11 @@ public class ImageController implements ImageDocs {
     public ResponseEntity<Void> uploadImageFileStream(
             Authentication authentication,
             @RequestParam("imageId") String imageId,
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         try {
             InputStream bodyStream = request.getInputStream();
@@ -126,11 +126,11 @@ public class ImageController implements ImageDocs {
     @DeleteMapping
     public ResponseEntity<Void> deleteImage(
             Authentication authentication,
-            @RequestParam("imageId") String imageId
+            @RequestParam("imageId") String imageId,
+            @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         imageServicePort.deleteImage(userId, projectId, imageId);
 
