@@ -30,8 +30,8 @@ public class KeypairModule {
     private final ProjectRepositoryPort projectRepositoryPort;
     private final KeypairExternalPort keypairExternalPort;
 
-    public PageResponse<KeypairListResponse> getKeypairs(String projectId, String marker, String direction, int limit) {
-        return keypairRepositoryPort.findKeypairsByProjectId(projectId, marker, direction, limit);
+    public PageResponse<KeypairListResponse> getKeypairs(String keystoneToken, String marker, String direction, int limit) {
+        return keypairExternalPort.callListKeypairs(keystoneToken, marker, direction, limit);
     }
 
     @Transactional
@@ -89,3 +89,4 @@ public class KeypairModule {
         }
     }
 }
+

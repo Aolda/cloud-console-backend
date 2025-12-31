@@ -7,6 +7,8 @@ import com.acc.global.exception.keypair.KeypairException;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
 import com.acc.local.dto.keypair.KeypairListResponse;
+import com.acc.local.entity.ProjectEntity;
+import com.acc.local.repository.ports.ProjectRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.keypair.KeypairModule;
 import com.acc.local.service.modules.keypair.KeypairUtil;
@@ -23,11 +25,17 @@ public class KeypairServiceAdapter implements KeypairServicePort {
     private final KeypairModule keypairModule;
     private final KeypairUtil keypairUtil;
     private final AuthModule authModule;
+    private final ProjectRepositoryPort projectRepositoryPort;
 
     @Override
     public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String projectId) {
+        ProjectEntity project = projectRepositoryPort.findById(projectId)
+                .orElseThrow(() -> new KeypairException(KeypairErrorCode.DB_PROJECT_NOT_FOUND));
+
+        String keystoneToken = authModule.issueProjectScopeToken(projectId, project.getOwnerKeystoneId());
+
         return keypairModule.getKeypairs(
-                projectId,
+                keystoneToken,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit());

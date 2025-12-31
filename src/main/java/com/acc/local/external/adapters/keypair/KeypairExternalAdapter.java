@@ -1,9 +1,11 @@
 package com.acc.local.external.adapters.keypair;
 
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.keypair.KeypairExternalErrorCode;
 import com.acc.global.exception.keypair.KeypairExternalException;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
+import com.acc.local.dto.keypair.KeypairListResponse;
 import com.acc.local.external.dto.nova.keypair.CreateKeyPairRequest;
 import com.acc.local.external.modules.nova.NovaKeypairAPIModule;
 import com.acc.local.external.ports.KeypairExternalPort;
@@ -15,6 +17,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -81,5 +88,77 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
             }
             throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_DELETION_FAILED);
         }
+    }
+
+    @Override
+    public PageResponse<KeypairListResponse> callListKeypairs(String token, String marker, String direction, int limit) {
+        ResponseEntity<JsonNode> response;
+
+        try {
+            response = novaKeypairAPIModule.listKeyPairs(token, getListKeypairsParams(marker, direction, limit));
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED);
+            }
+
+            JsonNode body = response.getBody();
+            JsonNode keypairsNode = body.get("keypairs");
+
+            List<KeypairListResponse> contents = new ArrayList<>();
+            if (keypairsNode != null && keypairsNode.isArray()) {
+                for (JsonNode item : keypairsNode) {
+                    JsonNode keypair = item.get("keypair");
+                    KeypairListResponse dto = new KeypairListResponse(
+                            keypair.get("fingerprint").asText(),
+                            keypair.get("name").asText()
+                    );
+                    contents.add(dto);
+                }
+            }
+
+            return getKeypairsPageResponse(marker, limit, contents);
+
+        } catch (WebClientException e) {
+            if (e instanceof WebClientResponseException ex) {
+                if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                    throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_UNAUTHORIZED);
+                }
+                if (ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+                    throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_FORBIDDEN);
+                }
+                log.error("Failed to list keypairs: {}", ex.getResponseBodyAsString());
+            }
+            throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED);
+        }
+    }
+
+    private Map<String, String> getListKeypairsParams(String marker, String direction, int limit) {
+        Map<String, String> params = new HashMap<>(Map.of());
+
+        if (limit != 0) {
+            params.put("limit", String.valueOf(limit));
+        }
+
+        if (marker != null && !marker.isEmpty()) {
+            params.put("marker", marker);
+            params.put("page_reverse", direction.equals("prev") ? "true" : "false");
+        }
+        return params;
+    }
+
+    private PageResponse<KeypairListResponse> getKeypairsPageResponse(String marker, int limit, List<KeypairListResponse> keypairs) {
+        int returnedSize = keypairs.size();
+        if (limit != 0 && returnedSize == limit + 1) {
+            keypairs.removeLast();
+        }
+
+        return PageResponse.<KeypairListResponse>builder()
+                .contents(keypairs)
+                .nextMarker(limit == 0 || returnedSize <= limit ? null : keypairs.getLast().getKeypairId())
+                .prevMarker(limit == 0 || marker == null ? null : keypairs.getFirst().getKeypairId())
+                .last(limit == 0 || returnedSize <= limit)
+                .first(marker == null || limit == 0)
+                .size(keypairs.size())
+                .build();
     }
 }
