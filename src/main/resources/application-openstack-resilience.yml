@@ -113,6 +113,10 @@ resilience4j:
       retry-neutron-get:
         baseConfig: default-get
 
+      # Opertation 별로 정책 따로 적용 필요한 경우 key 새로 생성해서 관리하는 패턴
+      retry-keystone-token-issue:
+        baseConfig: default-get
+
       # write류는 명시적으로 OFF
       retry-keystone-post:
         baseConfig: default-off
