@@ -3,6 +3,7 @@ package com.acc.local.external.modules;
 import com.acc.global.exception.common.CommonErrorCode;
 import com.acc.global.exception.common.ServiceUnavailableException;
 import com.acc.global.properties.OpenstackComponentProperties;
+import com.acc.local.external.resilience.OpenstackCallContext;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -42,8 +43,18 @@ public class OpenstackResilienceExecutor {
         String cbName = "cb-" + component;
         String retryName = "retry-" + component + "-" + method;
 
-        CircuitBreaker cb = getCircuitBreakerOrDefault(cbName);
-        Retry retry = getRetryOrDefault(retryName, "retry-default-" + method);
+        OpenstackCallContext.Ctx ctx = OpenstackCallContext.get();
+        String overrideRetry = (ctx != null) ? ctx.retry() : null;
+        String overrideCb = (ctx != null) ? ctx.circuitBreaker() : null;
+
+        CircuitBreaker cb = getCircuitBreakerOrDefault(
+                (overrideCb != null && !overrideCb.isBlank()) ? overrideCb : cbName
+        );
+
+        Retry retry = getRetryOrDefault(
+                (overrideRetry != null && !overrideRetry.isBlank()) ? overrideRetry : retryName,
+                "retry-default-" + method
+        );
 
         Supplier<T> decorated = CircuitBreaker.decorateSupplier(
                 cb,
