@@ -6,7 +6,7 @@ import com.acc.local.dto.network.CreateSecurityGroupRequest;
 import com.acc.local.dto.network.ViewSecurityGroupsResponse;
 
 public interface SecurityGroupServicePort {
-    void createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId);
+    String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId);
 
     PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(PageRequest page, String projectId, String userId);
 

@@ -13,6 +13,7 @@ import com.acc.local.external.modules.neutron.NeutronRoutersAPIModule;
 import com.acc.local.external.ports.NeutronRouterExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -26,52 +27,56 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
 
     private final NeutronRoutersAPIModule routersAPIModule;
 
     @Override
     public PageResponse<ViewRoutersResponse> callListRouters(String keystoneToken, String projectId, String marker, String direction, int limit) {
-        ResponseEntity<JsonNode> response;
-
         try {
-            response = routersAPIModule.listRouters(keystoneToken,
+            ResponseEntity<JsonNode> response = routersAPIModule.listRouters(keystoneToken,
                     getListRoutersParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED);
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED);
+            }
+
+            List<ViewRoutersResponse> routers = parseRouters(response);
+            return getRoutersPageResponse(marker, limit, routers);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED, e);
+            }
         }
-
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED);
-        }
-
-        List<ViewRoutersResponse> routers = parseRouters(response);
-
-        return getRoutersPageResponse(marker, limit, routers);
     }
 
     @Override
     public void callDeleteRouter(String keystoneToken, String routerId) {
-        ResponseEntity<JsonNode> response;
         try {
-            response = routersAPIModule.deleteRouter(keystoneToken, routerId);
+            ResponseEntity<JsonNode> response = routersAPIModule.deleteRouter(keystoneToken, routerId);
 
-        } catch (WebClientException e) {
-            if (e.getMessage().contains("404")) {
-                throw new NetworkException(NetworkErrorCode.NOT_FOUND_ROUTER);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_DELETION_FAILED);
             }
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_DELETION_FAILED);
-        }
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_DELETION_FAILED);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_FORBIDDEN, e);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_ROUTER, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_DELETION_FAILED, e);
+            }
         }
     }
 
     @Override
     public String callCreateRouter(String keystoneToken, String routerName, String networkId) {
-        ResponseEntity<JsonNode> response;
         try {
-            response = routersAPIModule.createRouter(keystoneToken,
+            ResponseEntity<JsonNode> response = routersAPIModule.createRouter(keystoneToken,
                     CreateRouterRequest.builder().router(
                             CreateRouterRequest.Router.builder()
                                     .name(routerName)
@@ -85,15 +90,20 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
                                     .build()
                     ).build(
                     ));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED, e);
-        }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED);
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED);
+            }
 
-        return response.getBody().get("router").get("id").asText();
+            return response.getBody().get("router").get("id").asText();
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED, e);
+            }
+        }
     }
 
     @Override
@@ -108,12 +118,18 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
             );
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED);
+                throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CONNECT_SUBNET_FAILED);
             }
 
             return response.getBody().get("id").asText();
         } catch (WebClientResponseException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CONNECT_SUBNET_FAILED);
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_FORBIDDEN, e);
+                case 404 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_NOT_FOUND, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CONNECT_SUBNET_FAILED, e);
+            }
         }
     }
 
@@ -135,7 +151,13 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
                     "name", router.get("name").asText()
             );
         } catch (WebClientResponseException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED);
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_FORBIDDEN, e);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_ROUTER, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED, e);
+            }
         }
 
     }

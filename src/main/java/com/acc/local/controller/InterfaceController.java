@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 public class InterfaceController implements InterfaceDocs {
@@ -30,7 +32,7 @@ public class InterfaceController implements InterfaceDocs {
     @Override
     public ResponseEntity<Object> createInterface(Authentication authentication, CreateInterfaceRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.createInterface(jwtInfo.getUserId(), projectId, request);
+        String id = interfaceServicePort.createInterface(jwtInfo.getUserId(), projectId, request);
         return ResponseEntity.created(null).build();
     }
 
@@ -45,7 +47,7 @@ public class InterfaceController implements InterfaceDocs {
     public ResponseEntity<Object> allocateExternalIp(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         interfaceServicePort.allocateExternalIp(jwtInfo.getUserId(), projectId, interfaceId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.created(null).build();
     }
 
     @Override
@@ -59,7 +61,7 @@ public class InterfaceController implements InterfaceDocs {
     public ResponseEntity<Object> createPortForwarding(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         interfaceServicePort.createSSHForwarding(jwtInfo.getUserId(), projectId, interfaceId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.created(null).build();
     }
 
     @Override

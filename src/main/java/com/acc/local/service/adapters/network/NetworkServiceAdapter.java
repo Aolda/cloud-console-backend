@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Primary
@@ -24,7 +26,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     private final AuthModule authModule;
 
     @Override
-    public void createNetwork(CreateNetworkRequest request, String userId, String projectId) {
+    public String createNetwork(CreateNetworkRequest request, String userId, String projectId) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
 
         /* --- Quota 검증 --- */
@@ -51,8 +53,17 @@ public class NetworkServiceAdapter implements NetworkServicePort {
                 }
             }
 
+            List<String> subnetCidrs = request.getSubnets().stream().map(
+                    CreateNetworkRequest.Subnet::getCidr
+            ).toList();
+            if (networkUtil.hasOverlappingCidrs(subnetCidrs)) {
+                throw new NetworkException(NetworkErrorCode.OVERLAPPING_SUBNET_CIDR);
+            }
+
             neutronModule.createSubnet(token, request.getSubnets(), networkId);
         }
+
+        return networkId;
     }
 
     @Override

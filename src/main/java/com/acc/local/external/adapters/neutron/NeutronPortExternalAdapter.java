@@ -1,10 +1,13 @@
 package com.acc.local.external.adapters.neutron;
 
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.instance.NovaErrorCode;
+import com.acc.global.exception.instance.NovaException;
 import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.global.exception.network.NeutronErrorCode;
 import com.acc.global.exception.network.NeutronException;
+import com.acc.local.domain.enums.network.InterfaceStatus;
 import com.acc.local.dto.network.ViewInterfacesResponse;
 import com.acc.local.external.dto.neutron.ports.CreatePortRequest;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
@@ -72,8 +75,14 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                     "id", portNode.get("id").asText()
             );
 
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_CREATION_FAILED);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_FORBIDDEN, e);
+                case 404 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_NETWORK_RESOURCE_NOT_FOUND, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_CREATION_FAILED, e);
+            }
         }
     }
 
@@ -85,8 +94,14 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_DELETION_FAILED);
             }
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_DELETION_FAILED);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_FORBIDDEN, e);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_INTERFACE, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_DELETION_FAILED, e);
+            }
         }
     }
 
@@ -102,11 +117,16 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
         try {
             response = portsAPIModule.listPorts(keystoneToken,
                     getListPortsParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0, deviceId, networkId));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED, e);
+            }
         }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+        if (response == null || !response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
         }
 
@@ -129,12 +149,15 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                     "id", portNode.get("id").asText(),
                     "name", portNode.get("name").asText()
             );
-        } catch (WebClientException e) {
-            if (e.getMessage().contains("404")) {
-                throw new NetworkException(NetworkErrorCode.NOT_FOUND_INTERFACE);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_FORBIDDEN, e);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_INTERFACE, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED, e);
             }
-            throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
-        }
+        } 
     }
 
     private MultiValueMap<String, String> getListPortsParams(String projectId, String marker, String direction, int limit, String deviceId, String networkId) {
@@ -177,7 +200,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
             ports.add(ViewInterfacesResponse.builder()
                     .interfaceId(portsNode.get("id").asText())
                     .interfaceName(portsNode.get("name").asText())
-                    .status(portsNode.get("status").asText())
+                    .status(InterfaceStatus.findByStatusName(portsNode.get("status").asText()))
                     .mac(portsNode.get("mac_address").asText())
                     .instance(hasDevice ? ViewInterfacesResponse.Instance.builder()
                                     .instanceId(portsNode.get("device_id").asText())
@@ -202,13 +225,16 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
-                // TODO: 인스턴스 예외 코드로 바꾸기
             }
 
             return response.getBody().get("server").get("name").asText();
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
-            // TODO: 인스턴스 예외 코드로 바꾸기
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 404 -> throw new NovaException(NovaErrorCode.NOVA_SERVER_NOT_FOUND);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
+            }
+
         }
     }
 
@@ -221,10 +247,14 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
             }
             return response.getBody().get("network").get("name").asText();
         } catch (WebClientResponseException e) {
-            if (e.getStatusCode().value() == 404) {
-                throw new NetworkException(NetworkErrorCode.NOT_FOUND_NETWORK);
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_NETWORK);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
             }
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+
         }
     }
 
@@ -245,7 +275,12 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
             return floatingIpNode.get("floating_ip_address").asText();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
-            throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_RETRIEVAL_FAILED);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_FORBIDDEN, e);
+                case 404 -> throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_NOT_FOUND, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_RETRIEVAL_FAILED, e);
+            }
         }
     }
 

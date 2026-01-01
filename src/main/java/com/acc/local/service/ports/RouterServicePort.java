@@ -6,7 +6,7 @@ import com.acc.local.dto.network.CreateRouterRequest;
 import com.acc.local.dto.network.ViewRoutersResponse;
 
 public interface RouterServicePort {
-    void createRouter(CreateRouterRequest request, String userId, String projectId);
+    String createRouter(CreateRouterRequest request, String userId, String projectId);
 
     void deleteRouter(String routerId, String userId, String projectId);
 

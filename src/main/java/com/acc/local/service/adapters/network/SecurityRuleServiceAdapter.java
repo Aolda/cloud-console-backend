@@ -21,15 +21,15 @@ public class SecurityRuleServiceAdapter implements SecurityRuleServicePort {
     private final AuthModule authModule;
 
     @Override
-    public void createSecurityRule(String sgId, String projectId, String userId, CreateSecurityRuleRequest request) {
+    public String createSecurityRule(String projectId, String userId, CreateSecurityRuleRequest request) {
 
         String token = authModule.issueProjectScopeToken(projectId, userId);
 
-        if (networkUtil.isNullOrEmpty(sgId)) {
+        if (networkUtil.isNullOrEmpty(request.getSecurityGroupId())) {
             throw new NetworkException(NetworkErrorCode.INVALID_SECURITY_GROUP_ID);
         }
 
-        String protocol = networkUtil.validateProtocol(request.getProtocol());
+        String protocol = networkUtil.validateProtocol(request.getProtocol().name());
         if (protocol == null) {
             throw new NetworkException(NetworkErrorCode.INVALID_SECURITY_RULE_PROTOCOL);
         }
@@ -48,9 +48,9 @@ public class SecurityRuleServiceAdapter implements SecurityRuleServicePort {
         }
 
 
-        neutronModule.createSecurityGroupRule(
+        return neutronModule.createSecurityGroupRule(
                 token,
-                sgId,
+                request.getSecurityGroupId(),
                 direction,
                 protocol,
                 request.getPort(),

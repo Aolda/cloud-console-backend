@@ -24,17 +24,17 @@ public class RouterServiceAdapter implements RouterServicePort {
     private final AuthModule authModule;
 
     @Override
-    public void createRouter(CreateRouterRequest request, String userId, String projectId) {
+    public String createRouter(CreateRouterRequest request, String userId, String projectId) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
 
-        if (!networkUtil.validateResourceName(request.getRouterName())) {
+        if (!networkUtil.validateResourceName(request.getRouterName()) || request.getRouterName().equals("default-router")) {
             throw new NetworkException(NetworkErrorCode.INVALID_ROUTER_NAME);
         }
         if (!networkUtil.validateGateway(request.getIsExternal())) {
             throw new NetworkException(NetworkErrorCode.INVALID_ROUTER_GATEWAY);
         }
 
-        neutronModule.createRouter(token, request.getRouterName(), request.getIsExternal());
+        return neutronModule.createRouter(token, request.getRouterName(), request.getIsExternal());
     }
 
     @Override

@@ -24,7 +24,7 @@ public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
     private final NeutronModule neutronModule;
 
     @Override
-    public void createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId) {
+    public String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
 
         if (!networkUtil.validateResourceName(request.getSecurityGroupName())
@@ -32,7 +32,7 @@ public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
             throw new NetworkException(NetworkErrorCode.INVALID_SECURITY_GROUP_NAME);
         }
 
-        neutronModule.createSecurityGroup(token, projectId, request.getSecurityGroupName(), request.getDescription());
+        return neutronModule.createSecurityGroup(token, projectId, request.getSecurityGroupName(), request.getDescription());
     }
 
     @Override

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 public class NetworkController implements NetworkDocs {
@@ -35,7 +37,7 @@ public class NetworkController implements NetworkDocs {
             String projectId,
             CreateNetworkRequest request) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        networkServicePort.createNetwork(request, jwtInfo.getUserId(), projectId);
+        String id = networkServicePort.createNetwork(request, jwtInfo.getUserId(), projectId);
         return ResponseEntity.created(null).build();
     }
 

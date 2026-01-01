@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class NeutronSecurityRuleExternalAdapter implements NeutronSecurityRuleEx
     private final NeutronSecurityGroupRulesAPIModule securityGroupRulesAPIModule;
 
     @Override
-    public void callCreateSecurityRule(String keystoneToken, String sgId, String direction,
+    public String callCreateSecurityRule(String keystoneToken, String sgId, String direction,
                                        String protocol, Integer port,
                                        String remoteGroupId, String remoteIpPrefix) {
         try {
@@ -43,8 +43,15 @@ public class NeutronSecurityRuleExternalAdapter implements NeutronSecurityRuleEx
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_CREATION_FAILED);
             }
 
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_CREATION_FAILED);
+            JsonNode securityRuleNode = response.getBody().get("security_group_rule");
+            return securityRuleNode.get("id").asText();
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_CREATION_FAILED, e);
+            }
         }
 
     }
@@ -54,12 +61,17 @@ public class NeutronSecurityRuleExternalAdapter implements NeutronSecurityRuleEx
         try {
             ResponseEntity<JsonNode> response = securityGroupRulesAPIModule.deleteSecurityGroupRule(keystoneToken, srId);
 
-            if (!response.getStatusCode().is2xxSuccessful()) {
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_DELETION_FAILED);
             }
-
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_DELETION_FAILED);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_FORBIDDEN, e);
+                case 404 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_NOT_FOUND, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_DELETION_FAILED, e);
+            }
         }
     }
 }

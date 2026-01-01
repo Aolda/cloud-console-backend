@@ -14,19 +14,33 @@ import lombok.Setter;
 @Schema(description = "라우터 정보")
 public class ViewRoutersResponse {
 
-    @Schema(description = "라우터 이름", example = "my-router")
+    @Schema(description = "라우터 이름",
+            example = "my-router",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     String routerName;
-    @Schema(description = "라우터 ID", example = "123e4567-e89b-12d3-a456-426614174000")
+    @Schema(description = "라우터 ID",
+            example = "123e4567-e89b-12d3-a456-426614174000",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     String routerId;
-    @Schema(description = "라우터 상태", example = "ACTIVE")
+    @Schema(description = "라우터 상태",
+            example = "ACTIVE",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     String status;
-    @Schema(description = "외부 연결 여부", example = "true")
+    @Schema(description = "외부 연결 여부",
+            example = "true",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean isExternal;
-    @Schema(description = "외부 네트워크 이름", example = "my-external-network")
-    String externalNetworkName;
-    @Schema(description = "외부 IP", example = "192.168.0.1")
+    @Schema(description = "외부 IP",
+            example = "192.168.0.1",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String externalIp;
-    @Schema(description = "생성일시", example = "2021-01-01T00:00:00Z")
+    @Schema(description = """
+            생성일시
+            
+            - ISO 8601 형식
+            """,
+            example = "2021-01-01T00:00:00Z",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     String createdAt;
 
 }
