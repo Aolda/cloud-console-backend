@@ -1,0 +1,39 @@
+{
+  "method" : "POST",
+  "uri" : "/v2.0/routers",
+  "port" : 9696,
+  "headers" : {
+    "X-Auth-Token" : "***masked***"
+  },
+  "queryParams" : { },
+  "requestBody" : {
+    "router" : {
+      "name" : "my-router-11"
+    }
+  },
+  "response" : {
+    "status" : 201,
+    "body" : {
+      "router" : {
+        "id" : "8a5510f2-2d5d-4a0b-8777-1f1d53893ebf",
+        "name" : "my-router-11",
+        "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+        "admin_state_up" : true,
+        "status" : "ACTIVE",
+        "external_gateway_info" : null,
+        "description" : "",
+        "availability_zones" : [ ],
+        "distributed" : false,
+        "ha" : false,
+        "availability_zone_hints" : [ ],
+        "routes" : [ ],
+        "flavor_id" : null,
+        "tags" : [ ],
+        "created_at" : "2025-12-31T06:56:47Z",
+        "updated_at" : "2025-12-31T06:56:47Z",
+        "revision_number" : 1,
+        "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+      }
+    }
+  }
+}

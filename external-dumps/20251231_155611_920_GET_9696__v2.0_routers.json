@@ -1,0 +1,76 @@
+{
+  "method" : "GET",
+  "uri" : "/v2.0/routers",
+  "port" : 9696,
+  "headers" : {
+    "X-Auth-Token" : "***masked***"
+  },
+  "queryParams" : {
+    "project_id" : [ "95282c49df5d47f68bb79bf4ad63a69b" ],
+    "page_reverse" : [ "false" ],
+    "limit" : [ "0" ],
+    "fields" : [ "id", "name", "status", "external_gateway_info", "description", "created_at" ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : {
+      "routers" : [ {
+        "id" : "b680048a-1581-476c-abc7-cd7ba155ba7d",
+        "name" : "my-router",
+        "status" : "ACTIVE",
+        "external_gateway_info" : null,
+        "description" : "",
+        "created_at" : "2025-11-05T11:19:57Z"
+      }, {
+        "id" : "be869b30-f092-46be-96c7-c0c1789c0e73",
+        "name" : "my-router2",
+        "status" : "ACTIVE",
+        "external_gateway_info" : null,
+        "description" : "",
+        "created_at" : "2025-11-05T11:14:32Z"
+      }, {
+        "id" : "d243f458-fa4e-4f30-b8d9-6bd89d04e498",
+        "name" : "my-router",
+        "status" : "ACTIVE",
+        "external_gateway_info" : {
+          "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+          "external_fixed_ips" : [ {
+            "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+            "ip_address" : "172.32.100.161"
+          } ],
+          "enable_snat" : true
+        },
+        "description" : "",
+        "created_at" : "2025-11-05T11:19:46Z"
+      }, {
+        "id" : "de0537d2-4560-4582-aa2b-40f8bc50d63d",
+        "name" : "aaa",
+        "status" : "ACTIVE",
+        "external_gateway_info" : {
+          "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+          "external_fixed_ips" : [ {
+            "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+            "ip_address" : "172.32.100.181"
+          } ],
+          "enable_snat" : true
+        },
+        "description" : "",
+        "created_at" : "2025-11-05T09:02:20Z"
+      }, {
+        "id" : "f7f4f37e-80e7-4ba3-a6f3-f1d0beeab0f9",
+        "name" : "default-router",
+        "status" : "ACTIVE",
+        "external_gateway_info" : {
+          "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+          "external_fixed_ips" : [ {
+            "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+            "ip_address" : "172.32.100.177"
+          } ],
+          "enable_snat" : true
+        },
+        "description" : "",
+        "created_at" : "2025-11-26T15:44:29Z"
+      } ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "method" : "DELETE",
+  "uri" : "/v2.0/routers/8a5510f2-2d5d-4a0b-8777-1f1d53893ebf",
+  "port" : 9696,
+  "headers" : {
+    "X-Auth-Token" : "***masked***"
+  },
+  "queryParams" : { },
+  "response" : {
+    "status" : 204,
+    "body" : null
+  }
+}

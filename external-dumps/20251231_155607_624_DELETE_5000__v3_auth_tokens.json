@@ -1,0 +1,14 @@
+{
+  "method" : "DELETE",
+  "uri" : "/v3/auth/tokens",
+  "port" : 5000,
+  "headers" : {
+    "X-Auth-Token" : "***masked***",
+    "X-Subject-Token" : "***masked***"
+  },
+  "queryParams" : { },
+  "response" : {
+    "status" : 204,
+    "body" : null
+  }
+}

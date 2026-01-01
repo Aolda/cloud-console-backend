@@ -1,0 +1,43 @@
+{
+  "method" : "POST",
+  "uri" : "/v3/auth/tokens",
+  "port" : 5000,
+  "headers" : { },
+  "queryParams" : { },
+  "requestBody" : {
+    "auth" : {
+      "identity" : {
+        "password" : {
+          "user" : {
+            "password" : "d0RU7M2Bq7NuD9GUwy2A06wJuQh2CP1WWCQ942Qm",
+            "domain" : {
+              "name" : "Default"
+            },
+            "name" : "admin"
+          }
+        },
+        "methods" : [ "password" ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 201,
+    "body" : {
+      "token" : {
+        "methods" : [ "password" ],
+        "user" : {
+          "domain" : {
+            "id" : "default",
+            "name" : "Default"
+          },
+          "id" : "c0f232df5a784163aa6c05f396b1dea6",
+          "name" : "admin",
+          "password_expires_at" : null
+        },
+        "audit_ids" : [ "RMYUKUYcRwaenakfcDo6lA" ],
+        "expires_at" : "2026-01-01T10:45:35.000000Z",
+        "issued_at" : "2025-12-31T10:45:35.000000Z"
+      }
+    }
+  }
+}
