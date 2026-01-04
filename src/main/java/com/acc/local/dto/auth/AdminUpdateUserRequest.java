@@ -13,32 +13,32 @@ import lombok.Builder;
 public record AdminUpdateUserRequest(
 
     @NotBlank
-    @Schema(description = "사용자 이름")
+    @Schema(description = "사용자 이름", requiredMode = Schema.RequiredMode.REQUIRED)
     String username,
 
     @NotBlank
-    @Schema(description = "사용자 이메일")
+    @Schema(description = "사용자 이메일", requiredMode = Schema.RequiredMode.REQUIRED)
     String email,
 
     @NotBlank
-    @Schema(description = "학과")
+    @Schema(description = "학과", requiredMode = Schema.RequiredMode.REQUIRED)
     String department,
 
     @NotBlank
     @Pattern(regexp = "^\\d{7}$", message = "학번은 7개의 문자로 이뤄져야합니다.")
-    @Schema(description = "학번")
+    @Schema(description = "학번", requiredMode = Schema.RequiredMode.REQUIRED)
     String studentId,
 
     @NotBlank
-    @Schema(description = "비밀번호")
+    @Schema(description = "비밀번호", requiredMode = Schema.RequiredMode.REQUIRED)
     String password,
 
     @NotBlank
     @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$", message = "올바른 전화번호 형식이어야 합니다.")
-    @Schema(description = "전화번호")
+    @Schema(description = "전화번호", requiredMode = Schema.RequiredMode.REQUIRED)
     String phoneNumber,
 
     @NotBlank
-    @Schema(description = "계정 활성화 여부")
+    @Schema(description = "계정 활성화 여부", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean isEnabled
 ) { }

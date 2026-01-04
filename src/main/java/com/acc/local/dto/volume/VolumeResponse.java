@@ -17,7 +17,7 @@ public class VolumeResponse {
     @Schema(description = "볼륨 이름", example = "my-volume")
     private String name;
 
-    @Schema(description = "볼륨 크기(GiB)", example = "10")
+    @Schema(description = "볼륨 크기(GiB 단위)", example = "10")
     private Integer size;
 
     @Schema(description = "볼륨 상태", example = "available")
@@ -32,9 +32,9 @@ public class VolumeResponse {
     @Schema(description = "가용 영역", example = "nova")
     private String availabilityZone;
 
-    @Schema(description = "생성 시간 (UTC)", example = "2025-10-10T04:00:00.000000")
+    @Schema(description = "생성 시간 (ISO-8601, 초 단위, 타임존 미포함/KST)", example = "2025-10-10T13:00:00")
     private String createdAt;
 
-    @Schema(description = "부팅 가능 여부", example = "false")
+    @Schema(description = "부팅 가능 여부(boolean 문자열: true|false)", example = "false")
     private String bootable;
 }

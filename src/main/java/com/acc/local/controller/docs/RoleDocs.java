@@ -2,6 +2,7 @@ package com.acc.local.controller.docs;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.ErrorResponse;
 import com.acc.local.dto.auth.CreateRoleRequest;
 import com.acc.local.dto.auth.CreateRoleResponse;
 import com.acc.local.dto.auth.ListRolesResponse;
@@ -12,9 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springdoc.core.annotations.ParameterObject;
 
 @RequestMapping("/api/v1/admin/roles")
 @Tag(name = "Admin Roles", description = "관리자 권한 관리 API")
@@ -34,27 +37,27 @@ public interface RoleDocs {
             @ApiResponse(
                     responseCode = "400",
                     description = "잘못된 요청 - 필수 파라미터가 누락되었습니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - 유효하지 않은 토큰입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "권한 없음 - 관리자 권한이 필요한 기능입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "충돌 - 이미 존재하는 역할입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류 - Keystone 통신 중 에러가 발생했습니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     @PostMapping("")
@@ -66,7 +69,13 @@ public interface RoleDocs {
 
     @Operation(
             summary = "역할 목록 조회",
-            description = "관리자가 전체 역할 목록을 조회합니다. name 파라미터로 역할 이름 검색이 가능합니다."
+            description = "관리자가 전체 역할 목록을 조회합니다. name 파라미터로 역할 이름 검색이 가능합니다.\n\n"
+                    + "- 페이지네이션(마커 기반)\n"
+                    + "  - marker: 경계 ID(첫 조회 null 또는 빈 문자열)\n"
+                    + "  - direction: next(기본) | prev\n"
+                    + "  - limit: 기본 10, 전체는 limit=0\n"
+                    + "  - next: id > marker 오름차순 / prev: id < marker 내려받아 뒤집어 반환(클라이언트는 오름차순 유지)\n"
+                    + "- 예시: GET /api/v1/admin/roles?marker=abc123&direction=next&limit=10"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -77,28 +86,28 @@ public interface RoleDocs {
             @ApiResponse(
                     responseCode = "400",
                     description = "잘못된 요청 - 잘못된 파라미터 형식입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - 유효하지 않은 토큰입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "권한 없음 - 관리자 권한이 필요한 기능입니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류 - Keystone 통신 중 에러가 발생했습니다.",
-                    content = @Content()
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     @GetMapping("")
     ResponseEntity<PageResponse<ListRolesResponse>> listRoles(
             @Parameter(description = "페이지 정보", required = false)
-            PageRequest page,
+            @ParameterObject PageRequest page,
             @Parameter(description = "역할 이름으로 검색 (선택)", example = "admin")
             String name,
             @Parameter(hidden = true) Authentication authentication);

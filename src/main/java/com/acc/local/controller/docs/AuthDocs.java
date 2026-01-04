@@ -34,7 +34,7 @@ public interface AuthDocs {
     })
     @PostMapping("/login")
     ResponseEntity<LoginResponse> login(
-            @RequestBody
+            @RequestBody(required = true)
             @Parameter(description = "Keystone 로그인 정보", required = true)
             KeystonePasswordLoginRequest request,
             HttpServletResponse response
@@ -54,7 +54,7 @@ public interface AuthDocs {
     })
     @PostMapping("/tokens/project")
     ResponseEntity<ProjectTokenResponse> issueProjectToken(
-            @RequestBody
+            @RequestBody(required = true)
             @Parameter(description = "프로젝트 ID", required = true)
             ProjectTokenRequest request,
             @Parameter(hidden = true) Authentication authentication
@@ -96,7 +96,7 @@ public interface AuthDocs {
     })
     @PostMapping("/signup")
     ResponseEntity<SignupResponse> signup(
-            @RequestBody
+            @RequestBody(required = true)
             @Parameter(description = "회원가입 요청 정보", required = true)
             SignupRequest request,
             @CookieValue("oauth-verification-token")
@@ -142,4 +142,3 @@ public interface AuthDocs {
         HttpServletResponse response
     );
 }
-

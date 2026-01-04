@@ -14,42 +14,42 @@ import lombok.Builder;
 @Builder
 public record AdminCreateUserRequest(
     @NotBlank(message = "사용자명은 필수입니다")
-    @Schema(description = "사용자 이름")
+    @Schema(description = "사용자 이름", requiredMode = Schema.RequiredMode.REQUIRED)
     String username,
 
     @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이어야 합니다")
     @Pattern(regexp = "^[A-Za-z0-9+_.-]+@ajou\\.ac\\.kr$", message = "이메일은 @ajou.ac.kr 도메인이어야 합니다")
-    @Schema(description = "사용자 이메일")
+    @Schema(description = "사용자 이메일", requiredMode = Schema.RequiredMode.REQUIRED)
     String email,
 
     @NotBlank(message = "학과는 필수입니다")
-    @Schema(description = "학과")
+    @Schema(description = "학과", requiredMode = Schema.RequiredMode.REQUIRED)
     String department,
 
     @NotBlank(message = "학번은 필수입니다")
     @Pattern(regexp = "^\\d{7}$", message = "학번은 7개의 문자로 이뤄져야합니다.")
-    @Schema(description = "학번")
+    @Schema(description = "학번", requiredMode = Schema.RequiredMode.REQUIRED)
     String studentId,
 
     @NotBlank(message = "비밀번호는 필수입니다")
-    @Schema(description = "비밀번호")
+    @Schema(description = "비밀번호", requiredMode = Schema.RequiredMode.REQUIRED)
     String password,
 
     @NotBlank(message = "전화번호는 필수입니다")
     @Pattern(regexp = "^01[0-9]-\\d{4}-\\d{4}$", message = "올바른 전화번호 형식이어야 합니다.")
-    @Schema(description = "전화번호")
+    @Schema(description = "전화번호", requiredMode = Schema.RequiredMode.REQUIRED)
     String phoneNumber,
 
     @NotNull(message = "계정 활성화 여부는 필수입니다")
-    @Schema(description = "계정 활성화 여부")
+    @Schema(description = "계정 활성화 여부", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean isEnabled,
 
     @NotNull(message = "관리자 여부는 필수입니다")
-    @Schema(description = "관리자 여부")
+    @Schema(description = "관리자 여부", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean isAdmin,
 
     @NotNull(message = "인증 타입은 필수입니다")
-    @Schema(description = "인증 타입")
+    @Schema(description = "인증 타입", requiredMode = Schema.RequiredMode.REQUIRED)
     AuthType authType
-) { }
+) { } 
