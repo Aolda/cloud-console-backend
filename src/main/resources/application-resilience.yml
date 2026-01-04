@@ -59,6 +59,13 @@ resilience4j:
         failureRateThreshold: 55
         waitDurationInOpenState: 5s
 
+      cb-apm:
+        baseConfig: default
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
   retry:
     configs:
       # 기본 OFF (maxAttempts=1)
@@ -142,3 +149,9 @@ resilience4j:
         baseConfig: default-off
       retry-neutron-delete:
         baseConfig: default-off
+
+      retry-apm-write:
+        baseConfig: default-off
+
+      retry-apm-read:
+        baseConfig: default-get
