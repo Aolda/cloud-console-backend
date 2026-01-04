@@ -8,10 +8,12 @@ import com.acc.local.external.modules.nova.NovaServerActionAPIModule;
 import com.acc.local.external.ports.NovaServerActionExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NovaServerActionExternalAdapter implements NovaServerActionExternalPort {
@@ -159,6 +161,7 @@ public class NovaServerActionExternalAdapter implements NovaServerActionExternal
         }
 
         if (response == null || !response.getStatusCode().is2xxSuccessful()) {
+            log.error("Nova API non-success status: {}, body: {}", response.getStatusCode(), response.getBody());
             throw new NovaException(NovaErrorCode.NOVA_SERVER_ACTION_FAILED);
         }
     }

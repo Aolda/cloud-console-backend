@@ -22,8 +22,6 @@ public class KeypairController implements KeypairDocs {
 
     @Override
     public ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(Authentication authentication, PageRequest page, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
         PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, projectId);
         return ResponseEntity.ok(response);
     }

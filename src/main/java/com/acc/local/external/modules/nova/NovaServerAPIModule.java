@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -56,6 +57,13 @@ public class NovaServerAPIModule extends NovaAPIUtil
 
     public ResponseEntity<JsonNode> createServer(String token, CreateServerRequest request) {
         String uri = "/v2.1/servers";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, createHeaders(token), request, port);
+    }
+
+    private Map<String, String> createHeaders(String token) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Auth-Token", token);
+        headers.put("X-OpenStack-Nova-API-Version", "2.79");
+        return headers;
     }
 }

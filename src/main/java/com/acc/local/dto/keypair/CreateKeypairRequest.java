@@ -10,6 +10,6 @@ import lombok.*;
 @Builder
 public class CreateKeypairRequest {
 
-    @Schema(description = "생성할 키페어의 이름", example = "my-keypair")
+    @Schema(description = "생성할 키페어의 이름 (프로젝트 내 고유)", requiredMode = Schema.RequiredMode.REQUIRED, example = "my-keypair")
     private String keypairName;
 }

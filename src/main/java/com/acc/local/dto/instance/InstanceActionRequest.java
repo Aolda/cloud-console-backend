@@ -10,14 +10,14 @@ import java.util.Map;
 @NoArgsConstructor
 public class InstanceActionRequest {
 
-    @Schema(description = "수행할 작업 Enum", example = "REBOOT")
+    @Schema(description = "수행할 작업 Enum", requiredMode = Schema.RequiredMode.REQUIRED, example = "REBOOT")
     InstanceActionType action;
 
     @Schema(description = "[LOCK] 잠금 사유 (v2.73+)", example = "작업 중")
     String lockedReason;
 
-    @Schema(description = "[REBOOT] 재부팅 유형", example = "SOFT")
-    String rebootType; // "SOFT" or "HARD"
+    @Schema(description = "[REBOOT] 재부팅 유형", example = "SOFT 또는 HARD")
+    String rebootType;
 
     @Schema(description = "[ADD/REMOVE_SECURITY_GROUP] 보안 그룹 이름", example = "sg-default")
     String securityGroupName;
