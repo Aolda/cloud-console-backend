@@ -1,0 +1,144 @@
+acc:
+  openstack:
+    components:
+      keystone:
+        port: 5000
+      nova:
+        port: 8774
+      cinder:
+        port: 8776
+      glance:
+        port: 9292
+      neutron:
+        port: 9696
+    resilience:
+      default-component: default
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 50
+        minimumNumberOfCalls: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+
+    instances:
+      cb-default:
+        baseConfig: default
+
+      cb-keystone:
+        baseConfig: default
+        failureRateThreshold: 40
+        waitDurationInOpenState: 3s
+
+      cb-glance:
+        baseConfig: default
+        failureRateThreshold: 45
+        waitDurationInOpenState: 3s
+
+      cb-nova:
+        baseConfig: default
+        failureRateThreshold: 55
+        waitDurationInOpenState: 5s
+
+      cb-cinder:
+        baseConfig: default
+        failureRateThreshold: 55
+        waitDurationInOpenState: 5s
+
+      cb-neutron:
+        baseConfig: default
+        failureRateThreshold: 55
+        waitDurationInOpenState: 5s
+
+  retry:
+    configs:
+      # 기본 OFF (maxAttempts=1)
+      default-off:
+        maxAttempts: 1
+        waitDuration: 0ms
+
+      # GET류만 "네트워크 계열"에 한해 짧게 재시도
+      default-get:
+        maxAttempts: 3
+        waitDuration: 200ms
+        retryExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+
+      # write는 원칙적으로 OFF(=1회) 유지
+      default-post:
+        maxAttempts: 1
+        waitDuration: 0ms
+
+      default-write:
+        maxAttempts: 1
+        waitDuration: 0ms
+
+    instances:
+      # 기본 fallback: 전부 OFF
+      retry-default-get:
+        baseConfig: default-off
+      retry-default-post:
+        baseConfig: default-off
+      retry-default-put:
+        baseConfig: default-off
+      retry-default-patch:
+        baseConfig: default-off
+      retry-default-delete:
+        baseConfig: default-off
+      retry-default-head:
+        baseConfig: default-off
+      retry-default-options:
+        baseConfig: default-off
+
+      # 컴포넌트별로 "GET만" ON
+      retry-keystone-get:
+        baseConfig: default-get
+      retry-nova-get:
+        baseConfig: default-get
+      retry-cinder-get:
+        baseConfig: default-get
+      retry-glance-get:
+        baseConfig: default-get
+      retry-neutron-get:
+        baseConfig: default-get
+
+      # Opertation 별로 정책 따로 적용 필요한 경우 key 새로 생성해서 관리하는 패턴
+      retry-keystone-token-issue:
+        baseConfig: default-get
+
+      # write류는 명시적으로 OFF
+      retry-keystone-post:
+        baseConfig: default-off
+      retry-glance-post:
+        baseConfig: default-off
+      retry-glance-put:
+        baseConfig: default-off
+      retry-nova-post:
+        baseConfig: default-off
+      retry-nova-put:
+        baseConfig: default-off
+      retry-nova-delete:
+        baseConfig: default-off
+      retry-cinder-post:
+        baseConfig: default-off
+      retry-cinder-put:
+        baseConfig: default-off
+      retry-cinder-delete:
+        baseConfig: default-off
+      retry-neutron-post:
+        baseConfig: default-off
+      retry-neutron-put:
+        baseConfig: default-off
+      retry-neutron-delete:
+        baseConfig: default-off

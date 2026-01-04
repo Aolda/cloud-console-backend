@@ -2,6 +2,7 @@ package com.acc.local.external.modules.keystone;
 
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.acc.local.external.modules.keystone.constant.KeystoneRoutes;
+import com.acc.local.external.resilience.OpenstackPolicy;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,14 +33,17 @@ public class KeystoneAuthAPIModule {
         return openstackAPICallModule.callGetAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), KeystoneAPIUtils.port);
     }
 
+    @OpenstackPolicy(retry = "retry-keystone-token-issue")
     public ResponseEntity<JsonNode> issueScopedToken(Map<String, Object> tokenRequest) {
         return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenRequest, KeystoneAPIUtils.port);
     }
 
+    @OpenstackPolicy(retry = "retry-keystone-token-issue")
     public ResponseEntity<JsonNode> issueUnscopedToken(Map<String, Object> passwordAuthRequest) {
         return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), passwordAuthRequest, KeystoneAPIUtils.port);
     }
 
+    @OpenstackPolicy(retry = "retry-keystone-token-issue")
     public ResponseEntity<JsonNode> issueUnscopedTokenByToken(String existingToken) {
         Map<String, Object> tokenAuthRequest = KeystoneAPIUtils.createTokenAuthRequest(existingToken);
         return openstackAPICallModule.callPostAPI(KeystoneRoutes.TOKEN_AUTH_DEFAULT, Collections.emptyMap(), tokenAuthRequest, KeystoneAPIUtils.port);

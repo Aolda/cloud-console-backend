@@ -12,7 +12,8 @@ public enum CommonErrorCode implements ErrorCode {
     INTERNAL_FAILURE(500, "ACC-COMMON-INTERNAL-FAILURE", "서버 내부 오류입니다."),
     VALIDATION_ERROR(400, "ACC-COMMON-VALIDATION-ERROR", "입력값이 올바르지 않습니다."),
     THROTTLING(429, "ACC-COMMON-THROTTLING", "요청이 너무 많습니다."),
-    SERVICE_UNAVAILABLE(503, "ACC-COMMON-SERVICE-UNAVAILABLE", "서비스를 사용할 수 없습니다.");
+    SERVICE_UNAVAILABLE(503, "ACC-COMMON-SERVICE-UNAVAILABLE", "서비스를 사용할 수 없습니다."),
+    OPENSTACK_INFRA_UNAVAILABLE(503, "OPENSTACK_INFRA_UNAVAILABLE", "컴포넌트 임시 장애 상황입니다");
 
     private final int status;
     private final String code;
