@@ -34,5 +34,5 @@ public class NoticeController implements NoticeDocs {
         String userId = jwtInfo.getUserId();
         return ResponseEntity.ok(noticeServicePort.adminListNotices(page,userId));
     }
-}
 
+}
