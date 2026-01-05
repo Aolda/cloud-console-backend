@@ -10,7 +10,7 @@ public record ProjectQuotaRequest(
 	int vCpu,
 
 	@Deprecated() // TODO: 'ram'로 변경
-	@Schema(description = "RAM 할당량(GB)", requiredMode = Schema.RequiredMode.REQUIRED, example = "32")
+	@Schema(description = "RAM 할당량(MB)", requiredMode = Schema.RequiredMode.REQUIRED, example = "32768")
 	int vRam,
 
 	@Deprecated() // TODO: 'volume'로 변경
