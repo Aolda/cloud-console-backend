@@ -376,10 +376,10 @@ public class ProjectModule {
 			.build();
 	}
 
-	public void updateProjectCPUAndRAMQuota(String adminToken, String projectId, int vCpuQuota, int ramQuotaWithGBUnit, String userId) {
+	public void updateProjectCPUAndRAMQuota(String adminToken, String projectId, int vCpuQuota, int ramQuota, String userId) {
 		computeQuotaExternalPort.callUpdateCPUAndRAMQuota(
 			adminToken,
-			projectId, vCpuQuota, ramQuotaWithGBUnit * 1024
+			projectId, vCpuQuota, ramQuota
 		);
 	}
 
