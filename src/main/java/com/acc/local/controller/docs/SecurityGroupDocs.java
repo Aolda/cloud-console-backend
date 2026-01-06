@@ -4,6 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.local.dto.network.CreateSecurityGroupRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -267,6 +268,11 @@ public interface SecurityGroupDocs {
             @ApiResponse(
                     responseCode = "201",
                     description = "보안 그룹 생성 성공",
+                    headers = @Header(
+                            name = "Location",
+                            description = "생성된 보안 그룹의 리소스 URL",
+                            schema = @Schema(type = "string", example = "/api/security-groups/{sgId}")
+                    ),
                     content = @Content()
             ),
             @ApiResponse(
