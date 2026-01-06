@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import org.slf4j.MDC;
 
 @Slf4j
 @Component
@@ -21,9 +22,19 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        String userId = "anonymous";
         if (authentication != null) {
-            log.info("logout - 성공 User : {} ", authentication.getName());
+            userId = authentication.getName();
         }
+
+        MDC.put("type", "ACCESS");
+        MDC.put("userId", userId);
+        MDC.put("method", request.getMethod());
+        MDC.put("uri", request.getRequestURI());
+        
+        log.info("[Auth] Logout Success - User: {}", userId);
+
+        MDC.clear();
 
         ApiResponse<Void> apiResponse = ApiResponse.success("로그아웃되었습니다.");
 

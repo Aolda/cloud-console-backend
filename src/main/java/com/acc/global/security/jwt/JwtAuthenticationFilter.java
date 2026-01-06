@@ -18,6 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.slf4j.MDC;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -49,11 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Security Context에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
+                MDC.put("userId", userId);
                 log.debug("JWT 인증 성공: userId={}", userId);
             }
         } catch (JwtAuthenticationException ex) {
             // 인증 실패 시 SecurityContext를 비움
             SecurityContextHolder.clearContext();
+            MDC.remove("userId");
         }
 
         filterChain.doFilter(request, response);

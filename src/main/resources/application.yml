@@ -4,7 +4,7 @@ server:
   port: ${SERVICE_PORT:8080}
 spring:
   profiles:
-    active: db, google, discord, mail, openstack-resilience
+    active: ${SPRING_PROFILES_ACTIVE}
   servlet:
     multipart:
       max-file-size: 1GB
@@ -77,9 +77,6 @@ oauth:
 
 apm:
     server-url: ${APM_SERVER_URL}
-logging:
-  level:
-    reactor.netty.http.client: TRACE
 
 quick-start:
   default-image-id: ${DEFAULT_IMAGE_ID_X86_64}

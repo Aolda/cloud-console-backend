@@ -1,5 +1,7 @@
 package com.acc.global.config;
 
+import com.acc.global.logging.GlobalAccessLoggingFilter;
+import com.acc.global.logging.RequestCachingFilter;
 import com.acc.global.security.jwt.JwtAuthenticationFilter;
 import com.acc.global.security.oauth.OAuth2CustomUserService;
 import com.acc.global.security.oauth.handler.OAuthFailureHandler;
@@ -28,6 +30,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RequestCachingFilter requestCachingFilter;
+    private final GlobalAccessLoggingFilter globalAccessLoggingFilter;
     //OAuth
     private final OAuth2CustomUserService oAuth2CustomUserService;
     private final OAuthSuccessHandler oAuthSuccessHandler;
@@ -67,12 +71,16 @@ public class SecurityConfig {
                                 "/api/v1/images/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs"
+                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
+                                "/actuator/**"
 
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Filter Order: RequestCaching -> JwtAuth -> AccessLogging
+                .addFilterBefore(requestCachingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(globalAccessLoggingFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

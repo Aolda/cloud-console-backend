@@ -1,0 +1,20 @@
+logging:
+  level:
+    reactor.netty.http.client: TRACE
+  loki:
+    url: ${LOKI_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  tracing:
+    sampling:
+      probability: 1.0 # Trace everything for now (adjust for prod)
+  otlp:
+    tracing:
+      endpoint: ${TEMPO_URL:http://localhost:4318/v1/traces}
+  opentelemetry:
+    resource-attributes:
+      service.name: ACC-Backend
