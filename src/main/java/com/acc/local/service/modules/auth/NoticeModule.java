@@ -5,10 +5,10 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
+import com.acc.global.exception.notice.NoticeErrorCode;
+import com.acc.global.exception.notice.NoticeServiceException;
 import com.acc.local.domain.model.auth.Notice;
-import com.acc.local.dto.auth.CreateNoticeRequest;
-import com.acc.local.dto.auth.CreateNoticeResponse;
-import com.acc.local.dto.auth.ListNoticesResponse;
+import com.acc.local.dto.auth.*;
 import com.acc.local.entity.NoticeEntity;
 import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.NoticeRepositoryPort;
@@ -64,19 +64,38 @@ public class NoticeModule {
     }
 
     /**
-     * 관리자 공지사항 목록 조회 (마커 기반 페이지네이션)
+     * 관리자 공지사항 상세 조회
      */
     @Transactional
-    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest pageRequest) {
-        return noticeRepositoryPort.findAllNotices(
-                pageRequest.getMarker(),
-                pageRequest.getDirection().name().equals("prev") ? "prev" : "next",
-                pageRequest.getLimit()
+    public GetNoticeResponse adminGetNotice(String noticeId) {
+        NoticeEntity notice = noticeRepositoryPort.findById(noticeId)
+                .orElseThrow(() -> new NoticeServiceException(NoticeErrorCode.NOTICE_NOT_FOUND));
+
+        String createdBy = getUserNameById(notice.getNoticeUserId());
+
+        return GetNoticeResponse.from(
+                notice.getNoticeId(),
+                notice.getNoticeTitle(),
+                notice.getNoticeDescription(),
+                createdBy,
+                notice.getCreatedAt(),
+                notice.getStartsAt(),
+                notice.getEndsAt()
         );
     }
 
-
-    // 업데이트 로직은 단일 공지 개념에서 생성 API로 대체 (업서트)
+    /**
+     * 관리자 공지사항 목록 조회 (마커 기반 페이지네이션)
+     */
+    @Transactional
+    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest pageRequest, NoticeFilterRequest filter) {
+        return noticeRepositoryPort.findAllNotices(
+                pageRequest.getMarker(),
+                pageRequest.getDirection().name().equals("prev") ? "prev" : "next",
+                pageRequest.getLimit(),
+                filter
+        );
+    }
 
 
     /**
