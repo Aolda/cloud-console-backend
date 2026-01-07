@@ -4,9 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
-import com.acc.local.dto.auth.CreateNoticeRequest;
-import com.acc.local.dto.auth.CreateNoticeResponse;
-import com.acc.local.dto.auth.ListNoticesResponse;
+import com.acc.local.dto.auth.*;
 import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.service.modules.auth.NoticeModule;
 import com.acc.local.service.modules.auth.UserModule;
@@ -25,6 +23,7 @@ public class NoticeServiceAdapter implements NoticeServicePort {
 
     private final NoticeModule noticeModule;
     private final UserModule userModule;
+
     @Override
     public CreateNoticeResponse adminCreateNotice(CreateNoticeRequest request, String requesterId) {
         // 권한 체크
@@ -34,11 +33,18 @@ public class NoticeServiceAdapter implements NoticeServicePort {
     }
 
     @Override
-    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, String requesterId) {
+    public GetNoticeResponse adminGetNotice(String noticeId, String requesterId) {
         // 권한 체크
         userModule.isAdminUser(requesterId);
-        return noticeModule.adminListNotices(page);
+
+        return noticeModule.adminGetNotice(noticeId);
     }
 
-    // 업데이트 API는 단일 공지 개념에서 생성 API로 대체 (업서트)
+    @Override
+    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, NoticeFilterRequest filter, String requesterId) {
+        // 권한 체크
+        userModule.isAdminUser(requesterId);
+        return noticeModule.adminListNotices(page, filter);
+    }
+
 }

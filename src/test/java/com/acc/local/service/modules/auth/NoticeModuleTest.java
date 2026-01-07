@@ -56,8 +56,8 @@ class NoticeModuleTest {
         CreateNoticeRequest request = CreateNoticeRequest.builder()
                 .title("시스템 점검 안내")
                 .content("내일 새벽 시스템 점검이 있습니다.")
-                .startsAt(LocalDateTime.now().toString())
-                .endsAt(LocalDateTime.now().plusDays(1).toString())
+                .startsAt(LocalDateTime.now())
+                .endsAt(LocalDateTime.now().plusDays(1))
                 .build();
 
         String creatorId = "user-1";
@@ -69,8 +69,8 @@ class NoticeModuleTest {
                 .noticeDescription("내일 새벽 시스템 점검이 있습니다.")
                 .noticeUserId(creatorId)
                 .createdAt(LocalDateTime.now())
-                .startsAt(LocalDateTime.parse(request.startsAt()))
-                .endsAt(LocalDateTime.parse(request.endsAt()))
+                .startsAt(request.startsAt())
+                .endsAt(request.endsAt())
                 .build();
 
         when(noticeRepositoryPort.save(any()))
@@ -107,8 +107,8 @@ class NoticeModuleTest {
         CreateNoticeRequest request = CreateNoticeRequest.builder()
                 .title("공지")
                 .content("내용")
-                .startsAt(LocalDateTime.now().toString())
-                .endsAt(LocalDateTime.now().plusHours(1).toString())
+                .startsAt(LocalDateTime.now())
+                .endsAt(LocalDateTime.now().plusHours(1))
                 .build();
 
         String creatorId = "unknown-user";
@@ -151,12 +151,12 @@ class NoticeModuleTest {
                 .prevMarker(null)
                 .build();
 
-        when(noticeRepositoryPort.findAllNotices(null, "next", 10))
+        when(noticeRepositoryPort.findAllNotices(eq(null), eq("next"), eq(10), any()))
                 .thenReturn(mockResponse);
 
         // when
         PageResponse<ListNoticesResponse> response =
-                noticeModule.adminListNotices(pageRequest);
+                noticeModule.adminListNotices(pageRequest, null);
 
         // then
         assertEquals(2, response.getContents().size());
@@ -165,7 +165,7 @@ class NoticeModuleTest {
         assertNull(response.getNextMarker());
         assertEquals("사용자1", response.getContents().get(0).createdBy());
 
-        verify(noticeRepositoryPort).findAllNotices(null, "next", 10);
+        verify(noticeRepositoryPort).findAllNotices(eq(null), eq("next"), eq(10), any());
     }
 
     // ----------------------------------------------------
@@ -193,12 +193,12 @@ class NoticeModuleTest {
                 .prevMarker("n3")
                 .build();
 
-        when(noticeRepositoryPort.findAllNotices("n2", "next", 10))
+        when(noticeRepositoryPort.findAllNotices(eq("n2"), eq("next"), eq(10), any()))
                 .thenReturn(mockResponse);
 
         // when
         PageResponse<ListNoticesResponse> response =
-                noticeModule.adminListNotices(pageRequest);
+                noticeModule.adminListNotices(pageRequest, null);
 
         // then
         assertEquals(1, response.getContents().size());
@@ -207,6 +207,6 @@ class NoticeModuleTest {
         assertNull(response.getNextMarker());
         assertEquals("n3", response.getPrevMarker());
 
-        verify(noticeRepositoryPort).findAllNotices("n2", "next", 10);
+        verify(noticeRepositoryPort).findAllNotices(eq("n2"), eq("next"), eq(10), any());
     }
 }
