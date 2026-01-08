@@ -1,0 +1,107 @@
+// Component: keystone
+// Method: GET
+// URI: /v3/projects
+// Port: 5000
+// Status Code: 200
+// Timestamp: 2026-01-08T14:50:06.555882
+// Has Auth Token: Yes
+// Response Body:
+{
+  "projects" : [ {
+    "id" : "0cc61cc8ed964714a06a42afa92c1dc6",
+    "name" : "admin",
+    "domain_id" : "default",
+    "description" : "Bootstrap project for initializing the cloud.",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/0cc61cc8ed964714a06a42afa92c1dc6"
+    }
+  }, {
+    "id" : "4260bfbfa74344e6b5a4658d0153cdf8",
+    "name" : "service",
+    "domain_id" : "default",
+    "description" : "",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/4260bfbfa74344e6b5a4658d0153cdf8"
+    }
+  }, {
+    "id" : "466c03db9b5d4f368b917ab6ba8d9190",
+    "name" : "mj-test-project",
+    "domain_id" : "default",
+    "description" : "test project",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/466c03db9b5d4f368b917ab6ba8d9190"
+    }
+  }, {
+    "id" : "547b772d43684321991cbde58f06a264",
+    "name" : "ACCSwaggerProjectCreateTest",
+    "domain_id" : "default",
+    "description" : "AoldaSwaggerProjectCreateTest",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/547b772d43684321991cbde58f06a264"
+    }
+  }, {
+    "id" : "5c63a00984dd45e894008f9a65b2a906",
+    "name" : "WaffleTestProject1",
+    "domain_id" : "default",
+    "description" : "WaffleTestProject1",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/5c63a00984dd45e894008f9a65b2a906"
+    }
+  }, {
+    "id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "name" : "AccTestProject",
+    "domain_id" : "default",
+    "description" : "Aolda Cloud - Test project for 'Project ACC'",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/95282c49df5d47f68bb79bf4ad63a69b"
+    }
+  }, {
+    "id" : "b4a09fd0eec64f38936b60621a428627",
+    "name" : "테스트 프로젝트 1",
+    "domain_id" : "default",
+    "description" : "string",
+    "enabled" : true,
+    "parent_id" : "default",
+    "is_domain" : false,
+    "tags" : [ ],
+    "options" : { },
+    "links" : {
+      "self" : "http://172.32.0.248:5000/v3/projects/b4a09fd0eec64f38936b60621a428627"
+    }
+  } ],
+  "links" : {
+    "next" : null,
+    "self" : "http://172.32.0.248:5000/v3/projects",
+    "previous" : null
+  }
+}

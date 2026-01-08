@@ -13,6 +13,8 @@ import com.acc.local.external.dto.neutron.routers.RemoveRouterInterfaceRequest;
 import com.acc.local.external.modules.neutron.NeutronRoutersAPIModule;
 import com.acc.local.external.ports.NeutronRouterExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.neutron.response.NeutronRoutersResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,7 @@ import java.util.Map;
 public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
 
     private final NeutronRoutersAPIModule routersAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public PageResponse<ViewRoutersResponse> callListRouters(String keystoneToken, String projectId, String marker, String direction, int limit) {

@@ -9,6 +9,8 @@ import com.acc.local.external.dto.cinder.snapshot.CreateSnapshotRequest;
 import com.acc.local.external.modules.cinder.CinderSnapshotsModule;
 import com.acc.local.external.ports.VolumeSnapshotExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.cinder.response.CinderSnapshotsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -25,6 +27,7 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class VolumeSnapshotExternalAdapter implements VolumeSnapshotExternalPort {
     private final CinderSnapshotsModule cinderSnapshotsModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public PageResponse<VolumeSnapshotResponse> callListSnapshots(String token, String projectId, String marker, int limit) {
@@ -174,13 +177,20 @@ public class VolumeSnapshotExternalAdapter implements VolumeSnapshotExternalPort
     }
 
     private VolumeSnapshotResponse convertToDto(JsonNode snapshotNode) {
-        return VolumeSnapshotResponse.builder()
-                .snapshotId(snapshotNode.path("id").asText())
-                .name(snapshotNode.path("name").asText(null))
-                .createdAt(snapshotNode.path("created_at").asText(null))
-                .sourceVolumeId(snapshotNode.path("volume_id").asText(null)) // path()와 asText(null) 사용
-                .status(snapshotNode.path("status").asText(null))
-                .sizeGb(snapshotNode.path("size").asInt(0)) // path()와 asInt(0) 사용
-                .build();
+        try {
+            // JsonNode를 CinderSnapshotsResponse.Snapshot DTO로 자동 변환
+            CinderSnapshotsResponse.Snapshot snapshot = objectMapper.treeToValue(snapshotNode, CinderSnapshotsResponse.Snapshot.class);
+
+            return VolumeSnapshotResponse.builder()
+                    .snapshotId(snapshot.getId())
+                    .name(snapshot.getName())
+                    .createdAt(snapshot.getCreatedAt())
+                    .sourceVolumeId(snapshot.getVolumeId())
+                    .status(snapshot.getStatus())
+                    .sizeGb(snapshot.getSize() != null ? snapshot.getSize() : 0)
+                    .build();
+        } catch (Exception e) {
+            throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);
+        }
     }
 }

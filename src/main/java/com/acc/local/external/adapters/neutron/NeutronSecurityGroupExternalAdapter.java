@@ -10,6 +10,8 @@ import com.acc.local.external.modules.neutron.NeutronSecurityGroupRulesAPIModule
 import com.acc.local.external.modules.neutron.NeutronSecurityGroupsAPIModule;
 import com.acc.local.external.ports.NeutronSecurityGroupExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
 
     private final NeutronSecurityGroupsAPIModule securityGroupsAPIModule;
     private final NeutronSecurityGroupRulesAPIModule securityRuleExternalPort;
+    private final ObjectMapper objectMapper;
 
     @Override
     public String callCreateSecurityGroup(String keystoneToken, String projectId, String securityGroupName, String description) {

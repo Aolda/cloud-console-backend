@@ -10,12 +10,16 @@ import com.acc.global.exception.network.NeutronException;
 import com.acc.local.domain.enums.network.InterfaceStatus;
 import com.acc.local.dto.network.ViewInterfacesResponse;
 import com.acc.local.external.dto.neutron.ports.CreatePortRequest;
+import com.acc.local.external.dto.neutron.response.NeutronPortsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronPortResponse;
+import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronPortsAPIModule;
 import com.acc.local.external.modules.nova.NovaServerAPIModule;
 import com.acc.local.external.ports.NeutronPortExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +42,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
     private final NeutronNetworksAPIModule networksAPIModule;
     private final NeutronFloatingIpsAPIModule floatingIpsAPIModule;
     private final NovaServerAPIModule serverAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Map<String, String> callCreatePort(String keystoneToken,

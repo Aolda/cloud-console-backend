@@ -9,6 +9,8 @@ import com.acc.local.external.dto.nova.keypair.CreateKeyPairRequest;
 import com.acc.local.external.modules.nova.NovaKeypairAPIModule;
 import com.acc.local.external.ports.KeypairExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.nova.response.NovaKeypairsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class KeypairExternalAdapter implements KeypairExternalPort {
 
     private final NovaKeypairAPIModule novaKeypairAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public CreateKeypairResponse createKeypair(String keystoneToken, CreateKeypairRequest request) {
@@ -67,12 +70,21 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
             throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_CREATION_FAILED);
         }
 
-        return CreateKeypairResponse.builder()
-                .keypairName(response.getBody().get("keypair").get("name").asText())
-                .fingerprint(response.getBody().get("keypair").get("fingerprint").asText())
-                .publicKey(response.getBody().get("keypair").get("public_key").asText())
-                .privateKey(response.getBody().get("keypair").get("private_key").asText())
-                .build();
+        try {
+            // JsonNode를 DTO로 변환 (단일 keypair wrapper 형태)
+            JsonNode keypairNode = response.getBody().path("keypair");
+            NovaKeypairsResponse.Keypair keypair = objectMapper.treeToValue(keypairNode, NovaKeypairsResponse.Keypair.class);
+
+            return CreateKeypairResponse.builder()
+                    .keypairName(keypair.getName())
+                    .fingerprint(keypair.getFingerprint())
+                    .publicKey(keypair.getPublicKey())
+                    .privateKey(keypair.getPrivateKey())
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to parse keypair response", e);
+            throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_CREATION_FAILED);
+        }
     }
 
     @Override

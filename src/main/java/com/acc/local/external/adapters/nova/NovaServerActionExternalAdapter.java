@@ -7,6 +7,7 @@ import com.acc.local.external.dto.nova.serverAction.*;
 import com.acc.local.external.modules.nova.NovaServerActionAPIModule;
 import com.acc.local.external.ports.NovaServerActionExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClientException;
 public class NovaServerActionExternalAdapter implements NovaServerActionExternalPort {
 
     private final NovaServerActionAPIModule novaServerActionAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void callControlInstance(String token, String projectId, String instanceId, InstanceActionRequest request) {

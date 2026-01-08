@@ -7,6 +7,8 @@ import com.acc.local.external.dto.neutron.floatingips.UpdateFloatingIpRequest;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
 import com.acc.local.external.ports.NeutronFloatingIpExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

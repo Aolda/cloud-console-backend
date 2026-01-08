@@ -1,0 +1,24 @@
+// Component: keystone
+// Method: POST
+// URI: /v3/auth/tokens
+// Port: 5000
+// Status Code: 201
+// Timestamp: 2026-01-08T17:33:57.495644
+// Response Body:
+{
+  "token" : {
+    "methods" : [ "password" ],
+    "user" : {
+      "domain" : {
+        "id" : "default",
+        "name" : "Default"
+      },
+      "id" : "c0f232df5a784163aa6c05f396b1dea6",
+      "name" : "admin",
+      "password_expires_at" : null
+    },
+    "audit_ids" : [ "UikrG0WzTeGjz2SJrCTPwA" ],
+    "expires_at" : "2026-01-09T08:33:57.000000Z",
+    "issued_at" : "2026-01-08T08:33:57.000000Z"
+  }
+}

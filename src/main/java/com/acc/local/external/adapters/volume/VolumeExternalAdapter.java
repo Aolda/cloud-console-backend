@@ -6,9 +6,12 @@ import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
 import com.acc.local.external.dto.cinder.volume.CreateVolumeRequest;
+import com.acc.local.external.dto.cinder.response.CinderVolumesResponse;
+import com.acc.local.external.dto.cinder.response.CinderVolumeResponse;
 import com.acc.local.external.modules.cinder.CinderVolumesModule;
 import com.acc.local.external.ports.VolumeExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -26,6 +29,7 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class VolumeExternalAdapter implements VolumeExternalPort {
     private final CinderVolumesModule cinderVolumesModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit) {
@@ -171,16 +175,23 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
     }
 
     private VolumeResponse convertToDto(JsonNode volumeNode) {
-        return VolumeResponse.builder()
-                .volumeId(volumeNode.path("id").asText())
-                .name(volumeNode.path("name").asText(null))
-                .size(volumeNode.path("size").asInt(0))
-                .status(volumeNode.path("status").asText(null))
-                .volumeType(volumeNode.path("volume_type").asText(null))
-                .description(volumeNode.path("description").asText(null))
-                .availabilityZone(volumeNode.path("availability_zone").asText(null))
-                .createdAt(volumeNode.path("created_at").asText(null))
-                .bootable(volumeNode.path("bootable").asText(null))
-                .build();
+        try {
+            // JsonNode를 CinderVolumesResponse.Volume DTO로 자동 변환
+            CinderVolumesResponse.Volume volume = objectMapper.treeToValue(volumeNode, CinderVolumesResponse.Volume.class);
+
+            return VolumeResponse.builder()
+                    .volumeId(volume.getId())
+                    .name(volume.getName())
+                    .size(volume.getSize())
+                    .status(volume.getStatus())
+                    .volumeType(volume.getVolumeType())
+                    .description(volume.getDescription())
+                    .availabilityZone(volume.getAvailabilityZone())
+                    .createdAt(volume.getCreatedAt())
+                    .bootable(volume.getBootable())
+                    .build();
+        } catch (Exception e) {
+            throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);
+        }
     }
 }

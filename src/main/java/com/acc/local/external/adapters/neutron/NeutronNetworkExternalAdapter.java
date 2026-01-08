@@ -7,10 +7,13 @@ import com.acc.global.exception.network.NeutronErrorCode;
 import com.acc.global.exception.network.NeutronException;
 import com.acc.local.dto.network.ViewNetworksResponse;
 import com.acc.local.external.dto.neutron.networks.CreateNetworkRequest;
+import com.acc.local.external.dto.neutron.response.NeutronNetworksResponse;
+import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronSubnetsAPIModule;
 import com.acc.local.external.ports.NeutronNetworkExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
 
     private final NeutronNetworksAPIModule networksAPIModule;
     private final NeutronSubnetsAPIModule subnetsAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public String callCreateGeneralNetwork(String keystoneToken, String name, String description, int mtu) {

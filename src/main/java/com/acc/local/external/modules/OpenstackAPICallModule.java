@@ -1,5 +1,6 @@
 package com.acc.local.external.modules;
 
+import com.acc.local.external.utils.ResponseDumper;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
@@ -20,9 +21,10 @@ public class OpenstackAPICallModule {
 
     private final WebClient openstackWebClient;
     private final OpenstackResilienceExecutor openstackResilienceExecutor;
+    private final ResponseDumper responseDumper;
 
     public ResponseEntity<JsonNode> callGetAPI(String uri, Map<String, String> headers, Map<String, String> queryParams, int port) {
-        return openstackResilienceExecutor.execute("get", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("get", port, () ->
                 openstackWebClient.get()
                         .uri(uriBuilder -> {
                             uriBuilder.port(port);
@@ -36,10 +38,16 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+
+        if (response != null && response.getBody() != null) {
+            responseDumper.dumpResponse("GET", uri, port, headers, response.getBody(), response.getStatusCode().value());
+        }
+
+        return response;
     }
 
     public ResponseEntity<JsonNode> callGetAPI(String uri, Map<String, String> headers, MultiValueMap<String, String> queryParams, int port) {
-        return openstackResilienceExecutor.execute("get", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("get", port, () ->
                 openstackWebClient.get()
                         .uri(uriBuilder -> {
                             uriBuilder.port(port);
@@ -57,10 +65,16 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+
+        if (response != null && response.getBody() != null) {
+            responseDumper.dumpResponse("GET", uri, port, headers, response.getBody(), response.getStatusCode().value());
+        }
+
+        return response;
     }
 
     public ResponseEntity<JsonNode> callPostAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("post", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("post", port, () ->
                 openstackWebClient.post()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -69,10 +83,16 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+
+        if (response != null && response.getBody() != null) {
+            responseDumper.dumpResponse("POST", uri, port, headers, response.getBody(), response.getStatusCode().value());
+        }
+
+        return response;
     }
 
     public ResponseEntity<JsonNode> callPutAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("put", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("put", port, () ->
                 openstackWebClient.put()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -81,6 +101,12 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+
+        if (response != null && response.getBody() != null) {
+            responseDumper.dumpResponse("PUT", uri, port, headers, response.getBody(), response.getStatusCode().value());
+        }
+
+        return response;
     }
 
     public ResponseEntity<JsonNode> callDeleteAPI(String uri, Map<String, String> headers, int port) {
@@ -96,7 +122,7 @@ public class OpenstackAPICallModule {
     }
 
     public ResponseEntity<JsonNode> callPatchAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("patch", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("patch", port, () ->
                 openstackWebClient.patch()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -105,6 +131,12 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+
+        if (response != null && response.getBody() != null) {
+            responseDumper.dumpResponse("PATCH", uri, port, headers, response.getBody(), response.getStatusCode().value());
+        }
+
+        return response;
     }
 
     public ResponseEntity<JsonNode> callHeadAPI(String uri, Map<String, String> headers, int port) {
