@@ -4,6 +4,8 @@ import com.acc.local.external.dto.neutron.networks.BulkCreateNetworkRequest;
 import com.acc.local.external.dto.neutron.networks.CreateNetworkRequest;
 import com.acc.local.external.dto.neutron.networks.UpdateNetworkRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
+import com.acc.local.external.dto.neutron.response.NeutronNetworksResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +20,14 @@ public class NeutronNetworksAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listNeutronNetworks(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronNetworksResponse> listNeutronNetworks(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/networks";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronNetworksResponse.class);
     }
 
-    public ResponseEntity<JsonNode> createNeutronNetwork(String token, CreateNetworkRequest request) {
+    public ResponseEntity<NeutronNetworkResponse> createNeutronNetwork(String token, CreateNetworkRequest request) {
         String uri = "/v2.0/networks";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronNetworkResponse.class);
     }
 
     public ResponseEntity<JsonNode> bulkCreateNeutronNetworks(String token, BulkCreateNetworkRequest request) {
@@ -33,9 +35,9 @@ public class NeutronNetworksAPIModule extends NeutronAPIUtil {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> showNeutronNetwork(String token, String networkId) {
+    public ResponseEntity<NeutronNetworkResponse> showNeutronNetwork(String token, String networkId) {
         String uri = "/v2.0/networks/" + networkId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronNetworkResponse.class);
     }
 
     public ResponseEntity<JsonNode> updateNeutronNetwork(String token, String networkId, UpdateNetworkRequest request) {
@@ -43,8 +45,8 @@ public class NeutronNetworksAPIModule extends NeutronAPIUtil {
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> deleteNeutronNetwork(String token, String networkId) {
+    public ResponseEntity<Void> deleteNeutronNetwork(String token, String networkId) {
         String uri = "/v2.0/networks/" + networkId;
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
+        return openstackAPICallModule.callDeleteAPINoBody(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }

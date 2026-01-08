@@ -6,8 +6,7 @@ import com.acc.local.external.dto.neutron.floatingips.CreateFloatingIpRequest;
 import com.acc.local.external.dto.neutron.floatingips.UpdateFloatingIpRequest;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
 import com.acc.local.external.ports.NeutronFloatingIpExternalPort;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,7 @@ public class NeutronFloatingIpExternalAdapter implements NeutronFloatingIpExtern
     public void allocateFloatingIpToPort(String keystoneToken, String floatingNetworkId, String portId) {
 
         try {
-            ResponseEntity<JsonNode> response = floatingIpsAPIModule.createFloatingIp(keystoneToken,
+            ResponseEntity<?> response = floatingIpsAPIModule.createFloatingIp(keystoneToken,
                     CreateFloatingIpRequest.builder().floatingip(
                             CreateFloatingIpRequest.FloatingIp.builder()
                                     .floatingNetworkId(floatingNetworkId)
@@ -58,7 +57,7 @@ public class NeutronFloatingIpExternalAdapter implements NeutronFloatingIpExtern
     @Override
     public Map<String, String> getFloatingIpInfo(String keystoneToken, String portId) {
         try {
-            ResponseEntity<JsonNode> response = floatingIpsAPIModule.listFloatingIps(
+            ResponseEntity<NeutronFloatingIpsResponse> response = floatingIpsAPIModule.listFloatingIps(
                     keystoneToken,
                     portId != null ? Map.of("port_id", portId) : null
             );
@@ -67,14 +66,14 @@ public class NeutronFloatingIpExternalAdapter implements NeutronFloatingIpExtern
                 throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_RETRIEVAL_FAILED);
             }
 
-            if (response.getBody().get("floatingips").isEmpty()) {
+            if (response.getBody().getFloatingips() == null || response.getBody().getFloatingips().isEmpty()) {
                 return null;
             }
 
-            JsonNode floatingIpNode = response.getBody().get("floatingips").get(0);
+            var floatingIp = response.getBody().getFloatingips().get(0);
             return Map.of(
-                    "id", floatingIpNode.get("id").asText(),
-                    "floating_ip_address", floatingIpNode.get("floating_ip_address").asText()
+                    "id", floatingIp.getId(),
+                    "floating_ip_address", floatingIp.getFloatingIpAddress()
             );
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
@@ -95,7 +94,7 @@ public class NeutronFloatingIpExternalAdapter implements NeutronFloatingIpExtern
     @Override
     public void releaseFloatingIpFromPort(String keystoneToken, String floatingIpId) {
         try {
-            ResponseEntity<JsonNode> response = floatingIpsAPIModule.deleteFloatingIp(keystoneToken, floatingIpId);
+            ResponseEntity<Void> response = floatingIpsAPIModule.deleteFloatingIp(keystoneToken, floatingIpId);
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
