@@ -1,0 +1,137 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/flavors",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "flavors" : [ {
+    "id" : "09085288-78f3-4c40-93db-dc1d4d9f81be",
+    "name" : "tb1.micro",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/09085288-78f3-4c40-93db-dc1d4d9f81be"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/09085288-78f3-4c40-93db-dc1d4d9f81be"
+    } ]
+  }, {
+    "id" : "17581e7d-7982-483f-b386-914b6b0d9f8c",
+    "name" : "tb1123.micro",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/17581e7d-7982-483f-b386-914b6b0d9f8c"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/17581e7d-7982-483f-b386-914b6b0d9f8c"
+    } ]
+  }, {
+    "id" : "37433bba-e9cf-4c79-9db5-40df6d80d93c",
+    "name" : "tb1.xlarge",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/37433bba-e9cf-4c79-9db5-40df6d80d93c"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/37433bba-e9cf-4c79-9db5-40df6d80d93c"
+    } ]
+  }, {
+    "id" : "3895da28-f55a-4b6a-a9fb-8ecca39a80c7",
+    "name" : "tb1.default",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/3895da28-f55a-4b6a-a9fb-8ecca39a80c7"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/3895da28-f55a-4b6a-a9fb-8ecca39a80c7"
+    } ]
+  }, {
+    "id" : "6005743f-2eb0-4e48-bf46-b482912bb3c1",
+    "name" : "flavor.test.micro",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/6005743f-2eb0-4e48-bf46-b482912bb3c1"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/6005743f-2eb0-4e48-bf46-b482912bb3c1"
+    } ]
+  }, {
+    "id" : "9c703d29-b147-4a67-9f6a-12217e46270a",
+    "name" : "tb1.4xlarge",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/9c703d29-b147-4a67-9f6a-12217e46270a"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/9c703d29-b147-4a67-9f6a-12217e46270a"
+    } ]
+  }, {
+    "id" : "b6959541-8514-4aa7-83e8-36f66fe852d8",
+    "name" : "tb1.2xlarge",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/b6959541-8514-4aa7-83e8-36f66fe852d8"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/b6959541-8514-4aa7-83e8-36f66fe852d8"
+    } ]
+  }, {
+    "id" : "c4f4f2e0-174a-4b02-ad64-8f497e27eecd",
+    "name" : "test",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/c4f4f2e0-174a-4b02-ad64-8f497e27eecd"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/c4f4f2e0-174a-4b02-ad64-8f497e27eecd"
+    } ]
+  }, {
+    "id" : "d35c88f8-7801-4c05-bc3e-0f77bbd1bd78",
+    "name" : "acc.test",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/d35c88f8-7801-4c05-bc3e-0f77bbd1bd78"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/d35c88f8-7801-4c05-bc3e-0f77bbd1bd78"
+    } ]
+  }, {
+    "id" : "d68b6fc3-7c7c-4ca2-8bc0-3bdbf036791a",
+    "name" : "tb1.large",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/d68b6fc3-7c7c-4ca2-8bc0-3bdbf036791a"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/d68b6fc3-7c7c-4ca2-8bc0-3bdbf036791a"
+    } ]
+  }, {
+    "id" : "f33df033-6195-4f6b-b7df-c99ca2b9a6f8",
+    "name" : "tb1111111.micro",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/f33df033-6195-4f6b-b7df-c99ca2b9a6f8"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/f33df033-6195-4f6b-b7df-c99ca2b9a6f8"
+    } ]
+  }, {
+    "id" : "fef0df7f-c3bd-4c36-941c-f476e9f155f3",
+    "name" : "tb1.mini",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/fef0df7f-c3bd-4c36-941c-f476e9f155f3"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/fef0df7f-c3bd-4c36-941c-f476e9f155f3"
+    } ]
+  } ]
+}
+  }
+}

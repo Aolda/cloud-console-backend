@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/limits",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "limits" : {
+    "rate" : [ ],
+    "absolute" : {
+      "maxTotalVolumes" : 10,
+      "maxTotalSnapshots" : 10,
+      "maxTotalVolumeGigabytes" : 1000,
+      "maxTotalBackups" : 10,
+      "maxTotalBackupGigabytes" : 1000,
+      "totalVolumesUsed" : 2,
+      "totalGigabytesUsed" : 30,
+      "totalSnapshotsUsed" : 0,
+      "totalBackupsUsed" : 0,
+      "totalBackupGigabytesUsed" : 0
+    }
+  }
+}
+  }
+}

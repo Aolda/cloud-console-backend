@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/flavors/fef0df7f-c3bd-4c36-941c-f476e9f155f3",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "flavor" : {
+    "id" : "fef0df7f-c3bd-4c36-941c-f476e9f155f3",
+    "name" : "tb1.mini",
+    "ram" : 1024,
+    "disk" : 0,
+    "swap" : "",
+    "OS-FLV-EXT-DATA:ephemeral" : 0,
+    "OS-FLV-DISABLED:disabled" : false,
+    "vcpus" : 1,
+    "os-flavor-access:is_public" : true,
+    "rxtx_factor" : 1.0,
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/flavors/fef0df7f-c3bd-4c36-941c-f476e9f155f3"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/flavors/fef0df7f-c3bd-4c36-941c-f476e9f155f3"
+    } ]
+  }
+}
+  }
+}

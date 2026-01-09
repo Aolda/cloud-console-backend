@@ -1,0 +1,76 @@
+app:
+  capture:
+    enabled: true
+    project-id: ${APP_CAPTURE_PROJECT_ID}
+    keystone:
+      username: ${SUPER_ADMIN_USER_NAME}
+      password: ${SUPER_ADMIN_USER_NAME}
+      domain: "Default"
+    prefer-token-scope: system
+    neutron:
+      networks: false
+      ports: false
+      security-groups: false
+      security-group-rules: false
+      subnets: false
+      routers: false
+      floatingips: false
+      write:
+        enabled: false
+        networks: false
+        security-groups: false
+    nova:
+      servers: true
+      servers-detail: true
+      keypairs: true
+      limits: true
+      write:
+        enabled: false
+        keypairs: true
+    glance:
+      images: false
+      tasks: false
+    cinder:
+      volumes: false
+      volumes-detail: false
+      snapshots: false
+      backups: false
+      limits: false
+    extra:
+      nova:
+        port: 8774
+        uris: []
+      glance:
+        port: 9292
+        uris: []
+      cinder:
+        port: 8776
+        uris: []
+    auto-follow:
+      enabled: true
+      nova:
+        servers-limit: 5
+        flavors-limit: 5
+      glance:
+        images-limit: 5
+      cinder:
+        volumes-limit: 5
+        snapshots-limit: 5
+        backups-limit: 5
+    sweep:
+      enabled: true
+      nova: true
+      glance: true
+      cinder: true
+    rate:
+      sleep-ms: 800
+      jitter-ms: 1200
+      retries: 6
+      backoff-ms: 1000
+      cooldown-every: 10
+      cooldown-ms: 15000
+      startup-warmup-ms: 3000
+
+spring:
+  main:
+    banner-mode: "off"

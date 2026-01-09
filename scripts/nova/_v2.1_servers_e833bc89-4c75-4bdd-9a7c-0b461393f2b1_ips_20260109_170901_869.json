@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/e833bc89-4c75-4bdd-9a7c-0b461393f2b1/ips",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "addresses" : {
+    "test" : [ {
+      "version" : 4,
+      "addr" : "192.168.0.120"
+    }, {
+      "version" : 4,
+      "addr" : "192.168.0.56"
+    } ]
+  }
+}
+  }
+}
