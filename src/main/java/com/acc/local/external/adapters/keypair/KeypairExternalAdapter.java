@@ -124,9 +124,9 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                     throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_UNAUTHORIZED);
                 }
                 if (ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+                    log.error("Failed to list keypairs: {}", ex.getResponseBodyAsString());
                     throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_FORBIDDEN);
                 }
-                log.error("Failed to list keypairs: {}", ex.getResponseBodyAsString());
             }
             throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED);
         }

@@ -25,14 +25,17 @@ public class KeypairServiceAdapter implements KeypairServicePort {
     private final KeypairModule keypairModule;
     private final KeypairUtil keypairUtil;
     private final AuthModule authModule;
-    private final ProjectRepositoryPort projectRepositoryPort;
 
     @Override
-    public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String projectId) {
-        ProjectEntity project = projectRepositoryPort.findById(projectId)
-                .orElseThrow(() -> new KeypairException(KeypairErrorCode.DB_PROJECT_NOT_FOUND));
+    public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String userId) {
+        // 1. project admin token
+//        ProjectEntity project = projectRepositoryPort.findById(projectId)
+//                .orElseThrow(() -> new KeypairException(KeypairErrorCode.DB_PROJECT_NOT_FOUND));
+//
+//        String keystoneToken = authModule.issueProjectScopeToken(projectId, project.getOwnerKeystoneId());
 
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, project.getOwnerKeystoneId());
+        // 2. system admin token
+        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 
         return keypairModule.getKeypairs(
                 keystoneToken,
