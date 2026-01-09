@@ -37,11 +37,14 @@ public class KeypairServiceAdapter implements KeypairServicePort {
         // 2. system admin token
         String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 
-        return keypairModule.getKeypairs(
+        PageResponse<KeypairListResponse> response = keypairModule.getKeypairs(
                 keystoneToken,
                 page.getMarker(),
                 page.getDirection().name().equals("prev") ? "prev" : "next",
                 page.getLimit());
+
+        authModule.invalidateSystemAdminToken(keystoneToken);
+        return response;
     }
 
     @Override
@@ -56,7 +59,10 @@ public class KeypairServiceAdapter implements KeypairServicePort {
 
     @Override
     public void deleteKeypair(String keypairId, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+//        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+
+        String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
         keypairModule.deleteKeypair(keypairId, keystoneToken, projectId);
+        authModule.invalidateSystemAdminToken(keystoneToken);
     }
 }
