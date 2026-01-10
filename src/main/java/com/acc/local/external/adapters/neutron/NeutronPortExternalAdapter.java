@@ -209,6 +209,10 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                     .network(hasNetwork ? ViewInterfacesResponse.Network.builder()
                                     .networkId(portsNode.get("network_id").asText())
                                     .networkName(networkName)
+                                    .subnetId(
+                                            portsNode.hasNonNull("fixed_ips") && !portsNode.get("fixed_ips").isEmpty() ?
+                                                    portsNode.get("fixed_ips").get(0).get("subnet_id").asText() : null
+                                    )
                                     .build() : null)
                     .internalIp(portsNode.hasNonNull("fixed_ips") && !portsNode.get("fixed_ips").isEmpty() ?
                             portsNode.get("fixed_ips").get(0).get("ip_address").asText() : null)

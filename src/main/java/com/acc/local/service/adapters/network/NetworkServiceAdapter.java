@@ -5,6 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateNetworkRequest;
+import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
@@ -43,7 +44,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
 
         /* --- 서브넷 생성 --- */
         if (request.getSubnets() != null) {
-            for (CreateNetworkRequest.Subnet subnet : request.getSubnets()) {
+            for (CreateSubnetRequest subnet : request.getSubnets()) {
                 if (!networkUtil.validateResourceName(subnet.getSubnetName())) {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_NAME);
                 }
@@ -51,10 +52,15 @@ public class NetworkServiceAdapter implements NetworkServicePort {
                 if (!networkUtil.validateCidr(subnet.getCidr())) {
                     throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_CIDR);
                 }
+
+                if (subnet.getGatewayIp() != null &&
+                        !networkUtil.validateIpv4(subnet.getGatewayIp())) {
+                    throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_GATEWAY_IP);
+                }
             }
 
             List<String> subnetCidrs = request.getSubnets().stream().map(
-                    CreateNetworkRequest.Subnet::getCidr
+                    CreateSubnetRequest::getCidr
             ).toList();
             if (networkUtil.hasOverlappingCidrs(subnetCidrs)) {
                 throw new NetworkException(NetworkErrorCode.OVERLAPPING_SUBNET_CIDR);

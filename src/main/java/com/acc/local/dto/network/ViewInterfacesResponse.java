@@ -87,6 +87,11 @@ public class ViewInterfacesResponse {
                 example = "my-network",
                 requiredMode = Schema.RequiredMode.REQUIRED)
         private String networkName;
+
+        @Schema(description = "서브넷 ID",
+                example = "123e4567-e89b-12d3-a456-426614174000",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        private String subnetId;
     }
 
 }

@@ -27,6 +27,12 @@ public class NetworkUtil {
                                 "(?:[1-9]|[12]\\d|3[0-2])$");
     }
 
+    public boolean validateIpv4(String ip) {
+        return ip != null && !ip.isEmpty() &&
+                ip.matches("^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\\." +
+                           "){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])$");
+    }
+
     public boolean validateSubnetName(String subnetName) {
         return subnetName != null && !subnetName.isEmpty();
     }

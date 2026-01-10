@@ -33,5 +33,7 @@ public class BulkCreateSubnetRequest {
         private String name;
         @JsonProperty("project_id")
         private String projectId;
+        @JsonProperty("description")
+        private String description;
     }
 }
