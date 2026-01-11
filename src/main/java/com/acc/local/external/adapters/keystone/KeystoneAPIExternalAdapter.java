@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.Role;
 import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.domain.model.auth.RoleListResponse;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserListResponse;
+import com.acc.local.external.dto.keystone.*;
+import org.hibernate.sql.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +29,6 @@ import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.external.dto.OpenstackPagination;
-import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.modules.keystone.KeystoneAuthAPIModule;
 import com.acc.local.external.modules.keystone.KeystoneProjectAPIModule;
@@ -117,10 +119,16 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> getTokenInfo(String token) {
+	public KeystoneToken getTokenInfo(String token) {
 		try {
             log.info("token - 시스템 어드민  {}" ,token);
-			return keystoneAuthAPIModule.getTokenInfo(token);
+			ResponseEntity<JsonNode> keystoneResponse = keystoneAuthAPIModule.getTokenInfo(token);
+
+			if (keystoneResponse == null) {
+				throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_AUTHENTICATION_FAILED);
+			}
+
+			return KeystoneAPIUtils.extractKeystoneToken(keystoneResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -134,63 +142,17 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 		}
 	}
 
-	@Override
-	public ResponseEntity<JsonNode> getScopeTokenInfo(String token, Map<String, Object> request) {
-		try {
-			return keystoneAuthAPIModule.getScopeTokenInfo(token, request);
-		} catch (WebClientResponseException e) {
-			HttpStatusCode status = e.getStatusCode();
-			if (status == HttpStatus.UNAUTHORIZED) {
-				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
-			} else if (status == HttpStatus.FORBIDDEN) {
-				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
-			} else if (status == HttpStatus.BAD_REQUEST) {
-				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
-			}
-			throw new KeystoneException(AuthErrorCode.KEYSTONE_API_FAILURE, e);
-		}
-	}
-
-	@Override
-	public ResponseEntity<JsonNode> issueScopedToken(Map<String, Object> tokenRequest) {
-		try {
-			return keystoneAuthAPIModule.issueScopedToken(tokenRequest);
-		} catch (WebClientResponseException e) {
-			HttpStatusCode status = e.getStatusCode();
-			if (status == HttpStatus.UNAUTHORIZED) {
-				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
-			} else if (status == HttpStatus.FORBIDDEN) {
-				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
-			} else if (status == HttpStatus.BAD_REQUEST) {
-				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
-			}
-			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED, e);
-		}
-	}
-
-	@Override
-	public ResponseEntity<JsonNode> issueUnscopedToken(Map<String, Object> passwordAuthRequest) {
-		try {
-			return keystoneAuthAPIModule.issueUnscopedToken(passwordAuthRequest);
-		} catch (WebClientResponseException e) {
-			HttpStatusCode status = e.getStatusCode();
-			if (status == HttpStatus.UNAUTHORIZED) {
-				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
-			} else if (status == HttpStatus.FORBIDDEN) {
-				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
-			} else if (status == HttpStatus.BAD_REQUEST) {
-				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
-			}
-			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED, e);
-		}
-	}
-
 	// ----- User -----
 
 	@Override
-	public ResponseEntity<JsonNode> createUser(String token, Map<String, Object> userRequest) {
+	public UserKeystoneDto createUser(String token, CreateKeystoneUserRequest createUserRequest) {
 		try {
-			return keystoneUserAPIModule.createUser(token, userRequest);
+			ResponseEntity<JsonNode> keystoneResponse = keystoneUserAPIModule.createUser(token, createUserRequest.toKeystoneRequest());
+			if (keystoneResponse == null) {
+				throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneUserResponse(keystoneResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -207,9 +169,14 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> getUserDetail(String userId, String token) {
+	public UserKeystoneDto getUserDetail(String userId, String token) {
 		try {
-			return keystoneUserAPIModule.getUserDetail(userId, token);
+			ResponseEntity<JsonNode> keystoneResponse = keystoneUserAPIModule.getUserDetail(userId, token);
+			if (keystoneResponse == null) {
+				throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneUserResponse(keystoneResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -224,10 +191,16 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> updateUser(String userId, String token, Map<String, Object> userRequest) {
+	public UserKeystoneDto updateUser(String userId, String token, UpdateKeystoneUserRequest userRequest) {
 		try {
 			log.info("Keystone updateUser 요청 - userId: {}, request: {}", userId, userRequest);
-			return keystoneUserAPIModule.updateUser(userId, token, userRequest);
+
+			ResponseEntity<JsonNode> keystoneResponse = keystoneUserAPIModule.updateUser(userId, token, userRequest.toKeystoneRequest());
+			if (keystoneResponse == null) {
+				throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 업데이트 응답이 null입니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneUserResponse(keystoneResponse);
 		} catch (WebClientResponseException e) {
 			log.error("Keystone updateUser 실패 - userId: {}, status: {}, response: {}",
 					userId, e.getStatusCode(), e.getResponseBodyAsString());
@@ -248,9 +221,9 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> deleteUser(String userId, String token) {
+	public void deleteUser(String userId, String token) {
 		try {
-			return keystoneUserAPIModule.deleteUser(userId, token);
+			keystoneUserAPIModule.deleteUser(userId, token);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -287,9 +260,18 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	// ----- Project -----
 
 	@Override
-	public ResponseEntity<JsonNode> createProject(String token, Map<String, Object> projectRequest) {
+	public KeystoneProject createProject(String adminToken, CreateKeystoneProjectRequest createKeystoneProjectRequest) {
 		try {
-			return keystoneProjectAPIModule.createProject(token, projectRequest);
+			ResponseEntity<JsonNode> projectSavedResponse = keystoneProjectAPIModule.createProject(
+					adminToken,
+					createKeystoneProjectRequest.toKeystoneRequest()
+			);
+
+			if (projectSavedResponse == null) {
+				throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_CREATION_FAILED, "프로젝트 생성 응답이 null입니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneProjectResponse(projectSavedResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -456,7 +438,7 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 
 	@Deprecated
 	@Override
-	public List<KeystoneUser> getUsersByEmail(String keyword) {
+	public List<UserKeystoneDto> getUsersByEmail(String keyword) {
 		try {
 			// keystoneUserAPIModule.deleteRole(token, userId, projectId, projectRoleKeystoneId);
 			return null;
@@ -474,9 +456,15 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> getProjectDetail(String projectId, String token) {
+	public KeystoneProject getProjectDetail(String projectId, String token) {
 		try {
-			return keystoneProjectAPIModule.getProjectDetail(projectId, token);
+			ResponseEntity<JsonNode> response = keystoneProjectAPIModule.getProjectDetail(projectId, token);
+
+			if (response == null) {
+				throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneProjectResponse(response);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -491,9 +479,18 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> updateProject(String projectId, String token, Map<String, Object> projectRequest) {
+	public KeystoneProject updateProject(String projectId, String token, UpdateKeystoneProjectRequest updateRequest) {
 		try {
-			return keystoneProjectAPIModule.updateProject(projectId, token, projectRequest);
+			ResponseEntity<JsonNode> keystoneProjectUpdateResponse = keystoneProjectAPIModule.updateProject(
+					projectId, token,
+					updateRequest.toKeystoneRequest()
+			);
+
+			if (keystoneProjectUpdateResponse == null) {
+				throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_UPDATE_FAILED, "프로젝트 업데이트 응답이 null입니다.");
+			}
+
+			return KeystoneAPIUtils.parseKeystoneProjectResponse(keystoneProjectUpdateResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -512,9 +509,10 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
-	public ResponseEntity<JsonNode> deleteProject(String projectId, String token) {
+	public void deleteProject(String projectId, String token) {
 		try {
-			return keystoneProjectAPIModule.deleteProject(projectId, token);
+			keystoneProjectAPIModule.deleteProject(projectId, token);
+			return;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -533,9 +531,13 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	// ----- Role -----
 
 	@Override
-	public ResponseEntity<JsonNode> getAccountPermissionList(String userId, String token) {
+	public Map<String, ProjectRole> getAccountPermissionList(String userId, String token) {
 		try {
-			return keystoneRoleAPIModule.getAccountPermissionList(userId, token);
+			ResponseEntity<JsonNode> accountPermissionListResponse = keystoneRoleAPIModule.getAccountPermissionList(userId, token);
+			if (accountPermissionListResponse == null) {
+				throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_AUTHENTICATION_FAILED);
+			}
+			return KeystoneAPIUtils.createUserPermissionMap(accountPermissionListResponse);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
-class KeystoneKeystoneUserAPIModuleTest {
+class KeystoneUserAPIModuleTest {
 
 	@Mock
 	private OpenstackAPICallModule openstackAPICallModule;

@@ -12,12 +12,11 @@ import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.CreateProjectRequestRequest;
 import com.acc.local.dto.project.CreateProjectRequestResponse;
 import com.acc.local.dto.project.GetProjectResponse;
 import com.acc.local.dto.project.InvitableUser;
-import com.acc.local.dto.project.ProjectListServiceDto;
 import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
@@ -25,7 +24,6 @@ import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.RepositoryPagination;
-import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
@@ -59,7 +57,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 				// TODO(MR~): 사용자 통합정보 조회모듈 사용
 				List<ProjectParticipantDto> projectParticipants = projectModule.getProjectParticipantList(projectInfo.projectId());
 
-				KeystoneUser ownerUser = null;
+				UserKeystoneDto ownerUser = null;
 				if (projectInfo.ownerKeystoneId() != null) {
 					ownerUser = authModule.getUserDetail(
 						projectInfo.ownerKeystoneId(),
@@ -70,7 +68,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 				projectResponseList.add(ProjectResponse.from(projectInfo, ownerUser, projectParticipants));
 			}
 
-			KeystoneUser userDetail = authModule.getUserDetail(requestUserId, requestUserId);
+			UserKeystoneDto userDetail = authModule.getUserDetail(requestUserId, requestUserId);
 			projectModule.getAllProjectRequestList(keyword, requestUserId).stream()
 				.filter(v -> v.status() != ProjectRequestStatus.APPROVED)
 				.forEach(
@@ -101,7 +99,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 		List<ProjectRequestResponse> projectRequestResponseList = new ArrayList<>();
 		for (ProjectRequestDto projectRequest : projectRequestsList) {
-			KeystoneUser requestedUser = authModule.getUserDetail(projectRequest.requestUserId(), requesterId);
+			UserKeystoneDto requestedUser = authModule.getUserDetail(projectRequest.requestUserId(), requesterId);
 			projectRequestResponseList.add(ProjectRequestResponse.from(projectRequest, requestedUser));
 		}
 
