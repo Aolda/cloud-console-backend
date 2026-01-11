@@ -1,6 +1,5 @@
 package com.acc.local.dto.auth;
 
-import com.acc.local.domain.model.auth.KeystoneUser;
 import lombok.Builder;
 
 @Builder
@@ -18,15 +17,15 @@ public record UpdateUserResponse(
     String phoneNumber,
     Integer projectLimit
 ) {
-    public static UpdateUserResponse from(KeystoneUser keystoneUser) {
+    public static UpdateUserResponse from(UserKeystoneDto userKeystoneDto) {
         return UpdateUserResponse.builder()
-                .userId(keystoneUser.getId())
-                .name(keystoneUser.getName())
-                .domainId(keystoneUser.getDomainId())
-                .defaultProjectId(keystoneUser.getDefaultProjectId())
-                .enabled(keystoneUser.isEnabled())
-                .email(keystoneUser.getEmail())
-                .description(keystoneUser.getDescription())
+                .userId(userKeystoneDto.id())
+                .name(userKeystoneDto.name())
+                .domainId(userKeystoneDto.domainId())
+                .defaultProjectId(userKeystoneDto.defaultProjectId())
+                .enabled(userKeystoneDto.enabled())
+                .email(userKeystoneDto.email())
+                .description(userKeystoneDto.description())
                 .build();
     }
 }

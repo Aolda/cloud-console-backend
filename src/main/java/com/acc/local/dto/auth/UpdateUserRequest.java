@@ -12,5 +12,5 @@ public record UpdateUserRequest(
         // ACC 내부 정보 (Update는 선택 사항)
         @Schema(description = "학과") String department,
         @Schema(description = "전화번호") String phoneNumber,
-        @Schema(description = "프로젝트 제한 수") Integer projectLimit
+        @Deprecated @Schema(description = "프로젝트 제한 수") Integer projectLimit // TODO: 기획협의 상 필요했던 필드인지 확인필요; 해당 필드 미연결상태
 ) { }

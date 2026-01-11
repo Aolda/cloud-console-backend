@@ -5,7 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.auth.AuthType;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.AdminCreateUserRequest;
 import com.acc.local.dto.auth.AdminGetUserResponse;
@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -40,7 +39,7 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
-class KeystoneUserModuleTest {
+class UserModuleTest {
 
     @Mock
     private KeystoneAPIExternalPort keystoneAPIExternalPort;
@@ -85,7 +84,7 @@ class KeystoneUserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(KeystoneUser.builder()
+                    .thenReturn(UserKeystoneDto.builder()
                             .id(newUserId)
                             .name("hong@ajou.ac.kr")
                             .enabled(true)
@@ -191,7 +190,7 @@ class KeystoneUserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(KeystoneUser.builder()
+                    .thenReturn(UserKeystoneDto.builder()
                             .id("uid-1")
                             .name("user@ajou.ac.kr")
                             .enabled(true)
@@ -246,7 +245,7 @@ class KeystoneUserModuleTest {
         try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
 
             mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(KeystoneUser.builder()
+                    .thenReturn(UserKeystoneDto.builder()
                             .id("uid-x")
                             .name("aaa@ajou.ac.kr")
                             .enabled(true)
@@ -276,11 +275,11 @@ class KeystoneUserModuleTest {
         req.setMarker(null);
         req.setLimit(10);
 
-        KeystoneUser u1 = KeystoneUser.builder().id("u1").name("user1@ajou.ac.kr").enabled(true).defaultProjectId("p1").build();
-        KeystoneUser u2 = KeystoneUser.builder().id("u2").name("user2@ajou.ac.kr").enabled(false).build();
+        UserKeystoneDto u1 = UserKeystoneDto.builder().id("u1").name("user1@ajou.ac.kr").enabled(true).defaultProjectId("p1").build();
+        UserKeystoneDto u2 = UserKeystoneDto.builder().id("u2").name("user2@ajou.ac.kr").enabled(false).build();
 
         UserListResponse list = UserListResponse.builder()
-                .keystoneUsers(List.of(u1, u2))
+                .userKeystoneDtos(List.of(u1, u2))
                 .nextMarker("u2")
                 .prevMarker(null)
                 .build();

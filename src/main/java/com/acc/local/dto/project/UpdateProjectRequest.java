@@ -14,5 +14,5 @@ public record UpdateProjectRequest(
         @Schema(description = "도메인 ID") String domainId,
         @Schema(description = "활성화 여부") Boolean enabled,
         @Schema(description = "태그 목록") List<String> tags,
-        @Schema(description = "프로젝트 옵션") Map<String, Object> options
+        @Schema(description = "프로젝트 옵션") Map<String, Object> options // TODO: 어떤 필드인지 재확인 필요
 ) { }
