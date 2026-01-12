@@ -26,6 +26,7 @@ public enum NetworkErrorCode implements ErrorCode {
     INVALID_ROUTER_NAME(400, "ACC-NETWORK-INVALID-ROUTER-NAME", "라우터 이름이 유효하지 않습니다."),
     INVALID_ROUTER_GATEWAY(400, "ACC-NETWORK-INVALID-ROUTER-GATEWAY", "라우터 게이트웨이 설정이 유효하지 않습니다."),
     CAN_NOT_DELETE_ROUTER(403, "ACC-NETWORK-CAN-NOT-DELETE-ROUTER", "해당 라우터는 삭제할 수 없습니다."),
+    CAN_NOT_DISCONNECT_ROUTER_FROM_SUBNET(403, "ACC-NETWORK-CAN-NOT-DISCONNECT-ROUTER-FROM-SUBNET", "해당 서브넷은 라우터에서 연결 해제할 수 없습니다."),
 
     CAN_NOT_DELETE_NETWORK(403, "ACC-NETWORK-CAN-NOT-DELETE-NETWORK", "해당 네트워크는 삭제할 수 없습니다."),
     NOT_FOUND_NETWORK(404, "ACC-NETWORK-NOT-FOUND-NETWORK", "해당 네트워크가 존재하지 않습니다."),
