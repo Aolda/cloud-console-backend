@@ -40,4 +40,18 @@ public class RouterController implements RouterDocs {
         routerServicePort.deleteRouter(routerId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.noContent().build();
     }
+
+    @Override
+    public ResponseEntity<Object> connectRouterToSubnet(Authentication authentication, String routerId, String subnetId, String projectId) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        routerServicePort.connectRouterToSubnet(routerId, subnetId, jwtInfo.getUserId(), projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Object> disconnectRouterFromSubnet(Authentication authentication, String routerId, String subnetId, String projectId) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        routerServicePort.disconnectRouterFromSubnet(routerId, subnetId, jwtInfo.getUserId(), projectId);
+        return ResponseEntity.ok().build();
+    }
 }

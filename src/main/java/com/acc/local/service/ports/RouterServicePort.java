@@ -11,4 +11,8 @@ public interface RouterServicePort {
     void deleteRouter(String routerId, String userId, String projectId);
 
     PageResponse<ViewRoutersResponse> listRouters(PageRequest page, String userId, String projectId);
+
+    void connectRouterToSubnet(String routerId, String subnetId, String userId, String projectId);
+
+    void disconnectRouterFromSubnet(String routerId, String subnetId, String userId, String projectId);
 }

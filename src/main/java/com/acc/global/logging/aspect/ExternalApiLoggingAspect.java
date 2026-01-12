@@ -108,8 +108,6 @@ public class ExternalApiLoggingAspect {
                     
                     if (isSensitive(paramName)) {
                         safeArgs.put(paramName, "***");
-                    } else if (argValue != null && argValue.toString().length() > 500) {
-                        safeArgs.put(paramName, "[Large Payload]");
                     } else {
                         safeArgs.put(paramName, argValue);
                     }

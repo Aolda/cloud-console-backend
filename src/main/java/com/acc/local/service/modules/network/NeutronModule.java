@@ -144,6 +144,31 @@ public class NeutronModule {
         return !router.get("name").equals("default-router");
     }
 
+    public void disconnectRouterFromSubnet(String keystoneToken, String routerId, String subnetId) {
+        neutronRouterExternalPort.callRemoveRouterInterface(keystoneToken, routerId, subnetId);
+    }
+
+    public boolean canDisconnectRouterFromSubnet(String keystoneToken, String routerId, String subnetId) {
+        String routerName = neutronRouterExternalPort.getRouterNameAndId(keystoneToken, routerId).get("name");
+
+        if (!routerName.equals("default-router")) {
+            return true;
+        }
+
+        ViewSubnetsResponse subnet = neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId);
+
+        if (!subnet.getSubnetName().equals("default-subnet")) {
+            return true;
+        }
+
+        String networkName = neutronNetworkExternalPort.getNetworkNameAndId(keystoneToken, subnet.getNetworkId()).get("name");
+        return !networkName.equals("default-network");
+    }
+
+    public void attachInterfaceToRouter(String keystoneToken, String routerId, String portId) {
+        neutronRouterExternalPort.callAddRouterInterfaceByPortId(keystoneToken, routerId, portId);
+    }
+
     /* --- External IPs --- */
     public boolean allocateExternalIpToInterface(String keystoneToken, String floatingNetworkId, String portId) {
         try {
@@ -180,6 +205,17 @@ public class NeutronModule {
 
     public PageResponse<ViewInterfacesResponse> listInterfaces(String keystoneToken, String projectId, String marker, String direction, int limit, String instanceId, String networkId) {
         return neutronPortExternalPort.callListPorts(keystoneToken, projectId, marker, direction, limit, instanceId, networkId);
+    }
+
+    public String createInterfaceBySubnetId(String keystoneToken, String subnetId) {
+        String networkId = neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId).getNetworkId();
+        return neutronPortExternalPort.callCreatePort(keystoneToken,
+                networkId,
+                null,
+                subnetId,
+                null,
+                null,
+                false).get("id");
     }
 
     /* --- Security Groups --- */

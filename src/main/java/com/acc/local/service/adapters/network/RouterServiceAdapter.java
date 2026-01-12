@@ -4,6 +4,8 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
+import com.acc.global.exception.network.NeutronErrorCode;
+import com.acc.global.exception.network.NeutronException;
 import com.acc.local.dto.network.CreateRouterRequest;
 import com.acc.local.dto.network.ViewRoutersResponse;
 import com.acc.local.service.modules.auth.AuthModule;
@@ -59,4 +61,30 @@ public class RouterServiceAdapter implements RouterServicePort {
                 page.getLimit());
     }
 
+    @Override
+    public void connectRouterToSubnet(String routerId, String subnetId, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
+
+        try {
+            neutronModule.connectRouterToSubnet(token, routerId, subnetId);
+        } catch (NeutronException e) {
+            if (e.getErrorCode() == NeutronErrorCode.NEUTRON_ROUTER_CONFLICT) {
+                String interfaceId = neutronModule.createInterfaceBySubnetId(token, subnetId);
+                neutronModule.attachInterfaceToRouter(token, routerId, interfaceId);
+
+            }
+            else throw e;
+        }
+    }
+
+    @Override
+    public void disconnectRouterFromSubnet(String routerId, String subnetId, String userId, String projectId) {
+        String token = authModule.issueProjectScopeToken(projectId, userId);
+
+        if (!neutronModule.canDisconnectRouterFromSubnet(token, routerId, subnetId)) {
+            throw new NetworkException(NetworkErrorCode.CAN_NOT_DISCONNECT_ROUTER_FROM_SUBNET);
+        }
+
+        neutronModule.disconnectRouterFromSubnet(token, routerId, subnetId);
+    }
 }
