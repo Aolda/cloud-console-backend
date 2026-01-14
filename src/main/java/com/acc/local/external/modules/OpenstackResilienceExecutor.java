@@ -12,10 +12,7 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-<<<<<<< HEAD
-=======
 import org.slf4j.MDC;
->>>>>>> origin/main
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -70,27 +67,17 @@ public class OpenstackResilienceExecutor {
         } catch (CallNotPermittedException e) {
             // CB OPEN fallback: "차단"은 resilience4j로 인해 발생하는 인프라 일시 통합 장애 상황이므로 임시로 장애 분리
             log.warn("[CB-OPEN] component={} port={} method={} cb={} state={}",
-<<<<<<< HEAD
-                    component, port, method, cb.getName(), cb.getState(), e);
-=======
                     component, port, method, cb.getName(), cb.getState());
->>>>>>> origin/main
             throw new ServiceUnavailableException(CommonErrorCode.OPENSTACK_INFRA_UNAVAILABLE, component+ " 임시 오류");
         } catch (Exception e) {
             // supplier 의 에러가 정책 상 무시되지 않는 타입이라면 retry 횟수가 전부 소진된 후에 1회 던져짐.
             // 장애 판단을 상위에서 각자하고 그대로 throw + 얇은 로깅만 구현 (추후 로그 레벨 분리 및 메트릭 수집 기능 필요)
-<<<<<<< HEAD
-            log.warn("[OPENSTACK-CALL-FAIL] component={} port={} method={} cb={} state={} ex={} msg={}",
-                    component, port, method, cb.getName(), cb.getState(),
-                    e.getClass().getSimpleName(), e.getMessage(), e);
-=======
             /*
             log.warn("[OPENSTACK-CALL-FAIL] component={} port={} method={} cb={} state={} ex={} msg={}",
                     component, port, method, cb.getName(), cb.getState(),
                     e.getClass().getSimpleName(), e.getMessage());
 
              */
->>>>>>> origin/main
             throw e;
         }
     }
@@ -163,38 +150,17 @@ public class OpenstackResilienceExecutor {
         }
 
         retry.getEventPublisher()
-<<<<<<< HEAD
-                .onRetry(event -> {
-                    Throwable last = event.getLastThrowable();
-=======
                 .onError(event -> {
                     MDC.put("attempt", String.valueOf(event.getNumberOfRetryAttempts()));
                 })
                 .onRetry(event -> {
                     Throwable last = event.getLastThrowable();
                     /*
->>>>>>> origin/main
                     log.warn("[RETRY] name={} attempt={} lastEx={} msg={}",
                             event.getName(),
                             event.getNumberOfRetryAttempts(),
                             last != null ? last.getClass().getSimpleName() : "null",
                             last != null ? last.getMessage() : "null");
-<<<<<<< HEAD
-                })
-                .onSuccess(event -> {
-                    log.info("[RETRY-SUCCESS] name={} attempts={}",
-                            event.getName(),
-                            event.getNumberOfRetryAttempts());
-                })
-                .onError(event -> {
-                    Throwable last = event.getLastThrowable();
-                    log.warn("[RETRY-ERROR] name={} attempts={} lastEx={} msg={}",
-                            event.getName(),
-                            event.getNumberOfRetryAttempts(),
-                            last != null ? last.getClass().getSimpleName() : "null",
-                            last != null ? last.getMessage() : "null",
-                            last);
-=======
 
                      */
                     MDC.put("attempt", String.valueOf(event.getNumberOfRetryAttempts()));
@@ -202,7 +168,6 @@ public class OpenstackResilienceExecutor {
                 })
                 .onSuccess(event -> {
                     MDC.put("attempt", String.valueOf(event.getNumberOfRetryAttempts()));
->>>>>>> origin/main
                 });
 
         log.info("[RETRY-HOOKED] {}", retry.getName());
