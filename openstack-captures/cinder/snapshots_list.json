@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/f863931e9ffd4cfc9ac608d1f8fb8908/snapshots",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "system"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 400,
+    "body": null
+  }
+}

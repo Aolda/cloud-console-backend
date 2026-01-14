@@ -3,22 +3,22 @@ app:
     enabled: true
     project-id: ${APP_CAPTURE_PROJECT_ID}
     keystone:
-      username: ${SUPER_ADMIN_USER_NAME}
-      password: ${SUPER_ADMIN_USER_NAME}
+      username: ${OPENSTACK_BFF_USERNAME}
+      password: ${OPENSTACK_BFF_PASSWORD}
       domain: "Default"
     prefer-token-scope: system
     neutron:
-      networks: false
-      ports: false
-      security-groups: false
-      security-group-rules: false
-      subnets: false
-      routers: false
-      floatingips: false
+      networks: true
+      ports: true
+      security-groups: true
+      security-group-rules: true
+      subnets: true
+      routers: true
+      floatingips: true
       write:
-        enabled: false
-        networks: false
-        security-groups: false
+        enabled: true
+        networks: true
+        security-groups: true
     nova:
       servers: true
       servers-detail: true
@@ -28,14 +28,14 @@ app:
         enabled: false
         keypairs: true
     glance:
-      images: false
-      tasks: false
+      images: true
+      tasks: true
     cinder:
-      volumes: false
-      volumes-detail: false
-      snapshots: false
-      backups: false
-      limits: false
+      volumes: true
+      volumes-detail: true
+      snapshots: true
+      backups: true
+      limits: true
     extra:
       nova:
         port: 8774

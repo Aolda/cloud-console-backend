@@ -1,4 +1,4 @@
-package com.acc.local.external.dto.cinder.response;
+package com.acc.local.external.dto.glance.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,33 +14,40 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CinderVolumesResponse {
-    private List<Volume> volumes;
+public class GlanceImagesResponse {
+    private List<Image> images;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Volume {
+    public static class Image {
         private String id;
         private String name;
         private String status;
-        private Integer size;
+        private String visibility;
+        private Long size;
 
-        @JsonProperty("volume_type")
-        private String volumeType;
+        @JsonProperty("owner")
+        private String owner;
+
+        @JsonProperty("checksum")
+        private String checksum;
+
+        @JsonProperty("container_format")
+        private String containerFormat;
+
+        @JsonProperty("disk_format")
+        private String diskFormat;
 
         @JsonProperty("created_at")
         private String createdAt;
 
-        private String description;
+        @JsonProperty("updated_at")
+        private String updatedAt;
 
-        @JsonProperty("availability_zone")
-        private String availabilityZone;
-
-        // Cinder often returns "bootable": "true" as string; Jackson will coerce to Boolean when possible.
-        @JsonProperty("bootable")
-        private Boolean bootable;
+        private List<String> tags;
     }
 }
+

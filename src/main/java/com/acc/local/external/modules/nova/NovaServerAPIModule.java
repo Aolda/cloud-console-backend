@@ -3,6 +3,8 @@ package com.acc.local.external.modules.nova;
 import com.acc.local.external.dto.nova.server.CreateServerRequest;
 import com.acc.local.external.dto.nova.server.UpdateServerRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.nova.response.NovaServerResponse;
+import com.acc.local.external.dto.nova.response.NovaServersResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,30 +31,36 @@ public class NovaServerAPIModule extends NovaAPIUtil
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 
-    public ResponseEntity<JsonNode> listServers(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NovaServersResponse> listServers(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/servers";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NovaServersResponse.class);
     }
 
     // List Servers without query parameters
-    public ResponseEntity<JsonNode> listServers(String token) {
+    public ResponseEntity<NovaServersResponse> listServers(String token) {
         return listServers(token, Collections.emptyMap());
     }
 
     // List Servers with Details (same as listServers but with more detailed response)
-    public ResponseEntity<JsonNode> listServersDetail(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NovaServersResponse> listServersDetail(String token, Map<String, String> queryParams) {
+        String uri = "/v2.1/servers/detail";
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NovaServersResponse.class);
+    }
+
+    // Compatibility: JsonNode variant for callers still parsing raw payload (e.g., addresses, flavor image objects)
+    public ResponseEntity<com.fasterxml.jackson.databind.JsonNode> listServersDetailJson(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/servers/detail";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }
 
     // List Servers with Details without query parameters
-    public ResponseEntity<JsonNode> listServersDetail(String token) {
+    public ResponseEntity<NovaServersResponse> listServersDetail(String token) {
         return listServersDetail(token, Collections.emptyMap());
     }
 
-    public ResponseEntity<JsonNode> showServer(String token, String serverId) {
+    public ResponseEntity<NovaServerResponse> showServer(String token, String serverId) {
         String uri = "/v2.1/servers/" + serverId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NovaServerResponse.class);
     }
 
     public ResponseEntity<JsonNode> createServer(String token, CreateServerRequest request) {

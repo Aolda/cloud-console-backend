@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NovaServerResponse {
-    private NovaServersResponse.Server server;
+public class NovaKeypairResponse {
+    private NovaKeypairsResponse.KeypairWrapper keypair;
 }
 

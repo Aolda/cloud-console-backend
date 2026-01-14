@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/os-keypairs",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "admin-project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "keypairs" : [ {
+    "keypair" : {
+      "name" : "test",
+      "public_key" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmJiIL+OFeWP6X+9hcQq6gVuezfYfewInFrgl7LLCWDtmwbjmnQd4JcuPcPJ8I3Mlbp4makbKFsmSf6eE6DLmEo9SYP19UTX6OVixmptdID8Iqfv+3EIjllraa7p/YKS+9YJncAeUA7tInscGAWlynuuM8/4dYwdIh6W/D25J3rcxJxyBtuRjbA8QAJ7UPgaPPPBe6NeXIWBcWXo8GhNcw8wZApsjxfgJ2DzNceLamY1fQwCl89xmN/JQry3yWcyll4jWq5muYr77cdjl64bZ/DYjyiS0rDy9I0WNwVfQltaFdPEFybrdXkc8YzcJGxR3wYgyp3dS66l5QUHf8FyQH Generated-by-Nova",
+      "fingerprint" : "58:29:aa:b7:4d:e1:b7:8c:54:90:09:1b:6b:06:ff:bf"
+    }
+  } ]
+}
+  }
+}

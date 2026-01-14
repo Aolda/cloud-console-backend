@@ -1,0 +1,58 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/flavors",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "system"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "flavors" : [ {
+    "id" : "168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec",
+    "name" : "m1.small",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/flavors/168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/flavors/168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec"
+    } ]
+  }, {
+    "id" : "7bf15e03-6fc1-48f5-a365-fa62ddf53714",
+    "name" : "m1.4xlarge",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/flavors/7bf15e03-6fc1-48f5-a365-fa62ddf53714"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/flavors/7bf15e03-6fc1-48f5-a365-fa62ddf53714"
+    } ]
+  }, {
+    "id" : "951e358a-e833-4ff5-86d5-8b81108a6c07",
+    "name" : "m1.medium",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07"
+    } ]
+  }, {
+    "id" : "bdb2b2b2-fbfb-421e-a191-7f50eb8e4018",
+    "name" : "test",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/flavors/bdb2b2b2-fbfb-421e-a191-7f50eb8e4018"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/flavors/bdb2b2b2-fbfb-421e-a191-7f50eb8e4018"
+    } ]
+  } ]
+}
+  }
+}

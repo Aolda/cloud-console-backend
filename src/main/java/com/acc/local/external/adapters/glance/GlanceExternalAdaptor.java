@@ -8,9 +8,11 @@ import com.acc.local.external.dto.glance.image.GlanceCreateImageRequest;
 import com.acc.local.external.dto.glance.image.GlanceFetchImagesRequestParam;
 import com.acc.local.external.dto.glance.image.GlanceImportImageRequest;
 import com.acc.local.external.modules.glance.GlanceImageAPIModule;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,11 +23,14 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class GlanceExternalAdaptor implements GlanceExternalPort {
     private final GlanceImageAPIModule glanceImageAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<JsonNode> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
         GlanceFetchImagesRequestParam param = requestParamMapper(filters);
-        return glanceImageAPIModule.fetchImageList(token, param);
+        ResponseEntity<GlanceImagesResponse> resp = glanceImageAPIModule.fetchImageList(token, param);
+        JsonNode body = resp.getBody() != null ? objectMapper.valueToTree(resp.getBody()) : null;
+        return ResponseEntity.status(resp.getStatusCode()).headers(resp.getHeaders()).body(body);
     }
 
     @Override

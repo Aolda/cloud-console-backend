@@ -11,7 +11,6 @@ import com.acc.local.external.dto.nova.response.NovaServersResponse;
 import com.acc.local.external.modules.nova.NovaServerAPIModule;
 import com.acc.local.external.ports.NovaServerExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +29,10 @@ import java.util.stream.StreamSupport;
 public class NovaServerExternalAdapter implements NovaServerExternalPort {
 
     private final NovaServerAPIModule novaServerAPIModule;
-    private final ObjectMapper objectMapper;
 
     @Override
     public PageResponse<InstanceResponse> callListInstances(String keystoneToken, String projectId, String marker, String direction, int limit) {
-        ResponseEntity<JsonNode> response;
+        ResponseEntity<NovaServersResponse> response;
 
         try {
             response = novaServerAPIModule.listServersDetail(keystoneToken, getListServersParams(projectId, marker, direction, limit == 0 ? 0 : limit + 1));
@@ -85,13 +83,9 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
         return params;
     }
 
-    private List<InstanceResponse> parseServers(ResponseEntity<JsonNode> response) {
-        try {
-            // JsonNode를 NovaServersResponse DTO로 자동 변환
-            NovaServersResponse novaResponse = objectMapper.treeToValue(response.getBody(), NovaServersResponse.class);
-
+    private List<InstanceResponse> parseServers(ResponseEntity<NovaServersResponse> response) {
             List<InstanceResponse> servers = new ArrayList<>();
-            for (NovaServersResponse.Server server : novaResponse.getServers()) {
+            for (NovaServersResponse.Server server : response.getBody().getServers()) {
                 List<String> internalIps = new ArrayList<>();
                 List<String> externalIps = new ArrayList<>();
 
@@ -122,10 +116,6 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
                         .build());
             }
             return servers;
-        } catch (Exception e) {
-            log.error("Failed to parse Nova servers response", e);
-            throw new NovaException(NovaErrorCode.NOVA_SERVER_RETRIEVAL_FAILED);
-        }
     }
 
     private String extractImageId(Object image) {

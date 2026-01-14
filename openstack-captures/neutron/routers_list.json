@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/routers",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "system"
+},
+    "query": {
+  "project_id" : "f863931e9ffd4cfc9ac608d1f8fb8908"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "routers" : [ ]
+}
+  }
+}

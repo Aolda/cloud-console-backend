@@ -1,0 +1,50 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "admin-project"
+},
+    "query": {
+  "project_id" : "f863931e9ffd4cfc9ac608d1f8fb8908"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "servers" : [ {
+    "id" : "19f19c65-afc2-4642-a956-b9d762b85d34",
+    "name" : "tttttt",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+    } ]
+  }, {
+    "id" : "52990511-09f4-4c84-a62b-d8b497c222ac",
+    "name" : "test-instance-creatation",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+    } ]
+  }, {
+    "id" : "8836e1cd-8407-4ffb-81f8-53a64da230b1",
+    "name" : "test-1",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+    } ]
+  } ]
+}
+  }
+}

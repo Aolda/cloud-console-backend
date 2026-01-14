@@ -232,13 +232,13 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getServerName(String keystoneToken, String serverId) {
         try {
-            ResponseEntity<JsonNode> response = serverAPIModule.showServer(keystoneToken, serverId);
+            ResponseEntity<com.acc.local.external.dto.nova.response.NovaServerResponse> response = serverAPIModule.showServer(keystoneToken, serverId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
             }
 
-            return response.getBody().get("server").get("name").asText();
+            return response.getBody().getServer().getName();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {

@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2/tasks",
+    "port": 9292,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "admin-project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "tasks" : [ ],
+  "first" : "/v2/tasks",
+  "schema" : "/v2/schemas/tasks"
+}
+  }
+}

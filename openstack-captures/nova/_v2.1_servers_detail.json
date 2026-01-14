@@ -1,0 +1,179 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/detail",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "admin-project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "servers" : [ {
+    "id" : "19f19c65-afc2-4642-a956-b9d762b85d34",
+    "name" : "tttttt",
+    "status" : "ACTIVE",
+    "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "metadata" : { },
+    "hostId" : "0fd047bda786b59aa259bc5f3bbc2c9dd57264a1a0ba66e75671f5f9",
+    "image" : "",
+    "flavor" : {
+      "id" : "bdb2b2b2-fbfb-421e-a191-7f50eb8e4018",
+      "links" : [ {
+        "rel" : "bookmark",
+        "href" : "http://172.16.10.100:8774/flavors/bdb2b2b2-fbfb-421e-a191-7f50eb8e4018"
+      } ]
+    },
+    "created" : "2026-01-13T14:41:32Z",
+    "updated" : "2026-01-13T14:52:52Z",
+    "addresses" : {
+      "default-network" : [ {
+        "version" : 4,
+        "addr" : "192.168.0.202",
+        "OS-EXT-IPS:type" : "fixed",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:3e:47:b8"
+      } ]
+    },
+    "accessIPv4" : "",
+    "accessIPv6" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+    } ],
+    "OS-DCF:diskConfig" : "MANUAL",
+    "progress" : 0,
+    "OS-EXT-AZ:availability_zone" : "nova",
+    "config_drive" : "",
+    "key_name" : "test",
+    "OS-SRV-USG:launched_at" : "2026-01-13T14:42:45.000000",
+    "OS-SRV-USG:terminated_at" : null,
+    "OS-EXT-SRV-ATTR:host" : "aolda-compute",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-0000002f",
+    "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
+    "OS-EXT-STS:task_state" : null,
+    "OS-EXT-STS:vm_state" : "active",
+    "OS-EXT-STS:power_state" : 1,
+    "os-extended-volumes:volumes_attached" : [ {
+      "id" : "4587b248-7c5b-4b6c-bc3d-288c4e6afc1f"
+    } ],
+    "security_groups" : [ {
+      "name" : "default"
+    } ]
+  }, {
+    "id" : "52990511-09f4-4c84-a62b-d8b497c222ac",
+    "name" : "test-instance-creatation",
+    "status" : "ACTIVE",
+    "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "metadata" : { },
+    "hostId" : "0fd047bda786b59aa259bc5f3bbc2c9dd57264a1a0ba66e75671f5f9",
+    "image" : "",
+    "flavor" : {
+      "id" : "bdb2b2b2-fbfb-421e-a191-7f50eb8e4018",
+      "links" : [ {
+        "rel" : "bookmark",
+        "href" : "http://172.16.10.100:8774/flavors/bdb2b2b2-fbfb-421e-a191-7f50eb8e4018"
+      } ]
+    },
+    "created" : "2026-01-13T14:34:09Z",
+    "updated" : "2026-01-13T14:35:14Z",
+    "addresses" : {
+      "default-network" : [ {
+        "version" : 4,
+        "addr" : "192.168.0.12",
+        "OS-EXT-IPS:type" : "fixed",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:74:c3:ef"
+      } ]
+    },
+    "accessIPv4" : "",
+    "accessIPv6" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+    } ],
+    "OS-DCF:diskConfig" : "MANUAL",
+    "progress" : 0,
+    "OS-EXT-AZ:availability_zone" : "nova",
+    "config_drive" : "",
+    "key_name" : null,
+    "OS-SRV-USG:launched_at" : "2026-01-13T14:35:14.000000",
+    "OS-SRV-USG:terminated_at" : null,
+    "OS-EXT-SRV-ATTR:host" : "aolda-compute",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-0000002d",
+    "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
+    "OS-EXT-STS:task_state" : null,
+    "OS-EXT-STS:vm_state" : "active",
+    "OS-EXT-STS:power_state" : 1,
+    "os-extended-volumes:volumes_attached" : [ {
+      "id" : "6166275e-37b9-4f9c-ad6a-d86885e02969"
+    } ],
+    "security_groups" : [ {
+      "name" : "default"
+    } ]
+  }, {
+    "id" : "8836e1cd-8407-4ffb-81f8-53a64da230b1",
+    "name" : "test-1",
+    "status" : "SHUTOFF",
+    "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "metadata" : { },
+    "hostId" : "482f920dc0cdef7e735f50aed07285b6035dddda9afa3bedb43fa58d",
+    "image" : "",
+    "flavor" : {
+      "id" : "168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec",
+      "links" : [ {
+        "rel" : "bookmark",
+        "href" : "http://172.16.10.100:8774/flavors/168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec"
+      } ]
+    },
+    "created" : "2025-12-23T09:04:35Z",
+    "updated" : "2026-01-10T03:11:53Z",
+    "addresses" : {
+      "private" : [ {
+        "version" : 4,
+        "addr" : "172.31.0.133",
+        "OS-EXT-IPS:type" : "fixed",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:dd:43:93"
+      } ]
+    },
+    "accessIPv4" : "",
+    "accessIPv6" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+    } ],
+    "OS-DCF:diskConfig" : "MANUAL",
+    "OS-EXT-AZ:availability_zone" : "nova",
+    "config_drive" : "",
+    "key_name" : null,
+    "OS-SRV-USG:launched_at" : "2026-01-03T10:27:01.000000",
+    "OS-SRV-USG:terminated_at" : null,
+    "OS-EXT-SRV-ATTR:host" : "aolda-storage",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000001",
+    "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-storage",
+    "OS-EXT-STS:task_state" : null,
+    "OS-EXT-STS:vm_state" : "stopped",
+    "OS-EXT-STS:power_state" : 4,
+    "os-extended-volumes:volumes_attached" : [ {
+      "id" : "b1355217-fed6-4d0a-8120-c5d79f71e466"
+    } ],
+    "security_groups" : [ {
+      "name" : "test"
+    } ]
+  } ]
+}
+  }
+}

@@ -14,6 +14,7 @@ import java.util.Set;
 public class GetSweepService {
 
     private final ExtraGetCaptureService extraGetCaptureService;
+    private final TokenManager tokenManager;
 
     @Value("${app.capture.sweep.enabled:false}")
     private boolean enabled;
@@ -24,6 +25,9 @@ public class GetSweepService {
     private boolean sweepGlance;
     @Value("${app.capture.sweep.cinder:true}")
     private boolean sweepCinder;
+
+    @Value("${app.capture.prefer-token-scope:project}")
+    private String preferTokenScope;
 
     // reuse auto-follow limits for per-id expansion
     @Value("${app.capture.auto-follow.nova.servers-limit:10}")
@@ -71,14 +75,14 @@ public class GetSweepService {
         index.getNovaFlavorIds().stream().limit(novaFlavorsLimit).forEach(id -> {
             uris.add("/v2.1/flavors/" + id);
         });
-        extraGetCaptureService.capture("nova", 8774, token, uris.stream().toList());
+        extraGetCaptureService.captureWithScope("nova", 8774, uris.stream().toList(), tokenManager, projectId, computeScopeOrder());
     }
 
     private void sweepGlance(String token, CaptureIndex index) {
         Set<String> uris = new LinkedHashSet<>();
         uris.add("/v2/images");
         index.getGlanceImageIds().stream().limit(glanceImagesLimit).forEach(id -> uris.add("/v2/images/" + id));
-        extraGetCaptureService.capture("glance", 9292, token, uris.stream().toList());
+        extraGetCaptureService.captureWithScope("glance", 9292, uris.stream().toList(), tokenManager, null, computeScopeOrder());
     }
 
     private void sweepCinder(String token, String projectId, CaptureIndex index) {
@@ -101,7 +105,15 @@ public class GetSweepService {
             else uris.add("/v3/snapshots/" + id);
         });
         index.getCinderBackupIds().stream().limit(cinderBackupsLimit).forEach(id -> uris.add("/v3/backups/" + id));
-        extraGetCaptureService.capture("cinder", 8776, token, uris.stream().toList());
+        extraGetCaptureService.captureWithScope("cinder", 8776, uris.stream().toList(), tokenManager, projectId, computeScopeOrder());
+    }
+
+    private ScopeType[] computeScopeOrder() {
+        String pref = preferTokenScope == null ? "project" : preferTokenScope.trim().toLowerCase();
+        return switch (pref) {
+            case "system" -> new ScopeType[]{ScopeType.SYSTEM, ScopeType.ADMIN_PROJECT, ScopeType.PROJECT};
+            case "admin-project" -> new ScopeType[]{ScopeType.ADMIN_PROJECT, ScopeType.SYSTEM, ScopeType.PROJECT};
+            default -> new ScopeType[]{ScopeType.PROJECT, ScopeType.SYSTEM, ScopeType.ADMIN_PROJECT};
+        };
     }
 }
-

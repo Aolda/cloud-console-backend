@@ -1,5 +1,6 @@
 package com.acc.local.external.dto.nova.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,66 +14,49 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NovaServersResponse {
-
     private List<Server> servers;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Server {
         private String id;
         private String name;
         private String status;
-        private Flavor flavor;
-        private Object image;  // can be object or string
+
+        // addresses: { "net-name": [ { "addr": "...", "OS-EXT-IPS:type": "fixed|floating" }, ... ] }
         private Map<String, List<Address>> addresses;
 
-        @JsonProperty("OS-EXT-STS:power_state")
-        private Integer powerState;
+        // image can be String (id) or object; keep as Object for flexibility
+        private Object image;
 
-        @JsonProperty("OS-EXT-STS:vm_state")
-        private String vmState;
-
-        @JsonProperty("OS-EXT-AZ:availability_zone")
-        private String availabilityZone;
-
-        @JsonProperty("created")
-        private String created;
-
-        @JsonProperty("updated")
-        private String updated;
+        private Flavor flavor;
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Flavor {
-        private String id;
-
-        @JsonProperty("original_name")
-        private String originalName;
-
-        private Integer vcpus;
-        private Integer ram;
-        private Integer disk;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Address {
         private String addr;
 
         @JsonProperty("OS-EXT-IPS:type")
-        private String type;  // "fixed" or "floating"
+        private String type;
+    }
 
-        @JsonProperty("OS-EXT-IPS-MAC:mac_addr")
-        private String macAddr;
-
-        private Integer version;  // IP version (4 or 6)
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Flavor {
+        @JsonProperty("original_name")
+        private String originalName;
+        private String id;
     }
 }

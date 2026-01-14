@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes/detail",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "system"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "volumes" : [ ]
+}
+  }
+}

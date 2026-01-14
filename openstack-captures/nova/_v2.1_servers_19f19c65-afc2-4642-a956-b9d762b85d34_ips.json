@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/19f19c65-afc2-4642-a956-b9d762b85d34/ips",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "admin-project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "addresses" : {
+    "default-network" : [ {
+      "version" : 4,
+      "addr" : "192.168.0.202"
+    } ]
+  }
+}
+  }
+}

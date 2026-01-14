@@ -2,6 +2,8 @@ package com.acc.local.external.modules.nova;
 
 import com.acc.local.external.dto.nova.keypair.CreateKeyPairRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.nova.response.NovaKeypairResponse;
+import com.acc.local.external.dto.nova.response.NovaKeypairsResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,20 +25,20 @@ public class NovaKeypairAPIModule extends NovaAPIUtil {
     }
 
     // List Key Pairs
-    public ResponseEntity<JsonNode> listKeyPairs(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NovaKeypairsResponse> listKeyPairs(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/os-keypairs";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NovaKeypairsResponse.class);
     }
 
     // List Key Pairs without query parameters
-    public ResponseEntity<JsonNode> listKeyPairs(String token) {
+    public ResponseEntity<NovaKeypairsResponse> listKeyPairs(String token) {
         return listKeyPairs(token, Collections.emptyMap());
     }
 
     // Get Key Pair Details
-    public ResponseEntity<JsonNode> getKeyPairDetails(String token, String keyPairName) {
+    public ResponseEntity<NovaKeypairResponse> getKeyPairDetails(String token, String keyPairName) {
         String uri = "/v2.1/os-keypairs/" + keyPairName;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NovaKeypairResponse.class);
     }
 
     // Delete Key Pair

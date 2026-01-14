@@ -29,7 +29,6 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class VolumeExternalAdapter implements VolumeExternalPort {
     private final CinderVolumesModule cinderVolumesModule;
-    private final ObjectMapper objectMapper;
 
     @Override
     public PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit) {
@@ -44,15 +43,13 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
             queryParams.put("marker", marker);
         }
         try {
-            ResponseEntity<JsonNode> response = cinderVolumesModule.listVolumes(token, projectId, queryParams);
+            ResponseEntity<CinderVolumesResponse> response = cinderVolumesModule.listVolumes(token, projectId, queryParams);
 
-            JsonNode body = response.getBody();
-            if (!response.getStatusCode().is2xxSuccessful() || body == null || body.path("volumes").isMissingNode()) {
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);
             }
 
-            JsonNode volumesNode = body.get("volumes");
-            List<VolumeResponse> contents = StreamSupport.stream(volumesNode.spliterator(), false)
+            List<VolumeResponse> contents = response.getBody().getVolumes().stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
@@ -72,15 +69,13 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
     @Override
     public VolumeResponse callGetVolumeDetails(String token, String projectId, String volumeId) {
         try {
-            ResponseEntity<JsonNode> response = cinderVolumesModule.getVolume(token, projectId, volumeId);
+            ResponseEntity<CinderVolumeResponse> response = cinderVolumesModule.getVolume(token, projectId, volumeId);
 
-            JsonNode body = response.getBody();
-            if (body == null || body.path("volume").isMissingNode()) {
+            if (response.getBody() == null || response.getBody().getVolume() == null) {
                 throw new VolumeException(VolumeErrorCode.VOLUME_NOT_FOUND);
             }
 
-            JsonNode volumeNode = body.get("volume");
-            return convertToDto(volumeNode);
+            return convertToDto(response.getBody().getVolume());
 
         } catch (WebClientResponseException e) {
             HttpStatusCode status = e.getStatusCode();
@@ -174,24 +169,51 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
                 .build();
     }
 
-    private VolumeResponse convertToDto(JsonNode volumeNode) {
-        try {
-            // JsonNode를 CinderVolumesResponse.Volume DTO로 자동 변환
-            CinderVolumesResponse.Volume volume = objectMapper.treeToValue(volumeNode, CinderVolumesResponse.Volume.class);
+    private VolumeResponse convertToDto(CinderVolumesResponse.Volume volume) {
+        return VolumeResponse.builder()
+                .volumeId(volume.getId())
+                .name(volume.getName())
+                .size(volume.getSize())
+                .status(volume.getStatus())
+                .volumeType(volume.getVolumeType())
+                .description(volume.getDescription())
+                .availabilityZone(volume.getAvailabilityZone())
+                .createdAt(volume.getCreatedAt())
+                .bootable(volume.getBootable() != null ? volume.getBootable().toString() : null)
+                .build();
+    }
 
-            return VolumeResponse.builder()
-                    .volumeId(volume.getId())
-                    .name(volume.getName())
-                    .size(volume.getSize())
-                    .status(volume.getStatus())
-                    .volumeType(volume.getVolumeType())
-                    .description(volume.getDescription())
-                    .availabilityZone(volume.getAvailabilityZone())
-                    .createdAt(volume.getCreatedAt())
-                    .bootable(volume.getBootable())
-                    .build();
-        } catch (Exception e) {
+    // Overload for POST create (kept as JsonNode by design per requirements)
+    private VolumeResponse convertToDto(JsonNode volumeNode) {
+        if (volumeNode == null || volumeNode.isNull()) {
             throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);
         }
+        Boolean bootable = null;
+        JsonNode bootableNode = volumeNode.get("bootable");
+        if (bootableNode != null && !bootableNode.isNull()) {
+            String b = bootableNode.asText();
+            if ("true".equalsIgnoreCase(b)) bootable = true;
+            else if ("false".equalsIgnoreCase(b)) bootable = false;
+        }
+        return VolumeResponse.builder()
+                .volumeId(s(volumeNode, "id"))
+                .name(s(volumeNode, "name"))
+                .size(i(volumeNode, "size"))
+                .status(s(volumeNode, "status"))
+                .volumeType(s(volumeNode, "volume_type"))
+                .description(s(volumeNode, "description"))
+                .availabilityZone(s(volumeNode, "availability_zone"))
+                .createdAt(s(volumeNode, "created_at"))
+                .bootable(bootable != null ? bootable.toString() : null)
+                .build();
+    }
+
+    private String s(JsonNode node, String field) {
+        JsonNode v = node.get(field);
+        return (v == null || v.isNull()) ? null : v.asText();
+    }
+    private Integer i(JsonNode node, String field) {
+        JsonNode v = node.get(field);
+        return (v == null || v.isNull()) ? null : v.asInt();
     }
 }
