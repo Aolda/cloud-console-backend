@@ -1,11 +1,8 @@
 package com.acc.local.service.adapters.auth;
 
-import com.acc.global.exception.AccBaseException;
-import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
-import com.acc.local.domain.model.auth.KeystoneUser;
-import com.acc.local.domain.model.auth.UserDetail;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.ProjectServiceDto;
@@ -50,37 +47,11 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     @Deprecated
     @Override
-    public CreateUserResponse createUser(CreateUserRequest createUserRequest , String userId) {
-
-        // TODO: userid 를 통해, 요청을 보낸 사람이 Root인지 권한 확인
-
-        KeystoneUser keystoneUser = KeystoneUser.from(createUserRequest);
-        KeystoneUser createdKeystoneUser = authModule.createUser(keystoneUser, userId);
-        return CreateUserResponse.from(createdKeystoneUser);
-    }
-    @Deprecated
-    @Override
     public GetUserResponse getUserDetail(String targetUserId, String requesterId) {
         // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
 
-        KeystoneUser keystoneUser = authModule.getUserDetail(targetUserId, requesterId);
-        return GetUserResponse.from(keystoneUser);
-    }
-    @Deprecated
-    @Override
-    public UpdateUserResponse updateUser(String targetUserId, UpdateUserRequest updateUserRequest, String requesterId) {
-        // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
-
-        KeystoneUser keystoneUser = KeystoneUser.from(updateUserRequest);
-        KeystoneUser updatedKeystoneUser = authModule.updateUser(targetUserId, keystoneUser, requesterId);
-        return UpdateUserResponse.from(updatedKeystoneUser);
-    }
-    @Deprecated
-    @Override
-    public void deleteUser(String targetUserId, String requesterId) {
-        // TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 본인인지 권한 확인
-        
-        authModule.deleteUser(targetUserId, requesterId);
+        UserKeystoneDto userKeystoneDto = authModule.getUserDetail(targetUserId, requesterId);
+        return GetUserResponse.from(userKeystoneDto);
     }
 
     @Override
@@ -96,11 +67,6 @@ public class AuthServiceAdapter implements AuthServicePort {
                 .projectPermission(permission.name().toLowerCase())
                 .projectId(keystoneProjectId)
                 .build();
-    }
-
-    @Override
-    public String issueProjectScopeToken(String projectId, String userId) {
-        return authModule.issueProjectScopeToken(projectId,userId);
     }
 
     @Override

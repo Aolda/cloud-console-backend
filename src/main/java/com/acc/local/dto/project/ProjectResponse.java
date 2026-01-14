@@ -6,7 +6,7 @@ import java.util.List;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 
 import lombok.Builder;
@@ -26,7 +26,7 @@ public record ProjectResponse(
 ) {
 
 	// 생성된 프로젝트
-	public static ProjectResponse from(ProjectServiceDto projectServiceDto, KeystoneUser owner, List<ProjectParticipantDto> participants) {
+	public static ProjectResponse from(ProjectServiceDto projectServiceDto, UserKeystoneDto owner, List<ProjectParticipantDto> participants) {
 		ProjectRequestType projectType = projectServiceDto.projectType();
 		if (projectType == null) {
 			projectType = ProjectRequestType.ETC;
@@ -35,9 +35,9 @@ public record ProjectResponse(
 		if (participants.isEmpty() && owner != null) {
 			participants.add(
 				ProjectParticipantDto.builder()
-					.userId(owner.getId())
-					.userName(owner.getName())
-					.userEmail(owner.getEmail())
+					.userId(owner.id())
+					.userName(owner.name())
+					.userEmail(owner.email())
 					.role(ProjectRole.PROJECT_ADMIN)
 				.build()
 			);
@@ -67,7 +67,7 @@ public record ProjectResponse(
 	}
 
 	// 프로젝트 요청
-	public static ProjectResponse from(ProjectRequestDto projectRequestDto, KeystoneUser projectRequestUser) {
+	public static ProjectResponse from(ProjectRequestDto projectRequestDto, UserKeystoneDto projectRequestUser) {
 		return ProjectResponse.builder()
 			.projectName(projectRequestDto.projectName())
 			.projectType(projectRequestDto.projectType())
@@ -79,8 +79,8 @@ public record ProjectResponse(
 			.rejectReason(projectRequestDto.rejectReason())
 			.participants(List.of(
 				ProjectParticipantDto.builder()
-					.userId(projectRequestUser.getId())
-					.userName(projectRequestUser.getName())
+					.userId(projectRequestUser.id())
+					.userName(projectRequestUser.name())
 					.role(ProjectRole.PROJECT_ADMIN)
 					.build()
 			))

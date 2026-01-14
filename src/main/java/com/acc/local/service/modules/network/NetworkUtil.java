@@ -1,6 +1,10 @@
 package com.acc.local.service.modules.network;
 
+import com.acc.local.domain.enums.network.SecurityRuleDirection;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class NetworkUtil {
@@ -23,8 +27,26 @@ public class NetworkUtil {
                                 "(?:[1-9]|[12]\\d|3[0-2])$");
     }
 
+    public boolean validateIpv4(String ip) {
+        return ip != null && !ip.isEmpty() &&
+                ip.matches("^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\\." +
+                           "){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])$");
+    }
+
     public boolean validateSubnetName(String subnetName) {
         return subnetName != null && !subnetName.isEmpty();
+    }
+
+    public boolean hasOverlappingCidrs(java.util.List<String> cidrs) {
+        Set<String> cidrSet = new HashSet<>();
+        for (String cidr : cidrs) {
+            cidr = cidr.split("/")[0];
+            if (cidrSet.contains(cidr)) {
+                return true;
+            }
+            cidrSet.add(cidr);
+        }
+        return false;
     }
 
     public boolean validateGateway(Boolean gateway) {
@@ -32,7 +54,7 @@ public class NetworkUtil {
     }
 
     public boolean isNullOrEmpty(String str) {
-        return str == null || str.isEmpty();
+        return str == null || str.isEmpty() || str.isBlank();
     }
 
     public boolean isNullOrEmpty(java.util.List<?> list) {
@@ -74,11 +96,11 @@ public class NetworkUtil {
         };
     }
 
-    public String validateDirection(String direction) {
-        if (direction == null || direction.isEmpty()) {
+    public String validateDirection(SecurityRuleDirection direction) {
+        if (direction == null) {
             return null;
         }
-        return switch (direction.toLowerCase()) {
+        return switch (direction.name().toLowerCase()) {
             case "ingress" -> "ingress";
             case "egress" -> "egress";
             default -> null;
@@ -90,7 +112,7 @@ public class NetworkUtil {
     }
 
     public boolean hasValidRemoteSecurityGroupIdOrCidr(String remoteSecurityGroupId, String cidr) {
-        return (remoteSecurityGroupId != null && !remoteSecurityGroupId.isEmpty()) ||
+        return (remoteSecurityGroupId != null && !remoteSecurityGroupId.isEmpty() && !remoteSecurityGroupId.isBlank()) ||
                 ((cidr != null && !cidr.isEmpty()) && validateCidr(cidr));
     }
 

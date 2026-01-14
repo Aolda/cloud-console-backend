@@ -4,7 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.CreateProjectRequest;
 
 import com.acc.local.dto.project.CreateProjectResponse;
@@ -111,8 +111,8 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 		List<ProjectRequestResponse> projectRequestResponseList = new ArrayList<>();
 		for (ProjectRequestDto projectRequest : projectRequestsList) {
-			KeystoneUser requestedKeystoneUser = authModule.getUserDetail(projectRequest.requestUserId(), requesterId);
-			projectRequestResponseList.add(ProjectRequestResponse.from(projectRequest, requestedKeystoneUser));
+			UserKeystoneDto requestedUserKeystoneDto = authModule.getUserDetail(projectRequest.requestUserId(), requesterId);
+			projectRequestResponseList.add(ProjectRequestResponse.from(projectRequest, requestedUserKeystoneDto));
 		}
 
 		return PageResponse.<ProjectRequestResponse>builder()
@@ -172,15 +172,15 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 				// TODO(MR~): 사용자 통합정보 조회모듈 사용
 				List<ProjectParticipantDto> projectParticipants = projectModule.getProjectParticipantList(projectInfo.projectId());
 
-				KeystoneUser ownerKeystoneUser = null;
+				UserKeystoneDto ownerUserKeystoneDto = null;
 				if (projectInfo.ownerKeystoneId() != null) {
-					ownerKeystoneUser = authModule.getUserDetail(
+					ownerUserKeystoneDto = authModule.getUserDetail(
 						projectInfo.ownerKeystoneId(),
 						requestUserId
 					);
 				}
 
-				projectResponseList.add(ProjectResponse.from(projectInfo, ownerKeystoneUser, projectParticipants));
+				projectResponseList.add(ProjectResponse.from(projectInfo, ownerUserKeystoneDto, projectParticipants));
 			}
 
 			authModule.invalidateSystemAdminToken(adminToken);

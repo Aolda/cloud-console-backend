@@ -48,7 +48,14 @@ public interface VolumeDocs {
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication);
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId);
+>>>>>>> origin/main
 
     @Operation(
             summary = "볼륨 상세 조회",
@@ -69,7 +76,14 @@ public interface VolumeDocs {
             @Parameter(description = "조회할 볼륨 ID", required = true)
             @RequestParam String volumeId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -118,7 +132,14 @@ public interface VolumeDocs {
             @Parameter(description = "삭제할 볼륨 ID", required = true, example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
             @RequestParam String volumeId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -162,6 +183,13 @@ public interface VolumeDocs {
             @Parameter(description = "생성할 볼륨 정보", required = true)
             @RequestBody VolumeRequest request,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 }

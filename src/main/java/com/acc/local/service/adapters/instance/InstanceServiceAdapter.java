@@ -43,21 +43,25 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     @Override
     public void createInstance(InstanceCreateRequest request, String userId, String projectId) {
-        // TODO:  Quota 검증
-
         String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+
+        ProjectComputeQuotaDto quota = projectModule.getProjectComputeQuotaDetail(projectId, keystoneToken);
+        instanceUtil.validateQuotaForInstanceCreation(quota);
 
         if (!instanceUtil.validateInstanceName(request.getInstanceName())) {
             throw new InstanceException(InstanceErrorCode.INVALID_INSTANCE_NAME);
         }
 
-        if (!instanceUtil.validateAuthMethod(request.getKeypairId(), request.getPassword())) {
+        if (!instanceUtil.validateAuthMethod(request.getKeypairName(), request.getPassword())) {
             throw new InstanceException(InstanceErrorCode.KEYPAIR_OR_PASSWORD_REQUIRED);
+        }
+
+        if (!instanceUtil.validateNetworkConnection(request.getNetworkIds(), request.getInterfaceIds())) {
+            throw new InstanceException(InstanceErrorCode.NETWORK_OR_INTERFACE_REQUIRED);
         }
 
         instanceModule.createInstance(keystoneToken, projectId, request);
     }
-
 
     @Override
     public void controlInstance(String instanceId, InstanceActionRequest request, String userId, String projectId) {

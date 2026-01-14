@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
+import org.hibernate.sql.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +23,7 @@ import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.InvitableUser;
 import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.dto.project.CreateProjectRequest;
@@ -33,7 +35,6 @@ import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
-import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.dto.project.UpdateProjectRequest;
 import com.acc.local.dto.project.quota.ProjectStorageQuotaDto;
 import com.acc.local.dto.project.quota.QuotaInformation;
@@ -238,15 +239,8 @@ public class ProjectModule {
 			.projectName(request.projectName())
 			.projectDescription(request.projectDescription())
 			.build();
+		KeystoneProject keystoneSavedProject = keystoneAPIExternalPort.createProject(adminToken, project);
 
-		Map<String, Object> projectRequest = KeystoneAPIUtils.createKeystoneCreateProjectRequest(project);
-		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createProject(adminToken, projectRequest);
-
-		if (response == null) {
-			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_CREATION_FAILED, "프로젝트 생성 응답이 null입니다.");
-		}
-
-		KeystoneProject keystoneSavedProject = KeystoneAPIUtils.parseKeystoneProjectResponse(response);
 		ProjectEntity aoldaProject = ProjectEntity.builder()
 			.projectId(keystoneSavedProject.getId())
 			.ownerKeystoneId(request.projectOwnerId())
@@ -280,13 +274,7 @@ public class ProjectModule {
 
 	@Transactional
 	public ProjectServiceDto getProjectDetail(String projectId, String scopedToken) {
-		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getProjectDetail(projectId, scopedToken);
-
-		if (response == null) {
-			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, "프로젝트 조회 응답이 null입니다.");
-		}
-
-		KeystoneProject openstackProject = KeystoneAPIUtils.parseKeystoneProjectResponse(response);
+		KeystoneProject openstackProject = keystoneAPIExternalPort.getProjectDetail(projectId, scopedToken);
 		ProjectEntity databaseProject = getDatabaseProject(projectId);
 
 		ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, scopedToken);
@@ -300,19 +288,17 @@ public class ProjectModule {
 
 	@Transactional
 	public KeystoneProject updateProject(String projectId, UpdateProjectRequest updatedProjectRequest, String requesterId) {
-		KeystoneProject project = KeystoneProject.builder()
-			.name(updatedProjectRequest.name())
-			.description(updatedProjectRequest.description())
-			.build();
+		UpdateKeystoneProjectRequest updateRequest = UpdateKeystoneProjectRequest.builder()
+				.name(updatedProjectRequest.name())
+				.isDomain(updatedProjectRequest.isDomain())
+				.description(updatedProjectRequest.description())
+				.domainId(updatedProjectRequest.domainId())
+				.enabled(updatedProjectRequest.enabled())
+				.tags(updatedProjectRequest.tags())
+				.build();
 
 		String keystoneToken = authModule.getUnscopedTokenByUserId(requesterId);
-
-		Map<String, Object> projectRequest = KeystoneAPIUtils.createKeystoneUpdateProjectRequest(project);
-		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.updateProject(projectId, keystoneToken, projectRequest);
-		if (response == null) {
-			throw new AuthServiceException(AuthErrorCode.KEYSTONE_PROJECT_UPDATE_FAILED, "프로젝트 업데이트 응답이 null입니다.");
-		}
-		return KeystoneAPIUtils.parseKeystoneProjectResponse(response);
+		return keystoneAPIExternalPort.updateProject(projectId, keystoneToken, updateRequest);
 	}
 
 	@Transactional
@@ -376,10 +362,10 @@ public class ProjectModule {
 			.build();
 	}
 
-	public void updateProjectCPUAndRAMQuota(String adminToken, String projectId, int vCpuQuota, int ramQuotaWithGBUnit, String userId) {
+	public void updateProjectCPUAndRAMQuota(String adminToken, String projectId, int vCpuQuota, int ramQuota, String userId) {
 		computeQuotaExternalPort.callUpdateCPUAndRAMQuota(
 			adminToken,
-			projectId, vCpuQuota, ramQuotaWithGBUnit * 1024
+			projectId, vCpuQuota, ramQuota
 		);
 	}
 
@@ -472,22 +458,13 @@ public class ProjectModule {
 
 	private boolean checkIsUserValid(String userId, String token) {
 		try {
-			getUserBaseInfoFromKeystone(userId, token);
+			keystoneAPIExternalPort.getUserDetail(userId, token);
 		} catch (KeystoneException e) {
 			if (e.getErrorCode() == AuthErrorCode.USER_NOT_FOUND) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	private KeystoneUser getUserBaseInfoFromKeystone(String userId, String token) {
-		ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getUserDetail(userId, token);
-		if (response == null) {
-			throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 조회 응답이 null입니다.");
-		}
-
-		return KeystoneAPIUtils.parseKeystoneUserResponse(response);
 	}
 
 	// TODO: REFACTOR - 너무 많은 요청; 이메일에 대한 db 캐싱을 통해 검색횟수 최소화 필요
@@ -501,20 +478,20 @@ public class ProjectModule {
 
 	private List<InvitableUser> findInvitableUsersByEmail(String email, String projectId, String token) {
 		ResponseEntity<JsonNode> listUsersOpenstackResponse = keystoneUserAPIModule.listUsers(token, null, 30, email);
-		List<KeystoneUser> users = KeystoneAPIUtils.parseKeystoneUserListResponse(listUsersOpenstackResponse).getKeystoneUsers();
+		List<UserKeystoneDto> users = KeystoneAPIUtils.parseKeystoneUserListResponse(listUsersOpenstackResponse).getUserKeystoneDtos();
 
-		List<UserDetailEntity> userDetailsByIds = userRepositoryPort.findUserDetailsByIds(users.stream().map(KeystoneUser::getId).toList());
+		List<UserDetailEntity> userDetailsByIds = userRepositoryPort.findUserDetailsByIds(users.stream().map(UserKeystoneDto::id).toList());
 
 		List<InvitableUser> invitableUsers = new ArrayList<>();
 		for (UserDetailEntity userDetailEntity : userDetailsByIds) {
-			KeystoneUser matchUser = users.stream()
-				.filter(v -> v.getId().equals(userDetailEntity.getUserId()))
+			UserKeystoneDto matchUser = users.stream()
+				.filter(v -> v.id().equals(userDetailEntity.getUserId()))
 				.findFirst()
 				.orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
 
 			invitableUsers.add(
 				InvitableUser.builder()
-					.userEmail(matchUser.getName())
+					.userEmail(matchUser.name())
 					.userName(userDetailEntity.getUserName())
 					.userId(userDetailEntity.getUserId())
 					.build()
@@ -530,11 +507,11 @@ public class ProjectModule {
 		List<InvitableUser> invitableUsers = new ArrayList<>();
 		for (UserDetailEntity userDetailEntity : userDetailsByIds) {
 			ResponseEntity<JsonNode> listUsersOpenstackResponse = keystoneUserAPIModule.getUserDetail(userDetailEntity.getUserId(), token);
-			KeystoneUser user = KeystoneAPIUtils.parseKeystoneUserResponse(listUsersOpenstackResponse);
+			UserKeystoneDto user = KeystoneAPIUtils.parseKeystoneUserResponse(listUsersOpenstackResponse);
 
 			invitableUsers.add(
 				InvitableUser.builder()
-					.userEmail(user.getName())
+					.userEmail(user.name())
 					.userName(userDetailEntity.getUserName())
 					.userId(userDetailEntity.getUserId())
 					.build()

@@ -40,9 +40,9 @@ public interface ProjectDocs {
 
 	@Operation(
 		summary = "프로젝트 목록 조회",
-		description = "로그인된 사용자가 접근권한을 가지고 있는 프로젝트들에 대한 목록을 조회합니다. <br>"
-			+ "- keyword는 현재 프로젝트 제목만 입력 가능하며, 구현문제로 현재는 정확히 일치하는 경우에 대해서면 응답됩니다 <br>"
-			+ "- 요청에 따라 필드명에 대한 응답명세가 통일되었습니다. FE 측에서 반영 부탁드립니다. <br>"
+		description = "로그인된 사용자가 접근권한을 가지고 있는 프로젝트들에 대한 목록을 조회합니다. \n"
+			+ "- keyword는 현재 프로젝트 제목만 입력 가능하며, 구현문제로 현재는 정확히 일치하는 경우에 대해서면 응답됩니다 \n"
+			+ "- 요청에 따라 필드명에 대한 응답명세가 통일되었습니다. FE 측에서 반영 부탁드립니다. \n"
 			+ "- 'projectBrief' 필드가 'quota' 필드로 변경될 예정입니다. 현 버전에서는 두 필드 모두 항상 같은 값을 담은 상태로 응답되나, 'quota'로 변경완료 시 말씀주시면 완전변경 하도록 하겠습니다"
 	)
 	@ApiResponses(value = {
@@ -552,10 +552,10 @@ public interface ProjectDocs {
 		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
 	@PostMapping("/request")
-	ResponseEntity<CreateProjectRequestResponse> createProjectRequest(
-		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody CreateProjectRequestRequest createProjectRequestRequest
-	);
+    ResponseEntity<CreateProjectRequestResponse> createProjectRequest(
+            @Parameter(hidden = true) Authentication authentication,
+            @RequestBody CreateProjectRequestRequest createProjectRequestRequest
+    );
 
 	@Operation(
 		summary = "프로젝트 참여자 초대",
@@ -568,25 +568,25 @@ public interface ProjectDocs {
 			content = @Content(
 				mediaType = "application/json",
 				examples = {
-					@ExampleObject(
-						name = "프로젝트 참여자 초대 성공",
-						value = "[\n"
-							+ "  {\n"
-							+ "    \"userId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c,\"\n"
-							+ "    \"userName\": \"가나다라마바사,\"\n"
-							+ "    \"userEmail\": \"sefesf@ajou.ac.kr, // nullable\"\n"
-							+ "    \"userPhoneNumber\": \"010-1234-1234,\"\n"
-							+ "    \"role\": \"PROJECT_ROLE/PROJECT_ADMIN\"\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"userId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c,\"\n"
-							+ "    \"userName\": \"가나다라마바사,\"\n"
-							+ "    \"userEmail\": \"sefesf@ajou.ac.kr, // nullable\"\n"
-							+ "    \"userPhoneNumber\": \"010-1234-1234,\"\n"
-							+ "    \"role\": \"PROJECT_ROLE/PROJECT_ADMIN\"\n"
-							+ "  },\n"
-							+ "]"
-					)
+                    @ExampleObject(
+                        name = "프로젝트 참여자 초대 성공",
+                        value = "[\n"
+                            + "  {\n"
+                            + "    \"userId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c\",\n"
+                            + "    \"userName\": \"가나다라마바사\",\n"
+                            + "    \"userEmail\": \"sefesf@ajou.ac.kr\",\n"
+                            + "    \"userPhoneNumber\": \"010-1234-1234\",\n"
+                            + "    \"role\": \"PROJECT_ROLE/PROJECT_ADMIN\"\n"
+                            + "  },\n"
+                            + "  {\n"
+                            + "    \"userId\": \"a11113b2-6900-4086-b3fa-a1bbdd36765d\",\n"
+                            + "    \"userName\": \"홍길동\",\n"
+                            + "    \"userEmail\": \"hong@ajou.ac.kr\",\n"
+                            + "    \"userPhoneNumber\": \"010-2222-3333\",\n"
+                            + "    \"role\": \"PROJECT_ROLE/PROJECT_MEMBER\"\n"
+                            + "  }\n"
+                            + "]"
+                    )
 				},
 				schema = @Schema(oneOf = {List.class})
 			)
@@ -599,7 +599,10 @@ public interface ProjectDocs {
 	@PostMapping("/participants")
 	ResponseEntity<List<ProjectParticipantDto>> inviteProjectParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody InviteProjectRequest inviteProjectRequest
+		@RequestBody InviteProjectRequest inviteProjectRequest,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 	@Operation(
@@ -614,18 +617,18 @@ public interface ProjectDocs {
 			content = @Content(
 				mediaType = "application/json",
 				examples = {
-					@ExampleObject(
-						name = "프로젝트 참여자 삭제 성공",
-						value = "[ \n"
-							+ "  {\n"
-							+ "    \"userId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c\",\n"
-							+ "    \"userName\": \"가나다라마바사\",\n"
-							+ "    \"userEmail\": \"sefesf@ajou.ac.kr\", // nullable\n"
-							+ "    \"userPhoneNumber\": \"010-1234-1234\",\n"
-							+ "    \"role\": \"PROJECT_ROLE/PROJECT_ADMIN\"\n"
-							+ "  }\n"
-							+ "]"
-					)
+                    @ExampleObject(
+                        name = "프로젝트 참여자 삭제 성공",
+                        value = "[\n"
+                            + "  {\n"
+                            + "    \"userId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c\",\n"
+                            + "    \"userName\": \"가나다라마바사\",\n"
+                            + "    \"userEmail\": \"sefesf@ajou.ac.kr\",\n"
+                            + "    \"userPhoneNumber\": \"010-1234-1234\",\n"
+                            + "    \"role\": \"PROJECT_ROLE/PROJECT_ADMIN\"\n"
+                            + "  }\n"
+                            + "]"
+                    )
 				},
 				schema = @Schema(oneOf = {List.class})
 			)
@@ -638,7 +641,10 @@ public interface ProjectDocs {
 	@DeleteMapping("/participants")
 	ResponseEntity<List<ProjectParticipantDto>> kickOutProjectParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@RequestBody KickOutProjectRequest inviteProjectRequest
+		@RequestBody KickOutProjectRequest inviteProjectRequest,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 	@Operation(
@@ -679,7 +685,10 @@ public interface ProjectDocs {
 	@GetMapping("/participants/available")
 	ResponseEntity<List<InvitableUser>> getInvitableParticipants(
 		@Parameter(hidden = true) Authentication authentication,
-		@Parameter(description = "검색하고자 하는 사용자 이름 혹은 이메일") @RequestParam(required = false) String keyword
+		@Parameter(description = "검색하고자 하는 사용자 이름 혹은 이메일") @RequestParam(required = false) String keyword,
+		@RequestParam
+		@Parameter(description = "프로젝트 ID", required = true)
+		String projectId
 	);
 
 }

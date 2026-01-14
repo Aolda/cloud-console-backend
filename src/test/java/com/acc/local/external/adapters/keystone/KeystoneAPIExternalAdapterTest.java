@@ -6,6 +6,10 @@ import static org.mockito.Mockito.*;
 
 import java.util.Map;
 
+import com.acc.local.domain.enums.project.ProjectRole;
+import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
+import com.acc.local.external.dto.keystone.KeystoneProject;
+import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -307,11 +311,10 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneProjectAPIModule.createProject(token, projectRequest)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.createProject(token, projectRequest);
+		KeystoneProject result = keystoneAPIExternalAdapter.createProject(token, CreateKeystoneProjectRequest.builder().build());
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.CREATED, result.getStatusCode());
 		verify(keystoneProjectAPIModule).createProject(token, projectRequest);
 	}
 
@@ -327,11 +330,10 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneProjectAPIModule.getProjectDetail(projectId, token)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.getProjectDetail(projectId, token);
+		KeystoneProject result = keystoneAPIExternalAdapter.getProjectDetail(projectId, token);
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.OK, result.getStatusCode());
 		verify(keystoneProjectAPIModule).getProjectDetail(projectId, token);
 	}
 
@@ -348,11 +350,11 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneProjectAPIModule.updateProject(projectId, token, projectRequest)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.updateProject(projectId, token, projectRequest);
+		KeystoneProject result = keystoneAPIExternalAdapter.updateProject(projectId, token, UpdateKeystoneProjectRequest.builder().build());
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.OK, result.getStatusCode());
+//		assertEquals(HttpStatus.OK, result.getStatusCode());
 		verify(keystoneProjectAPIModule).updateProject(projectId, token, projectRequest);
 	}
 
@@ -368,10 +370,10 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneProjectAPIModule.deleteProject(projectId, token)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.deleteProject(projectId, token);
+		keystoneAPIExternalAdapter.deleteProject(projectId, token);
 
 		// then
-		assertNotNull(result);
+//		assertNotNull(result);
 		verify(keystoneProjectAPIModule).deleteProject(projectId, token);
 	}
 
@@ -389,11 +391,11 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneRoleAPIModule.getAccountPermissionList(userId, token)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.getAccountPermissionList(userId, token);
+		Map<String, ProjectRole> result = keystoneAPIExternalAdapter.getAccountPermissionList(userId, token);
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.OK, result.getStatusCode());
+//		assertEquals(HttpStatus.OK, result.getStatusCode());
 		verify(keystoneRoleAPIModule).getAccountPermissionList(userId, token);
 	}
 }

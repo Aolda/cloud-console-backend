@@ -44,7 +44,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -67,7 +74,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "조회할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -90,7 +104,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "생성할 정책 정보", required = true)
             @RequestBody SnapshotPolicyRequest request,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -116,7 +137,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "수정할 정책 정보", required = true)
             @RequestBody SnapshotPolicyRequest request,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -138,7 +166,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "삭제할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -160,7 +195,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "비활성화할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -182,7 +224,14 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "활성화할 정책 ID", required = true)
             @RequestParam Long policyId,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 
     @Operation(
@@ -209,6 +258,13 @@ public interface SnapshotPolicyDocs {
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(hidden = true)
+<<<<<<< HEAD
             Authentication authentication
+=======
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+>>>>>>> origin/main
     );
 }

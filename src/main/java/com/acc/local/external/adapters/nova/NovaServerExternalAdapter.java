@@ -11,6 +11,7 @@ import com.acc.local.external.modules.nova.NovaServerAPIModule;
 import com.acc.local.external.ports.NovaServerExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NovaServerExternalAdapter implements NovaServerExternalPort {
@@ -38,6 +40,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
         }
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            log.error("Nova API non-success status: {}, body: {}", response.getStatusCode(), response.getBody());
             throw new NovaException(NovaErrorCode.NOVA_SERVER_RETRIEVAL_FAILED);
         }
         List<InstanceResponse> servers = parseServers(response);
@@ -52,10 +55,11 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
         try {
             response = novaServerAPIModule.createServer(token, novaCreateServerRequest);
         } catch (WebClientException e) {
-            throw new NovaException(NovaErrorCode.NOVA_SERVER_CREATION_FAILED);
+            throw new NovaException(NovaErrorCode.NOVA_SERVER_CREATION_FAILED, e.getMessage());
         }
 
         if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("Nova API non-success status: {}, body: {}", response.getStatusCode(), response.getBody());
             throw new NovaException(NovaErrorCode.NOVA_SERVER_CREATION_FAILED);
         }
     }
@@ -149,7 +153,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
 
         // volume
         String imageRef = instanceRequest.getImageId();
-        List<CreateServerRequest.BlockDeviceMappingV2> blockDeviceMapping = null;
+        List<CreateServerRequest.BlockDeviceMappingV2> blockDeviceMapping;
         Integer diskSize = instanceRequest.getDiskSize();
 
         // boot-from-volume
@@ -166,6 +170,8 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
                     .build();
 
             blockDeviceMapping = List.of(bootVolume);
+        } else {
+            blockDeviceMapping = List.of(); // 빈 배열로 설정
         }
 
         CreateServerRequest.Server serverPayload = CreateServerRequest.Server.builder()
@@ -173,7 +179,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
                 .imageRef(imageRef)
                 .flavorRef(instanceRequest.getTypeId())
                 .adminPass(instanceRequest.getPassword())
-                .key_name(instanceRequest.getKeypairId())
+                .key_name(instanceRequest.getKeypairName())
                 .networks(networks.isEmpty() ? null : networks)
                 .security_groups(securityGroups)
                 .block_device_mapping_v2(blockDeviceMapping)

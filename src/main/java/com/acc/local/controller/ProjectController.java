@@ -66,10 +66,9 @@ public class ProjectController implements ProjectDocs {
 	}
 
 	@Override
-	public ResponseEntity<List<ProjectParticipantDto>> inviteProjectParticipants(Authentication authentication, InviteProjectRequest inviteProjectRequest) {
+	public ResponseEntity<List<ProjectParticipantDto>> inviteProjectParticipants(Authentication authentication, InviteProjectRequest inviteProjectRequest, String projectId) {
 		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 		String userId = jwtInfo.getUserId();
-		String projectId = jwtInfo.getProjectId();
 
 		List<ProjectParticipantDto> updatedParticipantList = projectServicePort.inviteProjectParticipants(
 			projectId,
@@ -81,10 +80,9 @@ public class ProjectController implements ProjectDocs {
 	}
 
 	@Override
-	public ResponseEntity<List<ProjectParticipantDto>> kickOutProjectParticipants(Authentication authentication, KickOutProjectRequest inviteProjectRequest) {
+	public ResponseEntity<List<ProjectParticipantDto>> kickOutProjectParticipants(Authentication authentication, KickOutProjectRequest inviteProjectRequest, String projectId) {
 		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 		String userId = jwtInfo.getUserId();
-		String projectId = jwtInfo.getProjectId();
 
 		List<ProjectParticipantDto> updatedParticipantList = projectServicePort.kickOutParticipants(
 			projectId,
@@ -95,10 +93,9 @@ public class ProjectController implements ProjectDocs {
 	}
 
 	@Override
-	public ResponseEntity<List<InvitableUser>> getInvitableParticipants(Authentication authentication, String keyword) {
+	public ResponseEntity<List<InvitableUser>> getInvitableParticipants(Authentication authentication, String keyword, String projectId) {
 		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 		String userId = jwtInfo.getUserId();
-		String projectId = jwtInfo.getProjectId();
 
 		List<InvitableUser> invitableUser = projectServicePort.getInvitableUser(projectId, keyword, userId);
 		return ResponseEntity.status(200).body(invitableUser);

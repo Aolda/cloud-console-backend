@@ -12,7 +12,6 @@ import com.acc.local.service.ports.InstanceServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,40 +21,36 @@ public class InstanceController implements InstanceDocs {
     private final InstanceServicePort instanceServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<InstanceResponse>> getInstances(Authentication authentication, PageRequest page) {
+    public ResponseEntity<PageResponse<InstanceResponse>> getInstances(Authentication authentication, String projectId, PageRequest page) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         PageResponse<InstanceResponse> response = instanceServicePort.getInstances(page, userId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<Object> createInstance(Authentication authentication, InstanceCreateRequest request) {
+    public ResponseEntity<Object> createInstance(Authentication authentication, String projectId, InstanceCreateRequest request) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         instanceServicePort.createInstance(request, userId, projectId);
         return ResponseEntity.created(null).build();
     }
 
     @Override
-    public ResponseEntity<InstanceQuotaResponse> getQuota(Authentication authentication) {
+    public ResponseEntity<InstanceQuotaResponse> getQuota(Authentication authentication, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         InstanceQuotaResponse response = instanceServicePort.getQuota(userId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<Object> controlInstance(Authentication authentication, String instanceId, InstanceActionRequest request) {
+    public ResponseEntity<Object> controlInstance(Authentication authentication, String projectId, String instanceId, InstanceActionRequest request) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         instanceServicePort.controlInstance(instanceId, request, userId, projectId);
         return ResponseEntity.ok().build();

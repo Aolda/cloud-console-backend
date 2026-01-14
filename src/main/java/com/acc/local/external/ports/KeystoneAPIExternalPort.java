@@ -3,7 +3,7 @@ package com.acc.local.external.ports;
 import com.acc.global.common.PageRequest;
 import com.acc.global.exception.AccBaseException;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.domain.model.auth.Role;
@@ -11,7 +11,7 @@ import com.acc.local.domain.model.auth.RoleListResponse;
 import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.external.dto.keystone.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 
@@ -38,39 +38,33 @@ public interface KeystoneAPIExternalPort {
 
 	ResponseEntity<JsonNode> requestFederateLogin(String keycloakCode);
 
-	ResponseEntity<JsonNode> getTokenInfo(String token);
-
-	ResponseEntity<JsonNode> getScopeTokenInfo(String token, Map<String, Object> request);
-
-	ResponseEntity<JsonNode> issueScopedToken(Map<String, Object> tokenRequest);
-
-	ResponseEntity<JsonNode> issueUnscopedToken(Map<String, Object> passwordAuthRequest);
+	KeystoneToken getTokenInfo(String token);
 
 	// ----- User -----
 
-	ResponseEntity<JsonNode> createUser(String token, Map<String, Object> userRequest);
+	UserKeystoneDto createUser(String token, CreateKeystoneUserRequest createUserRequest);
 
-	ResponseEntity<JsonNode> getUserDetail(String userId, String token);
+	UserKeystoneDto getUserDetail(String userId, String token);
 
-	ResponseEntity<JsonNode> updateUser(String userId, String token, Map<String, Object> userRequest);
+	UserKeystoneDto updateUser(String userId, String token, UpdateKeystoneUserRequest userRequest);
 
-	ResponseEntity<JsonNode> deleteUser(String userId, String token);
+	void deleteUser(String userId, String token);
 
 	UserListResponse listUsers(String token, String marker, Integer limit);
 
 	// ----- Project -----
 
-	ResponseEntity<JsonNode> createProject(String token, Map<String, Object> projectRequest);
+	KeystoneProject createProject(String token, CreateKeystoneProjectRequest createKeystoneProjectRequest);
 
-	ResponseEntity<JsonNode> getProjectDetail(String projectId, String token);
+	KeystoneProject getProjectDetail(String projectId, String token);
 
-	ResponseEntity<JsonNode> updateProject(String projectId, String token, Map<String, Object> projectRequest);
+	KeystoneProject updateProject(String projectId, String token, UpdateKeystoneProjectRequest updateRequest);
 
-	ResponseEntity<JsonNode> deleteProject(String projectId, String token);
+	void deleteProject(String projectId, String token);
 
 	// ----- Role -----
 
-	ResponseEntity<JsonNode> getAccountPermissionList(String userId, String token);
+	Map<String, ProjectRole> getAccountPermissionList(String userId, String token);
 
 	Role createRole(String token, Map<String, Object> roleRequest);
 
@@ -88,7 +82,7 @@ public interface KeystoneAPIExternalPort {
 
 	void retrieveProjectRole(String userId, String projectId, String projectRole, String token);
 
-	List<KeystoneUser> getUsersByEmail(String keyword);
+	List<UserKeystoneDto> getUsersByEmail(String keyword);
 
 	String getAdminProjectId(String token);
 }

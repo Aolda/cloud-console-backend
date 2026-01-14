@@ -12,6 +12,7 @@ import com.acc.local.external.modules.neutron.NeutronSubnetsAPIModule;
 import com.acc.local.external.ports.NeutronNetworkExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort {
 
     private final NeutronNetworksAPIModule networksAPIModule;
@@ -31,9 +33,8 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
 
     @Override
     public String callCreateGeneralNetwork(String keystoneToken, String name, String description, int mtu) {
-        ResponseEntity<JsonNode> response;
         try {
-            response = networksAPIModule.createNeutronNetwork(keystoneToken,
+            ResponseEntity<JsonNode> response = networksAPIModule.createNeutronNetwork(keystoneToken,
                     CreateNetworkRequest.builder().
                             network(
                                     CreateNetworkRequest.Network.builder().
@@ -43,94 +44,109 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
                                             build()
                             ).
                             build());
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_CREATION_FAILED);
-        }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_CREATION_FAILED);
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_CREATION_FAILED);
+            }
 
-        return response.getBody().
-                get("network").
-                get("id").
-                asText();
+            return response.getBody().
+                    get("network").
+                    get("id").
+                    asText();
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_CREATION_FAILED, e);
+            }
+        } 
     }
 
     @Override
     public void callDeleteNetwork(String keystoneToken, String networkId) {
-
-        ResponseEntity<JsonNode> response;
         try {
-            response = networksAPIModule.deleteNeutronNetwork(keystoneToken, networkId);
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_DELETION_FAILED);
-        }
+            ResponseEntity<JsonNode> response = networksAPIModule.deleteNeutronNetwork(keystoneToken, networkId);
 
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_DELETION_FAILED);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_DELETION_FAILED);
+            }
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                case 404 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_NOT_FOUND, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_DELETION_FAILED, e);
+            }
         }
     }
 
     @Override
     public PageResponse<ViewNetworksResponse> callListNetworks(String keystoneToken, String projectId, String marker, String direction, int limit) {
-
-        ResponseEntity<JsonNode> response;
         try {
-            response = networksAPIModule.listNeutronNetworks(keystoneToken,
+            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(keystoneToken,
                     getListNetworksParams(projectId, marker, direction,  limit == 0 ? 0 : limit + 1));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
-        }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+            }
 
-        List<ViewNetworksResponse> networks = parseNetworks(keystoneToken, response);
-        return getNetworksPageResponse(marker, limit, networks);
+            List<ViewNetworksResponse> networks = parseNetworks(keystoneToken, response);
+            return getNetworksPageResponse(marker, limit, networks);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED, e);
+            }
+        } 
     }
 
     @Override
     public Map<String, String> getNetworkNameAndId(String keystoneToken, String networkId) {
-
-        ResponseEntity<JsonNode> response;
-
         try {
-            response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
-        } catch (WebClientException e) {
-            if (e.getMessage().contains("404")) {
-                throw new NetworkException(NetworkErrorCode.NOT_FOUND_NETWORK);
-            } else {
+            ResponseEntity<JsonNode> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
             }
-        }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+            return parseNetworkNameAndId(response);
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                case 404 -> throw new NetworkException(NetworkErrorCode.NOT_FOUND_NETWORK, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED, e);
+            }
         }
-
-        return parseNetworkNameAndId(response);
     }
 
     @Override
     public Map<String, String> getProviderNetwork(String keystoneToken) {
-        ResponseEntity<JsonNode> response;
         try {
-            response = networksAPIModule.listNeutronNetworks(keystoneToken,
+            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(keystoneToken,
                     Map.of("router:external", "true"));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
-        }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+            }
 
-        return Map.of(
-                "id", response.getBody().get("networks").get(0).get("id").asText(),
-                "name", response.getBody().get("networks").get(0).get("name").asText()
-        );
+            return Map.of(
+                    "id", response.getBody().get("networks").get(0).get("id").asText(),
+                    "name", response.getBody().get("networks").get(0).get("name").asText()
+            );
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED, e);
+            }
+        }
     }
 
     @Override
@@ -154,33 +170,41 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
 
             return networkIds;
         } catch (WebClientResponseException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED, e);
+            }
         }
     }
 
     private List<ViewNetworksResponse.Subnet> callListSubnetsByNetworkId(String keystoneToken, String networkId) {
-        ResponseEntity<JsonNode> response;
-
         try {
-            response = subnetsAPIModule.listSubnets(keystoneToken,
+            ResponseEntity<JsonNode> response = subnetsAPIModule.listSubnets(keystoneToken,
                     Map.of("network_id", networkId));
-        } catch (WebClientException e) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
-        }
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
-        }
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
+            }
 
-        List<ViewNetworksResponse.Subnet> subnets = new ArrayList<>();
-        for (JsonNode node : response.getBody().get("subnets")) {
-            subnets.add(ViewNetworksResponse.Subnet.builder()
-                    .subnetId(node.get("id").asText())
-                    .subnetName(node.get("name").asText())
-                    .cidr(node.get("cidr").asText())
-                    .build());
-        }
+            List<ViewNetworksResponse.Subnet> subnets = new ArrayList<>();
+            for (JsonNode node : response.getBody().get("subnets")) {
+                subnets.add(ViewNetworksResponse.Subnet.builder()
+                        .subnetId(node.get("id").asText())
+                        .subnetName(node.get("name").asText())
+                        .cidr(node.get("cidr").asText())
+                        .build());
+            }
 
-        return subnets; 
+            return subnets;
+        } catch (WebClientResponseException e) {
+            log.error(e.getMessage(), e.getResponseBodyAsString(), e);
+            switch (e.getStatusCode().value()) {
+                case 400 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_BAD_REQUEST, e);
+                case 403 -> throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_FORBIDDEN, e);
+                default -> throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED, e);
+            }
+        }
     }
 
     private Map<String, String> getListNetworksParams(String projectId, String marker, String direction, int limit) {

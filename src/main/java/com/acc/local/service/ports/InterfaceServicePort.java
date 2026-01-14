@@ -7,7 +7,7 @@ import com.acc.local.dto.network.ViewInterfacesResponse;
 
 public interface InterfaceServicePort {
 
-    void createInterface(String userId, String projectId, CreateInterfaceRequest request);
+    String createInterface(String userId, String projectId, CreateInterfaceRequest request);
 
     void deleteInterface(String userId, String projectId, String interfaceId);
 

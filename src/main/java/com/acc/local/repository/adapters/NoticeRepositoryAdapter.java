@@ -2,6 +2,7 @@ package com.acc.local.repository.adapters;
 
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.auth.ListNoticesResponse;
+import com.acc.local.dto.auth.NoticeFilterRequest;
 import com.acc.local.entity.NoticeEntity;
 import com.acc.local.repository.jpa.NoticeJpaRepository;
 import com.acc.local.repository.modules.NoticeQueryDSLModule;
@@ -48,7 +49,7 @@ public class NoticeRepositoryAdapter implements NoticeRepositoryPort {
     }
 
     @Override
-    public PageResponse<ListNoticesResponse> findAllNotices(String marker, String direction, int limit) {
-        return noticeQueryDSLModule.findAllNotices(marker, direction, limit);
+    public PageResponse<ListNoticesResponse> findAllNotices(String marker, String direction, int limit, NoticeFilterRequest filter) {
+        return noticeQueryDSLModule.findAllNotices(marker, direction, limit, filter);
     }
 }

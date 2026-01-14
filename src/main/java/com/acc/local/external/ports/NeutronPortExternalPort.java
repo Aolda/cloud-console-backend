@@ -9,6 +9,9 @@ import java.util.Map;
 public interface NeutronPortExternalPort {
 
     Map<String, String> callCreatePort(String keystoneToken, String networkId, String portName, String subnetId, List<String> securityGroupIds, String description);
+
+    Map<String, String> callCreatePort(String keystoneToken, String networkId, String portName, String subnetId, List<String> securityGroupIds, String description, boolean portSecurity);
+
     void callDeletePort(String keystoneToken, String portId);
 
     PageResponse<ViewInterfacesResponse> callListPorts(String keystoneToken,

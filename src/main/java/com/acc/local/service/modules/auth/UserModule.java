@@ -5,7 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
 import com.acc.local.domain.model.auth.UserAuthDetail;
 import com.acc.local.domain.model.auth.UserDetail;
@@ -16,6 +16,8 @@ import com.acc.local.dto.auth.AdminListUsersResponse;
 import com.acc.local.dto.auth.AdminUpdateUserRequest;
 import com.acc.local.entity.UserAuthDetailEntity;
 import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
+import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
@@ -28,9 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,29 +49,23 @@ public class UserModule {
     @Transactional
     public String adminCreateUser(AdminCreateUserRequest request, String adminToken) {
         // 1. Keystone 사용자 생성 요청 생성
-        KeystoneUser newKeystoneUser = KeystoneUser.from(request);
+        CreateKeystoneUserRequest newUserKeystoneDto = CreateKeystoneUserRequest.builder()
+                .email(request.email())
+                .password(request.password())
+                .isEnable(request.isEnabled())
+                .build();
+        UserKeystoneDto createdUserKeystoneDto = keystoneAPIExternalPort.createUser(adminToken, newUserKeystoneDto);
+        String userIdentityId = createdUserKeystoneDto.id();
 
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUserRequest(newKeystoneUser);
-
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.createUser(adminToken, userRequest);
-
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 생성 응답이 null입니다.");
-        }
-
-        // 2. Keystone 응답에서 userId 추출
-        KeystoneUser createdKeystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
-        String userId = createdKeystoneUser.getId();
-
-        // 3. UserDetail 도메인 모델 생성 및 저장
-        UserDetail userDetail = UserDetail.createForAdmin(userId, request);
+        // 2. UserDetail 도메인 모델 생성 및 저장
+        UserDetail userDetail = UserDetail.createForAdmin(userIdentityId, request);
         UserDetailEntity userDetailEntity = userRepositoryPort.saveUserDetail(userDetail.toEntity());
 
-        // 4. UserAuthDetail 도메인 모델 생성 및 저장
-        UserAuthDetail userAuthDetail = UserAuthDetail.createForAdmin(userId, request);
+        // 3. UserAuthDetail 도메인 모델 생성 및 저장
+        UserAuthDetail userAuthDetail = UserAuthDetail.createForAdmin(userIdentityId, request);
         userRepositoryPort.saveUserAuth(userAuthDetail.toEntity(userDetailEntity));
 
-        return userId;
+        return userIdentityId;
     }
 
     /**
@@ -77,22 +73,15 @@ public class UserModule {
      * System Admin 권한으로 Keystone 사용자 수정 및 ACC DB 업데이트
      */
     @Transactional
-    public String adminUpdateUser(AdminUpdateUserRequest request, String adminToken , String userId) {
-
+    public String adminUpdateUser(AdminUpdateUserRequest request, String adminToken, String userId) {
 
         // 1. Keystone 사용자 업데이트
-        KeystoneUser updateKeystoneUser = KeystoneUser.builder()
-                .name(request.email() != null ? request.email() : null) // email을 name(아이디)로 사용
+        UpdateKeystoneUserRequest updateRequestDto = UpdateKeystoneUserRequest.builder()
+                .email(Optional.of(request.email()).orElse(null))
                 .password(request.password())
-                .enabled(request.isEnabled())
+                .isEnable(request.isEnabled())
                 .build();
-
-        Map<String, Object> userRequest = KeystoneAPIUtils.createKeystoneUpdateUserRequest(updateKeystoneUser);
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.updateUser(userId, adminToken, userRequest);
-
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.KEYSTONE_USER_CREATION_FAILED, "사용자 업데이트 응답이 null입니다.");
-        }
+        keystoneAPIExternalPort.updateUser(userId, adminToken, updateRequestDto);
 
         // 2. ACC DB 업데이트
         // UserDetailEntity 업데이트
@@ -135,11 +124,7 @@ public class UserModule {
     @Transactional(readOnly = true)
     public AdminGetUserResponse adminGetUser(String userId, String adminToken) {
         // 1. Keystone에서 사용자 정보 조회
-        ResponseEntity<JsonNode> response = keystoneAPIExternalPort.getUserDetail(userId, adminToken);
-        if (response == null) {
-            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다.");
-        }
-        KeystoneUser keystoneUser = KeystoneAPIUtils.parseKeystoneUserResponse(response);
+        UserKeystoneDto userKeystoneDto = keystoneAPIExternalPort.getUserDetail(userId, adminToken);
 
         // 2. ACC DB에서 추가 정보 조회
         UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
@@ -150,13 +135,13 @@ public class UserModule {
 
         // 4. 병합하여 반환
         return AdminGetUserResponse.builder()
-                .userId(keystoneUser.getId())
+                .userId(userKeystoneDto.id())
                 .username(userDetail.getUserName())
                 .email(userAuth.getUserEmail())
                 .department(userAuth.getDepartment())
                 .studentId(userAuth.getStudentId())
                 .phoneNumber(userDetail.getUserPhoneNumber())
-                .isEnabled(keystoneUser.isEnabled())
+                .isEnabled(userKeystoneDto.enabled())
                 .isAdmin(userDetail.getIsAdmin())
                 .isDeleted(userDetail.getIsDeleted())
                 .build();
@@ -206,7 +191,7 @@ public class UserModule {
             );
 
             // Keystone 사용자들을 필터링하여 유효한 사용자만 추가
-            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneResponse.getKeystoneUsers());
+            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneResponse.getUserKeystoneDtos());
             validUsers.addAll(filtered);
 
             lastNextMarker = keystoneResponse.getNextMarker();
@@ -232,9 +217,9 @@ public class UserModule {
      * Keystone 사용자 목록을 필터링하고 DTO로 변환
      * 미가입 사용자 및 삭제된 사용자 제외
      */
-    private List<AdminListUsersResponse> filterAndConvertUsers(List<KeystoneUser> keystoneUsers) {
-        List<String> userIds = keystoneUsers.stream()
-                .map(KeystoneUser::getId)
+    private List<AdminListUsersResponse> filterAndConvertUsers(List<UserKeystoneDto> userKeystoneDtos) {
+        List<String> userIds = userKeystoneDtos.stream()
+                .map(UserKeystoneDto::id)
                 .toList();
 
         // ACC DB에서 사용자 정보 bulk 조회
@@ -247,7 +232,7 @@ public class UserModule {
                 .collect(Collectors.toMap(UserAuthDetailEntity::getUserId, entity -> entity));
 
         // 필터링 및 변환
-        return keystoneUsers.stream()
+        return userKeystoneDtos.stream()
                 .map(keystoneUser -> convertToAdminListResponse(keystoneUser, userDetailMap, userAuthMap))
                 .filter(response -> response != null)
                 .toList();
@@ -258,11 +243,11 @@ public class UserModule {
      * 미가입 또는 삭제된 사용자는 null 반환
      */
     private AdminListUsersResponse convertToAdminListResponse(
-            KeystoneUser keystoneUser,
+            UserKeystoneDto userKeystoneDto,
             Map<String, UserDetailEntity> userDetailMap,
             Map<String, UserAuthDetailEntity> userAuthMap) {
 
-        String userId = keystoneUser.getId();
+        String userId = userKeystoneDto.id();
         UserDetailEntity userDetail = userDetailMap.get(userId);
 
         // 미가입 사용자 또는 삭제된 사용자는 제외
@@ -279,7 +264,7 @@ public class UserModule {
                 .email(userAuth != null ? userAuth.getUserEmail() : null)
                 .phoneNumber(userDetail.getUserPhoneNumber())
                 .department(userAuth != null ? userAuth.getDepartment() : null)
-                .enabled(keystoneUser.isEnabled())
+                .enabled(userKeystoneDto.enabled())
                 .defaultProjectName(null)
                 .build();
     }
@@ -342,10 +327,10 @@ public class UserModule {
                     .listRoleAssignments(adminToken, filters);
 
             // 2. role assignments에서 KeystoneUser 목록 추출 (중복 제거)
-            List<KeystoneUser> keystoneUsers = convertRoleAssignmentsToKeystoneUsers(roleAssignmentResponse);
+            List<UserKeystoneDto> userKeystoneDtos = convertRoleAssignmentsToKeystoneUsers(roleAssignmentResponse);
 
             // 3. ACC DB에서 해당 사용자들의 정보를 bulk 조회하여 필터링
-            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneUsers);
+            List<AdminListUsersResponse> filtered = filterAndConvertUsers(userKeystoneDtos);
             validUsers.addAll(filtered);
 
             lastNextMarker = roleAssignmentResponse.getNextMarker();
@@ -371,10 +356,10 @@ public class UserModule {
      * Role Assignments를 KeystoneUser 목록으로 변환
      * user가 있는 assignment만 추출하고 userId 중복 제거
      */
-    private List<KeystoneUser> convertRoleAssignmentsToKeystoneUsers(RoleAssignmentListResponse response) {
+    private List<UserKeystoneDto> convertRoleAssignmentsToKeystoneUsers(RoleAssignmentListResponse response) {
         return response.getRoleAssignments().stream()
                 .filter(assignment -> assignment.getUser() != null) // NPE 처리
-                .map(assignment -> KeystoneUser.builder()
+                .map(assignment -> UserKeystoneDto.builder()
                         .id(assignment.getUser().getId())
                         .name(assignment.getUser().getName())
                         .domainId(assignment.getUser().getDomain() != null ?
@@ -382,7 +367,7 @@ public class UserModule {
                         .enabled(true) // role이 할당되어 있다는 것은 활성 사용자
                         .build())
                 .collect(Collectors.toMap(
-                        KeystoneUser::getId,
+                        UserKeystoneDto::id,
                         user -> user,
                         (existing, replacement) -> existing // 중복 시 첫 번째 유지
                 ))

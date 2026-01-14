@@ -64,20 +64,6 @@ public class AuthController implements AuthDocs {
         return ResponseEntity.ok(response);
     }
 
-    // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
-    @Deprecated
-    @PostMapping("/user")
-    public ResponseEntity<CreateUserResponse> createKeystoneUser(
-            @ModelAttribute @Validated CreateUserRequest request,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        CreateUserResponse response = authServicePort.createUser(request, userId);
-
-        return ResponseEntity.status(201).body(response);
-    }
-
     @Deprecated
     @GetMapping("/user/{keystoneUserId}")
     public ResponseEntity<GetUserResponse> getUserDetail(
@@ -89,45 +75,6 @@ public class AuthController implements AuthDocs {
         GetUserResponse response = authServicePort.getUserDetail(keystoneUserId, requesterId);
 
         return ResponseEntity.ok(response);
-    }
-
-    @Deprecated
-    @PutMapping("/user/{keystoneUserId}")
-    public ResponseEntity<UpdateUserResponse> updateUser(
-            @PathVariable String keystoneUserId,
-            @RequestBody @Validated UpdateUserRequest request,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-        UpdateUserResponse response = authServicePort.updateUser(keystoneUserId, request, requesterId);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Deprecated
-    @DeleteMapping("/user/{keystoneUserId}")
-    public ResponseEntity<Void> deleteUser(
-            @PathVariable String keystoneUserId,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
-        authServicePort.deleteUser(keystoneUserId, requesterId);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @Deprecated
-    @GetMapping("/token/keystone/scoped")
-    public ResponseEntity<String> issueProjectScopeToken(
-            @RequestParam String projectId,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        String token = authServicePort.issueProjectScopeToken(projectId, userId);
-        return ResponseEntity.ok(token);
     }
 
     // TEST 로그인
@@ -225,10 +172,9 @@ public class AuthController implements AuthDocs {
     }
 
     @Override
-    public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication) {
+    public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        String projectId = jwtInfo.getProjectId();
 
         LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId, projectId);
         return ResponseEntity.ok(loginedUserProfileResponse);

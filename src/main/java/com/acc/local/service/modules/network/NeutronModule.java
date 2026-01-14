@@ -1,6 +1,10 @@
 package com.acc.local.service.modules.network;
 
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.network.NetworkErrorCode;
+import com.acc.global.exception.network.NetworkException;
+import com.acc.global.exception.network.NeutronErrorCode;
+import com.acc.global.exception.network.NeutronException;
 import com.acc.local.dto.network.*;
 import com.acc.local.external.ports.*;
 import com.acc.local.service.modules.auth.AuthModule;
@@ -61,7 +65,7 @@ public class NeutronModule {
         String subnetId = createSubnet(
                 keystoneToken,
                 List.of(
-                        CreateNetworkRequest.Subnet.builder().
+                        CreateSubnetRequest.builder().
                                 cidr(DEFAULT_CIDR).
                                 subnetName("default-subnet").
                                 build()
@@ -82,8 +86,36 @@ public class NeutronModule {
         ).getFirst();
     }
 
-    public List<Map<String, String>> createSubnet(String keystoneToken, List<CreateNetworkRequest.Subnet> subnets, String networkId) {
+    /* --- Subnets --- */
+
+    public List<Map<String, String>> createSubnet(String keystoneToken, List<CreateSubnetRequest> subnets, String networkId) {
         return neutronSubnetExternalPort.callCreateSubnet(keystoneToken, subnets, networkId);
+    }
+
+    public boolean canDeleteSubnet(String keystoneToken, String subnetId) {
+        ViewSubnetsResponse subnet = neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId);
+        if (subnet == null) {
+            throw new NetworkException(NetworkErrorCode.NOT_FOUND_SUBNET);
+        }
+
+        if (!subnet.getSubnetName().equals("default-subnet")) {
+            return true;
+        }
+
+         String networkName = neutronNetworkExternalPort.getNetworkNameAndId(keystoneToken, subnet.getNetworkId()).get("name");
+        return !networkName.equals("default-network");
+    }
+
+    public void deleteSubnet(String keystoneToken, String subnetId) {
+        neutronSubnetExternalPort.callDeleteSubnet(keystoneToken, subnetId);
+    }
+
+    public PageResponse<ViewSubnetsResponse> listSubnets(String keystoneToken, String networkId, String marker, String direction, int limit) {
+        return neutronSubnetExternalPort.callListSubnets(keystoneToken, networkId, marker, direction, limit);
+    }
+
+    public ViewSubnetsResponse getSubnetDetails(String keystoneToken, String subnetId) {
+        return neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId);
     }
 
     /* --- Routers --- */
@@ -112,12 +144,40 @@ public class NeutronModule {
         return !router.get("name").equals("default-router");
     }
 
+    public void disconnectRouterFromSubnet(String keystoneToken, String routerId, String subnetId) {
+        neutronRouterExternalPort.callRemoveRouterInterface(keystoneToken, routerId, subnetId);
+    }
+
+    public boolean canDisconnectRouterFromSubnet(String keystoneToken, String routerId, String subnetId) {
+        String routerName = neutronRouterExternalPort.getRouterNameAndId(keystoneToken, routerId).get("name");
+
+        if (!routerName.equals("default-router")) {
+            return true;
+        }
+
+        ViewSubnetsResponse subnet = neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId);
+
+        if (!subnet.getSubnetName().equals("default-subnet")) {
+            return true;
+        }
+
+        String networkName = neutronNetworkExternalPort.getNetworkNameAndId(keystoneToken, subnet.getNetworkId()).get("name");
+        return !networkName.equals("default-network");
+    }
+
+    public void attachInterfaceToRouter(String keystoneToken, String routerId, String portId) {
+        neutronRouterExternalPort.callAddRouterInterfaceByPortId(keystoneToken, routerId, portId);
+    }
+
     /* --- External IPs --- */
     public boolean allocateExternalIpToInterface(String keystoneToken, String floatingNetworkId, String portId) {
         try {
             neutronFloatingIpExternalPort.allocateFloatingIpToPort(keystoneToken, floatingNetworkId, portId);
             return true;
-        } catch (Exception e) {
+        } catch (NeutronException e) {
+            if (e.getErrorCode() == NeutronErrorCode.NEUTRON_FLOATING_IP_BAD_REQUEST) {
+                throw new NetworkException(NetworkErrorCode.NOT_FOUND_INTERFACE);
+            }
             return false;
         }
     }
@@ -147,9 +207,20 @@ public class NeutronModule {
         return neutronPortExternalPort.callListPorts(keystoneToken, projectId, marker, direction, limit, instanceId, networkId);
     }
 
+    public String createInterfaceBySubnetId(String keystoneToken, String subnetId) {
+        String networkId = neutronSubnetExternalPort.getSubnetDetails(keystoneToken, subnetId).getNetworkId();
+        return neutronPortExternalPort.callCreatePort(keystoneToken,
+                networkId,
+                null,
+                subnetId,
+                null,
+                null,
+                false).get("id");
+    }
+
     /* --- Security Groups --- */
-    public void createSecurityGroup(String keystoneToken, String projectId, String securityGroupName, String description) {
-        neutronSecurityGroupExternalPort.callCreateSecurityGroup(keystoneToken, projectId, securityGroupName, description);
+    public String createSecurityGroup(String keystoneToken, String projectId, String securityGroupName, String description) {
+        return neutronSecurityGroupExternalPort.callCreateSecurityGroup(keystoneToken, projectId, securityGroupName, description);
     }
 
     public PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(String keystoneToken, String projectId, String marker, String direction, int limit) {
@@ -165,8 +236,8 @@ public class NeutronModule {
     }
 
     /* --- Security Rules --- */
-    public void createSecurityGroupRule(String keystoneToken, String sgId, String direction, String protocol, Integer port, String remoteGroupId, String remoteIpPrefix) {
-        neutronSecurityRuleExternalPort.callCreateSecurityRule(
+    public String createSecurityGroupRule(String keystoneToken, String sgId, String direction, String protocol, Integer port, String remoteGroupId, String remoteIpPrefix) {
+        return neutronSecurityRuleExternalPort.callCreateSecurityRule(
                 keystoneToken,
                 sgId,
                 direction,

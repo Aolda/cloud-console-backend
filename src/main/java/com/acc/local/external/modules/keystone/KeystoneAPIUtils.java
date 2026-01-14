@@ -5,7 +5,7 @@ import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.external.dto.OpenstackPagination;
 import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
-import com.acc.local.domain.model.auth.KeystoneUser;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.*;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
@@ -104,7 +104,7 @@ public class KeystoneAPIUtils {
         return auditIds;
     }
 
-    public static KeystoneUser parseKeystoneUserResponse(ResponseEntity<JsonNode> response) {
+    public static UserKeystoneDto parseKeystoneUserResponse(ResponseEntity<JsonNode> response) {
         JsonNode body = validateAndExtractBody(response);
 
         if (!body.has("user")) {
@@ -117,7 +117,7 @@ public class KeystoneAPIUtils {
         try {
             JsonNode userObject = body.get("user");
             //TODO : DTO 내부에 from 메서드로 정의
-            return KeystoneUser.builder()
+            return UserKeystoneDto.builder()
                     .id(userObject.has("id") ? userObject.get("id").asText() : null)
                     .name(userObject.has("name") ? userObject.get("name").asText() : null)
                     .domainId(userObject.has("domain_id") ? userObject.get("domain_id").asText() : null)
@@ -283,10 +283,10 @@ public class KeystoneAPIUtils {
             JsonNode usersNode = body.get("users");
             JsonNode linksNode = body.get("links");
 
-            List<KeystoneUser> keystoneUsers = new ArrayList<>();
+            List<UserKeystoneDto> userKeystoneDtos = new ArrayList<>();
             if (usersNode != null && usersNode.isArray()) {
                 for (JsonNode userNode : usersNode) {
-                    KeystoneUser keystoneUser = KeystoneUser.builder()
+                    UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
                             .id(userNode.has("id") ? userNode.get("id").asText() : null)
                             .name(userNode.has("name") ? userNode.get("name").asText() : null)
                             .domainId(userNode.has("domain_id") ? userNode.get("domain_id").asText() : null)
@@ -295,7 +295,7 @@ public class KeystoneAPIUtils {
                             .email(userNode.has("email") ? userNode.get("email").asText() : null)
                             .description(userNode.has("description") ? userNode.get("description").asText() : null)
                             .build();
-                    keystoneUsers.add(keystoneUser);
+                    userKeystoneDtos.add(userKeystoneDto);
                 }
             }
 
@@ -303,7 +303,7 @@ public class KeystoneAPIUtils {
             String prevMarker = extractMarkerFromLink(linksNode, "previous");
 
             return UserListResponse.builder()
-                    .keystoneUsers(keystoneUsers)
+                    .userKeystoneDtos(userKeystoneDtos)
                     .nextMarker(nextMarker)
                     .prevMarker(prevMarker)
                     .build();
@@ -319,87 +319,6 @@ public class KeystoneAPIUtils {
     // TODO: resquest, response 생성 및 파서 관리 유틸을 나눌 것인지 확인 필요
 
     // --  Request DTO 생성 메서드 ---//
-
-    public static Map<String, Object> createKeystoneUserRequest(KeystoneUser keystoneUser) {
-        Map<String, Object> userObject = new HashMap<>();
-        userObject.put("name", keystoneUser.getName());
-        userObject.put("password", keystoneUser.getPassword());
-        userObject.put("enabled", keystoneUser.isEnabled());
-        userObject.put("email", keystoneUser.getEmail());
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("user", userObject);
-
-        return request;
-    }
-
-    public static Map<String, Object> createKeystoneUpdateUserRequest(KeystoneUser keystoneUser) {
-        Map<String, Object> userObject = new HashMap<>();
-
-        if (keystoneUser.getName() != null) {
-            userObject.put("name", keystoneUser.getName());
-        }
-        if (keystoneUser.getEmail() != null) {
-            userObject.put("email", keystoneUser.getEmail());
-        }
-        if (keystoneUser.getPassword() != null) {
-            userObject.put("password", keystoneUser.getPassword());
-        }
-        if (keystoneUser.getDescription() != null) {
-            userObject.put("description", keystoneUser.getDescription());
-        }
-        if (keystoneUser.getDefaultProjectId() != null) {
-            userObject.put("default_project_id", keystoneUser.getDefaultProjectId());
-        }
-        userObject.put("enabled", keystoneUser.isEnabled());
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("user", userObject);
-
-        return request;
-    }
-
-    public static Map<String, Object> createKeystoneCreateProjectRequest(CreateKeystoneProjectRequest project) {
-        Map<String, Object> projectObject = new HashMap<>();
-        projectObject.put("name", project.projectName());
-
-        if (project.projectDescription() != null) {
-            projectObject.put("description", project.projectDescription());
-        }
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("project", projectObject);
-
-        return request;
-    }
-
-    public static Map<String, Object> createKeystoneUpdateProjectRequest(KeystoneProject project) {
-        Map<String, Object> projectObject = new HashMap<>();
-
-        if (project.getName() != null) {
-            projectObject.put("name", project.getName());
-        }
-        if (project.getDescription() != null) {
-            projectObject.put("description", project.getDescription());
-        }
-        if (project.getDomainId() != null) {
-            projectObject.put("domain_id", project.getDomainId());
-        }
-        if (project.getEnabled() != null) {
-            projectObject.put("enabled", project.getEnabled());
-        }
-        if (project.getIsDomain() != null) {
-            projectObject.put("is_domain", project.getIsDomain());
-        }
-        if (project.getTags() != null) {
-            projectObject.put("tags", project.getTags());
-        }
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("project", projectObject);
-
-        return request;
-    }
 
     public static Map<String, Object> createProjectScopeTokenRequest(String projectId, String unScopedToken) {
         Map<String, Object> authRequest = new HashMap<>();

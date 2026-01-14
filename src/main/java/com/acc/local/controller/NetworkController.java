@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 public class NetworkController implements NetworkDocs {
@@ -21,28 +23,31 @@ public class NetworkController implements NetworkDocs {
     @Override
     public ResponseEntity<PageResponse<ViewNetworksResponse>> viewNetworks(
             Authentication authentication,
+            String projectId,
             PageRequest page) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         PageResponse<ViewNetworksResponse> response =
-                networkServicePort.listNetworks(page, jwtInfo.getUserId(), jwtInfo.getProjectId());
+                networkServicePort.listNetworks(page, jwtInfo.getUserId(), projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Object> createNetwork(
             Authentication authentication,
+            String projectId,
             CreateNetworkRequest request) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        networkServicePort.createNetwork(request, jwtInfo.getUserId(), jwtInfo.getProjectId());
+        String id = networkServicePort.createNetwork(request, jwtInfo.getUserId(), projectId);
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<Object> deleteNetwork(
             Authentication authentication,
+            String projectId,
             String networkId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        networkServicePort.deleteNetwork(networkId, jwtInfo.getUserId(), jwtInfo.getProjectId());
+        networkServicePort.deleteNetwork(networkId, jwtInfo.getUserId(), projectId);
         return ResponseEntity.noContent().build();
     }
 }

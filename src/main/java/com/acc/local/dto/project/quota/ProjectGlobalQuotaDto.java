@@ -10,11 +10,11 @@ public record ProjectGlobalQuotaDto(
 ) {
 
 	private static final QuotaInformation baseCoreQuota = QuotaInformation.builder().available(8).build();
-	private static final QuotaInformation baseRamQuota = QuotaInformation.builder().available(32).build();
+	private static final QuotaInformation baseRamQuota = QuotaInformation.builder().available(32768).build();
 	private static final QuotaInformation baseInstanceQuota = QuotaInformation.builder().available(10).build();
 	private static final QuotaGroup baseVolumeQuotaGroup = QuotaGroup.builder()
 		.count(QuotaInformation.builder().available(10).build())
-		.size(QuotaInformation.builder().available(1000).build())
+		.size(QuotaInformation.builder().available(1024).build())
 		.build();
 
 	@Builder

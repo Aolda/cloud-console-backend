@@ -4,10 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.NoticeDocs;
-import com.acc.local.dto.auth.CreateNoticeRequest;
-import com.acc.local.dto.auth.CreateNoticeResponse;
-import com.acc.local.dto.auth.ListNoticesResponse;
-import com.acc.local.dto.auth.ListRolesResponse;
+import com.acc.local.dto.auth.*;
 import com.acc.local.service.ports.NoticeServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,17 +19,25 @@ public class NoticeController implements NoticeDocs {
 
     @Override
     public ResponseEntity<CreateNoticeResponse> createNotice(CreateNoticeRequest request, Authentication authentication) {
-
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
-        return ResponseEntity.ok(noticeServicePort.adminCreateNotice(request,userId));
+        CreateNoticeResponse response = noticeServicePort.adminCreateNotice(request, userId);
+        return ResponseEntity.status(201).body(response);
     }
 
     @Override
-    public ResponseEntity<PageResponse<ListNoticesResponse>> listNotice(PageRequest page, Authentication authentication) {
+    public ResponseEntity<?> getNotices(Authentication authentication, String noticeId, PageRequest page, NoticeFilterRequest filter) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        return ResponseEntity.ok(noticeServicePort.adminListNotices(page,userId));
-    }
-}
+        String requesterId = jwtInfo.getUserId();
 
+        // noticeId가 있으면 상세 조회, 없으면 목록 조회
+        if (noticeId != null && !noticeId.isBlank()) {
+            GetNoticeResponse response = noticeServicePort.adminGetNotice(noticeId, requesterId);
+            return ResponseEntity.ok(response);
+        } else {
+            PageResponse<ListNoticesResponse> response = noticeServicePort.adminListNotices(page, filter, requesterId);
+            return ResponseEntity.ok(response);
+        }
+    }
+
+}

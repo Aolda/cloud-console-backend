@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 public class InterfaceController implements InterfaceDocs {
@@ -20,52 +22,52 @@ public class InterfaceController implements InterfaceDocs {
     private final InterfaceServicePort interfaceServicePort;
 
     @Override
-    public ResponseEntity<PageResponse<ViewInterfacesResponse>> viewInterfaces(Authentication authentication, PageRequest page, String instanceId, String networkId) {
+    public ResponseEntity<PageResponse<ViewInterfacesResponse>> viewInterfaces(Authentication authentication, PageRequest page, String instanceId, String networkId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         return ResponseEntity.ok(
-                interfaceServicePort.listInterfaces(page, jwtInfo.getUserId(), jwtInfo.getProjectId(), instanceId, networkId)
+                interfaceServicePort.listInterfaces(page, jwtInfo.getUserId(), projectId, instanceId, networkId)
         );
     }
 
     @Override
-    public ResponseEntity<Object> createInterface(Authentication authentication, CreateInterfaceRequest request) {
+    public ResponseEntity<Object> createInterface(Authentication authentication, CreateInterfaceRequest request, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.createInterface(jwtInfo.getUserId(), jwtInfo.getProjectId(), request);
+        String id = interfaceServicePort.createInterface(jwtInfo.getUserId(), projectId, request);
         return ResponseEntity.created(null).build();
     }
 
     @Override
-    public ResponseEntity<Object> deleteInterface(Authentication authentication, String interfaceId) {
+    public ResponseEntity<Object> deleteInterface(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.deleteInterface(jwtInfo.getUserId(), jwtInfo.getProjectId(), interfaceId);
+        interfaceServicePort.deleteInterface(jwtInfo.getUserId(), projectId, interfaceId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<Object> allocateExternalIp(Authentication authentication, String interfaceId) {
+    public ResponseEntity<Object> allocateExternalIp(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.allocateExternalIp(jwtInfo.getUserId(), jwtInfo.getProjectId(), interfaceId);
-        return ResponseEntity.ok().build();
+        interfaceServicePort.allocateExternalIp(jwtInfo.getUserId(), projectId, interfaceId);
+        return ResponseEntity.created(null).build();
     }
 
     @Override
-    public ResponseEntity<Object> releaseExternalIp(Authentication authentication, String interfaceId) {
+    public ResponseEntity<Object> releaseExternalIp(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.releaseExternalIp(jwtInfo.getUserId(), jwtInfo.getProjectId(), interfaceId);
+        interfaceServicePort.releaseExternalIp(jwtInfo.getUserId(), projectId, interfaceId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<Object> createPortForwarding(Authentication authentication, String interfaceId) {
+    public ResponseEntity<Object> createPortForwarding(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.createSSHForwarding(jwtInfo.getUserId(), jwtInfo.getProjectId(), interfaceId);
-        return ResponseEntity.ok().build();
+        interfaceServicePort.createSSHForwarding(jwtInfo.getUserId(), projectId, interfaceId);
+        return ResponseEntity.created(null).build();
     }
 
     @Override
-    public ResponseEntity<Object> deletePortForwarding(Authentication authentication, String interfaceId) {
+    public ResponseEntity<Object> deletePortForwarding(Authentication authentication, String interfaceId, String projectId) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        interfaceServicePort.deleteSSHForwarding(jwtInfo.getUserId(), jwtInfo.getProjectId(), interfaceId);
+        interfaceServicePort.deleteSSHForwarding(jwtInfo.getUserId(), projectId, interfaceId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Getter
@@ -54,14 +55,14 @@ public class Notice {
                 .build();
     }
 
-    public static Notice create(CreateNoticeRequest request ,String creatorId) {
-        return  Notice.builder()
+    public static Notice create(CreateNoticeRequest request, String creatorId) {
+        return Notice.builder()
                 .noticeId(generateNoticeId())
                 .noticeTitle(request.title())
                 .noticeDescription(request.content())
                 .noticeUserId(creatorId)
-                .endsAt(LocalDateTime.parse(request.endsAt()))
-                .startsAt(LocalDateTime.parse(request.startsAt()))
+                .endsAt(request.endsAt())
+                .startsAt(request.startsAt())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
