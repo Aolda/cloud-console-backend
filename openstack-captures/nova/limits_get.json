@@ -5,7 +5,7 @@
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "admin-project"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
@@ -16,8 +16,8 @@
     "rate" : [ ],
     "absolute" : {
       "maxTotalInstances" : 10,
-      "maxTotalCores" : 20,
-      "maxTotalRAMSize" : 51200,
+      "maxTotalCores" : 100,
+      "maxTotalRAMSize" : 512000,
       "maxServerMeta" : 128,
       "maxImageMeta" : 128,
       "maxPersonality" : 5,
@@ -28,9 +28,9 @@
       "maxTotalFloatingIps" : -1,
       "maxSecurityGroups" : -1,
       "maxSecurityGroupRules" : -1,
-      "totalRAMUsed" : 4096,
-      "totalCoresUsed" : 3,
-      "totalInstancesUsed" : 3,
+      "totalRAMUsed" : 196608,
+      "totalCoresUsed" : 48,
+      "totalInstancesUsed" : 6,
       "totalFloatingIpsUsed" : 0,
       "totalSecurityGroupsUsed" : 0,
       "totalServerGroupsUsed" : 0

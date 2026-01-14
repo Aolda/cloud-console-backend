@@ -1,0 +1,72 @@
+{
+  "request": {
+    "method": "POST",
+    "uri": "/v2.0/security-groups",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 201,
+    "body": {
+  "security_group" : {
+    "id" : "5e4008cc-130f-4663-ba3f-b5694a3ecfac",
+    "name" : "sg-capture-20260114181222",
+    "stateful" : true,
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "description" : "capture-sg",
+    "shared" : false,
+    "security_group_rules" : [ {
+      "id" : "21deedb5-1986-4a85-8d90-65b5a8fce5ad",
+      "project_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "security_group_id" : "5e4008cc-130f-4663-ba3f-b5694a3ecfac",
+      "ethertype" : "IPv4",
+      "direction" : "egress",
+      "protocol" : null,
+      "port_range_min" : null,
+      "port_range_max" : null,
+      "remote_ip_prefix" : null,
+      "remote_address_group_id" : null,
+      "normalized_cidr" : null,
+      "remote_group_id" : null,
+      "standard_attr_id" : 409,
+      "belongs_to_default_sg" : false,
+      "description" : null,
+      "tags" : [ ],
+      "created_at" : "2026-01-14T09:12:22Z",
+      "updated_at" : "2026-01-14T09:12:22Z",
+      "revision_number" : 0
+    }, {
+      "id" : "be86691e-abb4-406a-9d4d-368c01cb182c",
+      "project_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "security_group_id" : "5e4008cc-130f-4663-ba3f-b5694a3ecfac",
+      "ethertype" : "IPv6",
+      "direction" : "egress",
+      "protocol" : null,
+      "port_range_min" : null,
+      "port_range_max" : null,
+      "remote_ip_prefix" : null,
+      "remote_address_group_id" : null,
+      "normalized_cidr" : null,
+      "remote_group_id" : null,
+      "standard_attr_id" : 411,
+      "belongs_to_default_sg" : false,
+      "description" : null,
+      "tags" : [ ],
+      "created_at" : "2026-01-14T09:12:22Z",
+      "updated_at" : "2026-01-14T09:12:22Z",
+      "revision_number" : 0
+    } ],
+    "tags" : [ ],
+    "created_at" : "2026-01-14T09:12:22Z",
+    "updated_at" : "2026-01-14T09:12:22Z",
+    "revision_number" : 1,
+    "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
+  }
+}
+  }
+}

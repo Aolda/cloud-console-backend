@@ -5,14 +5,54 @@
     "port": 8776,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "system"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
   "response": {
     "status": 200,
     "body": {
-  "volumes" : [ ]
+  "volumes" : [ {
+    "id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/7fb08657-3664-49fb-a93d-e66e5fde93f0"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/7fb08657-3664-49fb-a93d-e66e5fde93f0"
+    } ]
+  }, {
+    "id" : "fe43e2d2-e0c2-4aca-a823-dbb764a026a4",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4"
+    } ]
+  }, {
+    "id" : "83735110-4e91-47a5-bc0b-c8c024502c46",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/83735110-4e91-47a5-bc0b-c8c024502c46"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/83735110-4e91-47a5-bc0b-c8c024502c46"
+    } ]
+  }, {
+    "id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+    } ]
+  } ]
 }
   }
 }

@@ -1,11 +1,11 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v2.1/servers/19f19c65-afc2-4642-a956-b9d762b85d34/ips",
+    "uri": "/v2.1/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6/ips",
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "admin-project"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
@@ -13,9 +13,9 @@
     "status": 200,
     "body": {
   "addresses" : {
-    "default-network" : [ {
+    "private" : [ {
       "version" : 4,
-      "addr" : "192.168.0.202"
+      "addr" : "172.31.0.18"
     } ]
   }
 }

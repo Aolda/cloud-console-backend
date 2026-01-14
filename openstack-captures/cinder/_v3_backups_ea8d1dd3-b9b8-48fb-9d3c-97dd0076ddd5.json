@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "backup" : {
+    "id" : "ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5",
+    "status" : "available",
+    "size" : 100,
+    "object_count" : 0,
+    "availability_zone" : "nova",
+    "container" : "cinder-backup",
+    "created_at" : "2026-01-14T09:05:22.000000",
+    "updated_at" : "2026-01-14T09:06:33.000000",
+    "name" : "backup_test",
+    "description" : null,
+    "fail_reason" : null,
+    "volume_id" : "83735110-4e91-47a5-bc0b-c8c024502c46",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5"
+    } ],
+    "is_incremental" : false,
+    "has_dependent_backups" : false,
+    "snapshot_id" : null,
+    "data_timestamp" : "2026-01-14T09:05:22.000000"
+  }
+}
+  }
+}

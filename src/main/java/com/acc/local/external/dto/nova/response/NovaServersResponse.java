@@ -55,8 +55,10 @@ public class NovaServersResponse {
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Flavor {
+        private String id;
+        private String name;
+
         @JsonProperty("original_name")
         private String originalName;
-        private String id;
     }
 }

@@ -5,7 +5,7 @@
     "port": 8776,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "system"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
@@ -20,11 +20,11 @@
       "maxTotalVolumeGigabytes" : 1000,
       "maxTotalBackups" : 10,
       "maxTotalBackupGigabytes" : 1000,
-      "totalVolumesUsed" : 0,
-      "totalGigabytesUsed" : 0,
-      "totalSnapshotsUsed" : 0,
-      "totalBackupsUsed" : 0,
-      "totalBackupGigabytesUsed" : 0
+      "totalVolumesUsed" : 4,
+      "totalGigabytesUsed" : 500,
+      "totalSnapshotsUsed" : 1,
+      "totalBackupsUsed" : 1,
+      "totalBackupGigabytesUsed" : 100
     }
   }
 }

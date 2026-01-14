@@ -1,0 +1,74 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "volume" : {
+    "id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+    "status" : "in-use",
+    "size" : 100,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-10T04:25:10.000000",
+    "updated_at" : "2026-01-10T04:26:27.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+      "attachment_id" : "9ddb835e-435e-47fc-8caa-d3d7fa27655f",
+      "volume_id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+      "server_id" : "e3e5a9e3-b724-46ad-9404-f61f939b7d5f",
+      "host_name" : "aolda-compute",
+      "device" : "/dev/vda",
+      "attached_at" : "2026-01-10T04:26:26.000000"
+    } ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "usage_type" : "common",
+      "hw_qemu_guest_agent" : "yes",
+      "os_distro" : "ubuntu",
+      "os_version" : "24.04",
+      "os_admin_user" : "ubuntu",
+      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+      "image_name" : "ubuntu_24.04",
+      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "625476096"
+    },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }
+}
+  }
+}

@@ -6,7 +6,7 @@ app:
       username: ${OPENSTACK_BFF_USERNAME}
       password: ${OPENSTACK_BFF_PASSWORD}
       domain: "Default"
-    prefer-token-scope: system
+    prefer-token-scope: project
     neutron:
       networks: true
       ports: true

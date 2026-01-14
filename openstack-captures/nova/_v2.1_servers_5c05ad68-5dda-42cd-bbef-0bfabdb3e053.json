@@ -1,0 +1,77 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "server" : {
+    "id" : "5c05ad68-5dda-42cd-bbef-0bfabdb3e053",
+    "name" : "test3",
+    "status" : "ACTIVE",
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "metadata" : { },
+    "hostId" : "7a1638cc5d20779aed7718ab810307358598ef938295dfa22a76c95b",
+    "image" : "",
+    "flavor" : {
+      "id" : "7bf15e03-6fc1-48f5-a365-fa62ddf53714",
+      "links" : [ {
+        "rel" : "bookmark",
+        "href" : "http://172.16.10.100:8774/flavors/7bf15e03-6fc1-48f5-a365-fa62ddf53714"
+      } ]
+    },
+    "created" : "2026-01-10T05:04:30Z",
+    "updated" : "2026-01-10T05:05:36Z",
+    "addresses" : {
+      "private" : [ {
+        "version" : 4,
+        "addr" : "172.31.0.105",
+        "OS-EXT-IPS:type" : "fixed",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:63:90:de"
+      }, {
+        "version" : 4,
+        "addr" : "10.16.2.233",
+        "OS-EXT-IPS:type" : "floating",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:63:90:de"
+      } ]
+    },
+    "accessIPv4" : "",
+    "accessIPv6" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053"
+    } ],
+    "OS-DCF:diskConfig" : "MANUAL",
+    "progress" : 0,
+    "OS-EXT-AZ:availability_zone" : "nova",
+    "config_drive" : "",
+    "key_name" : null,
+    "OS-SRV-USG:launched_at" : "2026-01-10T05:05:36.000000",
+    "OS-SRV-USG:terminated_at" : null,
+    "security_groups" : [ {
+      "name" : "default"
+    } ],
+    "OS-EXT-SRV-ATTR:host" : "aolda-compute",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000023",
+    "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
+    "OS-EXT-STS:task_state" : null,
+    "OS-EXT-STS:vm_state" : "active",
+    "OS-EXT-STS:power_state" : 1,
+    "os-extended-volumes:volumes_attached" : [ {
+      "id" : "fe43e2d2-e0c2-4aca-a823-dbb764a026a4"
+    } ]
+  }
+}
+  }
+}

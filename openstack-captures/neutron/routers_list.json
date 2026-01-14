@@ -5,16 +5,42 @@
     "port": 9696,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "system"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {
-  "project_id" : "f863931e9ffd4cfc9ac608d1f8fb8908"
+  "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
 }
   },
   "response": {
     "status": 200,
     "body": {
-  "routers" : [ ]
+  "routers" : [ {
+    "id" : "8fdc5e25-2aae-4e10-8945-84b56a5ac633",
+    "name" : "igw",
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : {
+      "network_id" : "1ca8140f-1fec-4978-b09c-5e42919aeed6",
+      "external_fixed_ips" : [ {
+        "subnet_id" : "74e03255-1736-447d-bc63-6f4804e2493f",
+        "ip_address" : "10.16.0.143"
+      } ],
+      "enable_snat" : true
+    },
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "distributed" : false,
+    "ha" : true,
+    "availability_zone_hints" : [ "nova" ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2026-01-10T04:16:59Z",
+    "updated_at" : "2026-01-10T04:21:18Z",
+    "revision_number" : 7,
+    "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
+  } ]
 }
   }
 }

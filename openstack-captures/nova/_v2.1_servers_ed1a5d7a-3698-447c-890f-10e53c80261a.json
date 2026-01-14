@@ -1,11 +1,11 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v2.1/servers/52990511-09f4-4c84-a62b-d8b497c222ac",
+    "uri": "/v2.1/servers/ed1a5d7a-3698-447c-890f-10e53c80261a",
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "admin-project"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
@@ -13,58 +13,63 @@
     "status": 200,
     "body": {
   "server" : {
-    "id" : "52990511-09f4-4c84-a62b-d8b497c222ac",
-    "name" : "test-instance-creatation",
+    "id" : "ed1a5d7a-3698-447c-890f-10e53c80261a",
+    "name" : "test2",
     "status" : "ACTIVE",
-    "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
     "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
     "metadata" : { },
-    "hostId" : "0fd047bda786b59aa259bc5f3bbc2c9dd57264a1a0ba66e75671f5f9",
+    "hostId" : "7a1638cc5d20779aed7718ab810307358598ef938295dfa22a76c95b",
     "image" : "",
     "flavor" : {
-      "id" : "bdb2b2b2-fbfb-421e-a191-7f50eb8e4018",
+      "id" : "7bf15e03-6fc1-48f5-a365-fa62ddf53714",
       "links" : [ {
         "rel" : "bookmark",
-        "href" : "http://172.16.10.100:8774/flavors/bdb2b2b2-fbfb-421e-a191-7f50eb8e4018"
+        "href" : "http://172.16.10.100:8774/flavors/7bf15e03-6fc1-48f5-a365-fa62ddf53714"
       } ]
     },
-    "created" : "2026-01-13T14:34:09Z",
-    "updated" : "2026-01-13T14:35:14Z",
+    "created" : "2026-01-10T04:59:40Z",
+    "updated" : "2026-01-10T05:00:49Z",
     "addresses" : {
-      "default-network" : [ {
+      "private" : [ {
         "version" : 4,
-        "addr" : "192.168.0.12",
+        "addr" : "172.31.0.56",
         "OS-EXT-IPS:type" : "fixed",
-        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:74:c3:ef"
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:d6:92:59"
+      }, {
+        "version" : 4,
+        "addr" : "10.16.2.232",
+        "OS-EXT-IPS:type" : "floating",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:d6:92:59"
       } ]
     },
     "accessIPv4" : "",
     "accessIPv6" : "",
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8774/v2.1/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+      "href" : "http://172.16.10.100:8774/v2.1/servers/ed1a5d7a-3698-447c-890f-10e53c80261a"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8774/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+      "href" : "http://172.16.10.100:8774/servers/ed1a5d7a-3698-447c-890f-10e53c80261a"
     } ],
     "OS-DCF:diskConfig" : "MANUAL",
     "progress" : 0,
     "OS-EXT-AZ:availability_zone" : "nova",
     "config_drive" : "",
     "key_name" : null,
-    "OS-SRV-USG:launched_at" : "2026-01-13T14:35:14.000000",
+    "OS-SRV-USG:launched_at" : "2026-01-10T05:00:49.000000",
     "OS-SRV-USG:terminated_at" : null,
     "security_groups" : [ {
       "name" : "default"
     } ],
     "OS-EXT-SRV-ATTR:host" : "aolda-compute",
-    "OS-EXT-SRV-ATTR:instance_name" : "instance-0000002d",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000021",
     "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
     "OS-EXT-STS:task_state" : null,
     "OS-EXT-STS:vm_state" : "active",
     "OS-EXT-STS:power_state" : 1,
     "os-extended-volumes:volumes_attached" : [ {
-      "id" : "6166275e-37b9-4f9c-ad6a-d86885e02969"
+      "id" : "83735110-4e91-47a5-bc0b-c8c024502c46"
     } ]
   }
 }

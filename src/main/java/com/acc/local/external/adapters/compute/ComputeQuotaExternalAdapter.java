@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class ComputeQuotaExternalAdapter implements ComputeQuotaExternalPort {
 
 	private final NovaQuotaSetAPIModule novaQuotaSetAPIModule;
-	private final ObjectMapper objectMapper;
 
 	@Override
 	public ResponseEntity<JsonNode> callGetQuota(String token, String projectId) {

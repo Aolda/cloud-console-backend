@@ -19,9 +19,9 @@ public class GlanceImageAPIModule {
     private final int port = 9292;
 
     // Show image
-    public ResponseEntity<JsonNode> fetchImage(String token, String imageId) {
+    public ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImageResponse> fetchImage(String token, String imageId) {
         String uri = "/v2/images/" + imageId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, com.acc.local.external.dto.glance.response.GlanceImageResponse.class);
     }
 
     // List images

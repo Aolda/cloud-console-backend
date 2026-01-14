@@ -27,7 +27,7 @@ public class ImageServiceModule {
 
     public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {
 
-        ResponseEntity<JsonNode> res;
+        ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImagesResponse> res;
 
         try {
             res = glanceExternalPort.fetchImageList(token, projectId, filters);
@@ -97,7 +97,7 @@ public class ImageServiceModule {
 
     public ImageDetailResponse getImageDetail(String token, String imageId) {
 
-        ResponseEntity<JsonNode> res;
+        ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImageResponse> res;
 
         try {
             res = glanceExternalPort.fetchImageDetail(token, imageId);
@@ -188,7 +188,16 @@ public class ImageServiceModule {
     public ImageUploadAckResponse createImageMetadata(String token, ImageMetadataRequest req) {
         try {
             ResponseEntity<JsonNode> res = glanceExternalPort.createImageMetadata(token, req);
-            return mapper.toUploadAck(res.getBody());
+            JsonNode body = res.getBody();
+            if (body == null || body.get("id") == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
+            return ImageUploadAckResponse.builder()
+                    .imageId(body.get("id").asText())
+                    .name(body.get("name") != null ? body.get("name").asText() : null)
+                    .status(body.get("status") != null ? body.get("status").asText() : null)
+                    .message("Image metadata created")
+                    .build();
         } catch (Exception e) {
             // 엔드 포인트 호출 없는 메소드. 추후 사용 시 에러 대응 필요
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
@@ -233,7 +242,7 @@ public class ImageServiceModule {
     public String fetchQuickStartImageId(String token) {
         String imageId = quickStartProperties.getDefaultImageId();
         // external에서 token error or 403 or image not found는 Exception으로 처리 (예정)
-        JsonNode res;
+        com.acc.local.external.dto.glance.response.GlanceImageResponse res;
         try {
             res = glanceExternalPort.fetchImageDetail(token, imageId).getBody();
             if (res == null) throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
@@ -241,8 +250,8 @@ public class ImageServiceModule {
             throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE, e);
         }
 
-        String status = res.path("status").asText(null);
-        String os_distro = res.path("os_distro").asText(null);
+        String status = res.getStatus();
+        String os_distro = res.getOsDistro();
 
         // Glance 이미지 상태가 ACTIVE가 아니거나, os_distro가 ubuntu가 아니면 에러 발생
         // env에 이미지 ID 조회 실패!! -> 추후 메일 알림 등 알림 시스템 필요

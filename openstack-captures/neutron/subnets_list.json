@@ -5,16 +5,42 @@
     "port": 9696,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "system"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {
-  "project_id" : "f863931e9ffd4cfc9ac608d1f8fb8908"
+  "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
 }
   },
   "response": {
     "status": 200,
     "body": {
-  "subnets" : [ ]
+  "subnets" : [ {
+    "id" : "254a2bdd-5681-46bf-bdf1-8113236cf27c",
+    "name" : "private-subnet",
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "network_id" : "c763e832-47cb-4287-9bfa-618f2e9e4f9d",
+    "ip_version" : 4,
+    "subnetpool_id" : null,
+    "enable_dhcp" : true,
+    "ipv6_ra_mode" : null,
+    "ipv6_address_mode" : null,
+    "gateway_ip" : "192.168.0.1",
+    "cidr" : "192.168.0.0/16",
+    "allocation_pools" : [ {
+      "start" : "192.168.0.2",
+      "end" : "192.168.255.254"
+    } ],
+    "host_routes" : [ ],
+    "dns_nameservers" : [ ],
+    "description" : "",
+    "router:external" : false,
+    "service_types" : [ ],
+    "tags" : [ ],
+    "created_at" : "2026-01-14T09:05:06Z",
+    "updated_at" : "2026-01-14T09:05:06Z",
+    "revision_number" : 0,
+    "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
+  } ]
 }
   }
 }

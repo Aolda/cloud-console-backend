@@ -1,0 +1,41 @@
+{
+  "request": {
+    "method": "POST",
+    "uri": "/v2.0/networks",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 201,
+    "body": {
+  "network" : {
+    "id" : "e52ff53b-3759-4030-82d0-9caa19ec789f",
+    "name" : "network-capture-20260114181221",
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ ],
+    "shared" : false,
+    "project_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "port_security_enabled" : true,
+    "router:external" : false,
+    "provider:network_type" : "vxlan",
+    "provider:physical_network" : null,
+    "provider:segmentation_id" : 628,
+    "availability_zone_hints" : [ ],
+    "availability_zones" : [ ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "description" : "",
+    "tags" : [ ],
+    "created_at" : "2026-01-14T09:12:21Z",
+    "updated_at" : "2026-01-14T09:12:21Z",
+    "revision_number" : 1
+  }
+}
+  }
+}

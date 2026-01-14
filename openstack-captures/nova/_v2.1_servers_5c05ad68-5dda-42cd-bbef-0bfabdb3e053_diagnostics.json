@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053/diagnostics",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "cpu0_time" : 724030000000,
+  "cpu1_time" : 942490000000,
+  "cpu2_time" : 1277830000000,
+  "cpu3_time" : 1035380000000,
+  "cpu4_time" : 758560000000,
+  "cpu5_time" : 737710000000,
+  "cpu6_time" : 694880000000,
+  "cpu7_time" : 796600000000,
+  "vda_read_req" : 18074,
+  "vda_read" : 492340224,
+  "vda_write_req" : 134636,
+  "vda_write" : 7240630272,
+  "vda_errors" : -1,
+  "tapbbcdb491-79_rx" : 231826860,
+  "tapbbcdb491-79_rx_packets" : 66684,
+  "tapbbcdb491-79_rx_errors" : 0,
+  "tapbbcdb491-79_rx_drop" : 0,
+  "tapbbcdb491-79_tx" : 2055216,
+  "tapbbcdb491-79_tx_packets" : 26623,
+  "tapbbcdb491-79_tx_errors" : 0,
+  "tapbbcdb491-79_tx_drop" : 0,
+  "memory" : 33554432,
+  "memory-actual" : 33554432,
+  "memory-swap_in" : 0,
+  "memory-swap_out" : 0,
+  "memory-major_fault" : 1812,
+  "memory-minor_fault" : 6593614,
+  "memory-unused" : 31254680,
+  "memory-available" : 32866016,
+  "memory-usable" : 32181288,
+  "memory-last_update" : 1768381863,
+  "memory-disk_caches" : 1244492,
+  "memory-hugetlb_pgalloc" : 0,
+  "memory-hugetlb_pgfail" : 0,
+  "memory-rss" : 3074944
+}
+  }
+}

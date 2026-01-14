@@ -109,7 +109,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
                         .instanceId(server.getId())
                         .instanceName(server.getName())
                         .status(InstanceStatus.findByStatusName(server.getStatus()))
-                        .type(server.getFlavor() != null ? server.getFlavor().getOriginalName() : null)
+                        .type(extractFlavorType(server.getFlavor()))
                         .image(imageId)
                         .internalIps(internalIps)
                         .externalIps(externalIps)
@@ -132,6 +132,17 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
             return id != null ? id.toString() : null;
         }
         return null;
+    }
+
+    private String extractFlavorType(NovaServersResponse.Flavor flavor) {
+        if (flavor == null) {
+            return null;
+        }
+        // original_name이 있으면 사용, 없으면 name으로 fallback
+        String originalName = flavor.getOriginalName();
+        return (originalName != null && !originalName.isEmpty())
+                ? originalName
+                : flavor.getName();
     }
 
     private PageResponse<InstanceResponse> getServersPageResponse(String marker, int limit, List<InstanceResponse> servers) {

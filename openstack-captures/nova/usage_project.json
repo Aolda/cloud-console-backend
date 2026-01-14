@@ -1,18 +1,79 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v2.1/os-simple-tenant-usage/f863931e9ffd4cfc9ac608d1f8fb8908",
+    "uri": "/v2.1/os-simple-tenant-usage/4366519bbaf54b4b97da6321cebb0fde",
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "admin-project"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
   "response": {
     "status": 200,
     "body": {
-  "tenant_usage" : { }
+  "tenant_usage" : {
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "server_usages" : [ {
+      "hours" : 9.444444444444445E-9,
+      "flavor" : "m1.4xlarge",
+      "instance_id" : "2002e7a8-147e-4572-8bc5-05db23dd09d6",
+      "name" : "test4",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "memory_mb" : 32768,
+      "local_gb" : 0,
+      "vcpus" : 8,
+      "started_at" : "2026-01-10T05:21:29.000000",
+      "ended_at" : null,
+      "state" : "active",
+      "uptime" : 359200
+    }, {
+      "hours" : 9.444444444444445E-9,
+      "flavor" : "m1.4xlarge",
+      "instance_id" : "5c05ad68-5dda-42cd-bbef-0bfabdb3e053",
+      "name" : "test3",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "memory_mb" : 32768,
+      "local_gb" : 0,
+      "vcpus" : 8,
+      "started_at" : "2026-01-10T05:05:36.000000",
+      "ended_at" : null,
+      "state" : "active",
+      "uptime" : 360153
+    }, {
+      "hours" : 9.444444444444445E-9,
+      "flavor" : "m1.4xlarge",
+      "instance_id" : "e3e5a9e3-b724-46ad-9404-f61f939b7d5f",
+      "name" : "ams-test",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "memory_mb" : 32768,
+      "local_gb" : 0,
+      "vcpus" : 8,
+      "started_at" : "2026-01-10T04:26:33.000000",
+      "ended_at" : null,
+      "state" : "active",
+      "uptime" : 362496
+    }, {
+      "hours" : 9.444444444444445E-9,
+      "flavor" : "m1.4xlarge",
+      "instance_id" : "ed1a5d7a-3698-447c-890f-10e53c80261a",
+      "name" : "test2",
+      "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+      "memory_mb" : 32768,
+      "local_gb" : 0,
+      "vcpus" : 8,
+      "started_at" : "2026-01-10T05:00:49.000000",
+      "ended_at" : null,
+      "state" : "active",
+      "uptime" : 360440
+    } ],
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 3.0222222222222225E-7,
+    "total_memory_mb_usage" : 0.0012379022222222223,
+    "total_hours" : 3.777777777777778E-8,
+    "start" : "2026-01-14T09:08:08.929653",
+    "stop" : "2026-01-14T09:08:08.929687"
+  }
 }
   }
 }

@@ -5,7 +5,7 @@
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "admin-project"
+  "X-Auth-Token-Scope" : "project"
 },
     "query": {}
   },
@@ -13,34 +13,64 @@
     "status": 200,
     "body": {
   "servers" : [ {
-    "id" : "19f19c65-afc2-4642-a956-b9d762b85d34",
-    "name" : "tttttt",
+    "id" : "68b9e48c-12cb-4164-84c1-8f62f4415e08",
+    "name" : "test6",
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8774/v2.1/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+      "href" : "http://172.16.10.100:8774/v2.1/servers/68b9e48c-12cb-4164-84c1-8f62f4415e08"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8774/servers/19f19c65-afc2-4642-a956-b9d762b85d34"
+      "href" : "http://172.16.10.100:8774/servers/68b9e48c-12cb-4164-84c1-8f62f4415e08"
     } ]
   }, {
-    "id" : "52990511-09f4-4c84-a62b-d8b497c222ac",
-    "name" : "test-instance-creatation",
+    "id" : "219eba21-d950-4cab-8781-a245dc7cb303",
+    "name" : "test5",
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8774/v2.1/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+      "href" : "http://172.16.10.100:8774/v2.1/servers/219eba21-d950-4cab-8781-a245dc7cb303"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8774/servers/52990511-09f4-4c84-a62b-d8b497c222ac"
+      "href" : "http://172.16.10.100:8774/servers/219eba21-d950-4cab-8781-a245dc7cb303"
     } ]
   }, {
-    "id" : "8836e1cd-8407-4ffb-81f8-53a64da230b1",
-    "name" : "test-1",
+    "id" : "2002e7a8-147e-4572-8bc5-05db23dd09d6",
+    "name" : "test4",
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8774/v2.1/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+      "href" : "http://172.16.10.100:8774/v2.1/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8774/servers/8836e1cd-8407-4ffb-81f8-53a64da230b1"
+      "href" : "http://172.16.10.100:8774/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6"
+    } ]
+  }, {
+    "id" : "5c05ad68-5dda-42cd-bbef-0bfabdb3e053",
+    "name" : "test3",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/5c05ad68-5dda-42cd-bbef-0bfabdb3e053"
+    } ]
+  }, {
+    "id" : "ed1a5d7a-3698-447c-890f-10e53c80261a",
+    "name" : "test2",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/ed1a5d7a-3698-447c-890f-10e53c80261a"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/ed1a5d7a-3698-447c-890f-10e53c80261a"
+    } ]
+  }, {
+    "id" : "e3e5a9e3-b724-46ad-9404-f61f939b7d5f",
+    "name" : "ams-test",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/e3e5a9e3-b724-46ad-9404-f61f939b7d5f"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/e3e5a9e3-b724-46ad-9404-f61f939b7d5f"
     } ]
   } ]
 }

@@ -7,6 +7,7 @@ import com.acc.local.dto.image.ImageMetadataRequest;
 import com.acc.local.external.dto.glance.image.GlanceCreateImageRequest;
 import com.acc.local.external.dto.glance.image.GlanceFetchImagesRequestParam;
 import com.acc.local.external.dto.glance.image.GlanceImportImageRequest;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
 import com.acc.local.external.modules.glance.GlanceImageAPIModule;
 import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
@@ -26,15 +27,13 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
     private final ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<JsonNode> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
+    public ResponseEntity<GlanceImagesResponse> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
         GlanceFetchImagesRequestParam param = requestParamMapper(filters);
-        ResponseEntity<GlanceImagesResponse> resp = glanceImageAPIModule.fetchImageList(token, param);
-        JsonNode body = resp.getBody() != null ? objectMapper.valueToTree(resp.getBody()) : null;
-        return ResponseEntity.status(resp.getStatusCode()).headers(resp.getHeaders()).body(body);
+        return glanceImageAPIModule.fetchImageList(token, param);
     }
 
     @Override
-    public ResponseEntity<JsonNode> fetchImageDetail(String token, String imageId) {
+    public ResponseEntity<GlanceImageResponse> fetchImageDetail(String token, String imageId) {
         return glanceImageAPIModule.fetchImage(token, imageId);
     }
 
