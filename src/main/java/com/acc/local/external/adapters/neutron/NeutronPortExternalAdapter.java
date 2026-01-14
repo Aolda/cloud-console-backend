@@ -217,8 +217,8 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                                     .networkId(portsNode.getNetworkId())
                                     .networkName(networkName)
                                     .subnetId(
-                                            portsNode.hasNonNull("fixed_ips") && !portsNode.get("fixed_ips").isEmpty() ?
-                                                    portsNode.get("fixed_ips").get(0).get("subnet_id").asText() : null
+                                            portsNode.getFixedIps() != null && !portsNode.getFixedIps().isEmpty() ?
+                                                    portsNode.getFixedIps().get(0).getSubnetId() : null
                                     )
                                     .build() : null)
                     .internalIp(portsNode.getFixedIps() != null && !portsNode.getFixedIps().isEmpty() ?

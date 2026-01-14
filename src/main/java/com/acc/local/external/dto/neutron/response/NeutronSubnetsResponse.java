@@ -28,6 +28,9 @@ public class NeutronSubnetsResponse {
         @JsonProperty("network_id")
         private String networkId;
 
+        @JsonProperty("gateway_ip")
+        private String gatewayIp;
+
         @JsonProperty("project_id")
         private String projectId;
 
@@ -39,6 +42,7 @@ public class NeutronSubnetsResponse {
 
         @JsonProperty("updated_at")
         private String updatedAt;
+
+        private String description;
     }
 }
-
