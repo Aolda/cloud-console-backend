@@ -47,20 +47,16 @@ public interface VolumeSnapshotDocs {
             @Parameter(description = "페이지 정보", required = false)
             PageRequest page,
             @Parameter(hidden = true)
-<<<<<<< HEAD
-            Authentication authentication);
-=======
             Authentication authentication,
             @RequestParam
             @Parameter(description = "프로젝트 ID", required = true)
             String projectId);
->>>>>>> origin/main
 
 
 
 
     @Operation(summary = "볼륨 스냅샷 상세 조회",
-    description = "지정된 스냅샷 ID에 해당하는 단일 볼륨 스냅샷의 상세 정보를 조회합니다.")
+            description = "지정된 스냅샷 ID에 해당하는 단일 볼륨 스냅샷의 상세 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -78,14 +74,10 @@ public interface VolumeSnapshotDocs {
             @Parameter(description = "조회할 볼륨 스냅샷 ID", required = true)
             @RequestParam String snapshotId,
             @Parameter(hidden = true)
-<<<<<<< HEAD
-            Authentication authentication
-=======
             Authentication authentication,
             @RequestParam
             @Parameter(description = "프로젝트 ID", required = true)
             String projectId
->>>>>>> origin/main
     );
 
 
@@ -136,14 +128,10 @@ public interface VolumeSnapshotDocs {
             @Parameter(description = "삭제할 볼륨 스냅샷 ID", required = true, example = "92f53cf1-ae3e-4cc2-b5b7-462201a2d847")
             @RequestParam String snapshotId,
             @Parameter(hidden = true)
-<<<<<<< HEAD
-            Authentication authentication
-=======
             Authentication authentication,
             @RequestParam
             @Parameter(description = "프로젝트 ID", required = true)
             String projectId
->>>>>>> origin/main
     );
 
 
@@ -188,13 +176,9 @@ public interface VolumeSnapshotDocs {
             @Parameter(description = "스냅샷을 생성할 원본 볼륨 정보", required = true)
             @RequestBody VolumeSnapshotRequest request,
             @Parameter(hidden = true)
-<<<<<<< HEAD
-            Authentication authentication
-=======
             Authentication authentication,
             @RequestParam
             @Parameter(description = "프로젝트 ID", required = true)
             String projectId
->>>>>>> origin/main
     );
 }
