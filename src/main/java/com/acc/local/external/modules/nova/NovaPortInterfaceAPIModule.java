@@ -26,12 +26,12 @@ public class NovaPortInterfaceAPIModule extends NovaAPIUtil {
     }
 
     public ResponseEntity<JsonNode> showPortInterfaceDetails(String token, String serverId, String portId) {
-        String uri = "/v2.1/servers/" + serverId + "/os-interface" + portId;
+        String uri = "/v2.1/servers/" + serverId + "/os-interface/" + portId;
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
     }
 
     public ResponseEntity<JsonNode> detachInterface(String token, String serverId, String portId) {
-        String uri = "/v2.1/servers/" + serverId + "/os-interface" + portId;
+        String uri = "/v2.1/servers/" + serverId + "/os-interface/" + portId;
         return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }
