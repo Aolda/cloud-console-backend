@@ -2,6 +2,7 @@ package com.acc.local.repository.modules;
 
 import com.acc.global.common.PageResponse;
 import com.acc.local.dto.keypair.KeypairListResponse;
+import com.acc.local.entity.KeypairEntity;
 import com.acc.local.entity.QKeypairEntity;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -112,5 +113,13 @@ public class KeypairQueryDSLModule {
                 )
                 .fetchFirst();
         return count == null;
+    }
+
+    public List<KeypairEntity> findAllByProjectId(String projectId) {
+        return queryFactory
+                .selectFrom(keypair)
+                .where(keypair.project.projectId.eq(projectId))
+                .orderBy(keypair.keypairId.asc())
+                .fetch();
     }
 }

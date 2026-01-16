@@ -8,6 +8,8 @@ public enum KeypairErrorCode implements ErrorCode {
 
     INVALID_KEYPAIR_NAME(400, "ACC-KEYPAIR-INVALID-NAME", "키페어 이름이 유효하지 않습니다."),
 
+    USER_NOT_PROJECT_MEMBER(403, "ACC-KEYPAIR-USER-NOT-PROJECT-MEMBER", "해당 프로젝트의 멤버가 아닙니다."),
+    USER_NOT_FOUND(404, "ACC-KEYPAIR-USER-NOT-FOUND", "사용자를 찾을 수 없습니다."),
     DB_PROJECT_NOT_FOUND(404, "ACC-KEYPAIR-DB-PROJECT-NOT-FOUND", "프로젝트를 찾을 수 없습니다. (DB)"),
     DB_KEYPAIR_NOT_FOUND(404, "ACC-KEYPAIR-DB-NOT-FOUND", "키페어를 찾을 수 없습니다. (DB)"),
 

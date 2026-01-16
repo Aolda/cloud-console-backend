@@ -6,6 +6,7 @@ import com.acc.local.repository.ports.ProjectRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,5 +23,10 @@ public class ProjectRepositoryAdapter implements ProjectRepositoryPort {
     @Override
     public void save(ProjectEntity projectEntity) {
         projectJpaRepository.save(projectEntity);
+    }
+
+    @Override
+    public List<ProjectEntity> findAll() {
+        return projectJpaRepository.findAll();
     }
 }

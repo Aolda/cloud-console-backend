@@ -4,6 +4,7 @@ import com.acc.global.exception.keypair.KeypairExternalErrorCode;
 import com.acc.global.exception.keypair.KeypairExternalException;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
+import com.acc.local.dto.keypair.KeypairSyncDto;
 import com.acc.local.external.dto.nova.keypair.CreateKeyPairRequest;
 import com.acc.local.external.modules.nova.NovaKeypairAPIModule;
 import com.acc.local.external.ports.KeypairExternalPort;
@@ -15,6 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -80,6 +86,64 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                 }
             }
             throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_DELETION_FAILED);
+        }
+    }
+
+    @Override
+    public List<KeypairSyncDto> listKeypairsByUser(String keystoneToken) {
+        List<KeypairSyncDto> allKeypairs = new ArrayList<>();
+        String marker = null;
+        boolean hasMore = true;
+
+        try {
+            while (hasMore) {
+                Map<String, String> queryParams = new HashMap<>();
+                queryParams.put("limit", "100");  // 한 번에 100개씩
+                if (marker != null) {
+                    queryParams.put("marker", marker);
+                }
+
+                ResponseEntity<JsonNode> response = novaKeypairAPIModule.listKeyPairs(keystoneToken, queryParams);
+                if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                    throw new KeypairExternalException(
+                        KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED
+                    );
+                }
+
+                JsonNode body = response.getBody();
+                JsonNode keypairs = body.get("keypairs");
+
+                if (keypairs != null && keypairs.isArray()) {
+                    for (JsonNode item : keypairs) {
+                        JsonNode keypair = item.get("keypair");
+
+                        KeypairSyncDto dto = KeypairSyncDto.builder()
+                            .name(keypair.get("name").asText())
+                            .fingerprint(keypair.get("fingerprint").asText())
+                            .build();
+
+                        allKeypairs.add(dto);
+                        marker = dto.getName();  // 다음 페이지를 위한 마커
+                    }
+                }
+
+                // keypairs_links가 없거나 비어있으면 마지막 페이지
+                JsonNode links = body.get("keypairs_links");
+                hasMore = (links != null && links.isArray() && links.size() > 0);
+            }
+            return allKeypairs;
+
+        } catch (WebClientException e) {
+            if (e instanceof WebClientResponseException ex) {
+                if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                    throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_UNAUTHORIZED);
+                }
+                if (ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+                    throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_FORBIDDEN);
+                }
+                log.error("Failed to list keypairs: {}", ex.getResponseBodyAsString());
+            }
+            throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED);
         }
     }
 }

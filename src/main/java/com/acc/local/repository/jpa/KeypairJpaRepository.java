@@ -1,7 +1,7 @@
 package com.acc.local.repository.jpa;
 
 import com.acc.local.entity.KeypairEntity;
-import com.acc.local.entity.KeypairProjectId;
+import com.acc.local.entity.id.KeypairProjectId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

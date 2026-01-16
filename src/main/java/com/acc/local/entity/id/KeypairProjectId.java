@@ -1,4 +1,4 @@
-package com.acc.local.entity;
+package com.acc.local.entity.id;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
