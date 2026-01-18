@@ -5,6 +5,8 @@ import com.acc.global.exception.discord.DiscordException;
 import com.acc.global.properties.DiscordProperties;
 import com.acc.local.external.dto.google.GoogleFormRequest;
 import com.acc.local.external.modules.discord.templates.DiscordMessageFormatter;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,12 +20,16 @@ public class DiscordWebhookModule {
     private final WebClient discordWebClient;
     private final DiscordProperties discordProperties;
     private final DiscordMessageFormatter formatter;
+    private static final String CB_NAME = "cb-discord";
+    private static final String RETRY_NAME = "retry-discord-post";
 
     public void sendNewProjectNotification(GoogleFormRequest request) {
         String messageBody = formatter.createDiscordMessage(request);
         sendMessage(discordProperties.getWebhook().getUrl(), messageBody);
     }
 
+    @Retry(name = RETRY_NAME)
+    @CircuitBreaker(name = CB_NAME)
     private void sendMessage(String webhookUrl, String jsonBody) {
         try {
             String webhookPath = extractPathForUrl(webhookUrl);

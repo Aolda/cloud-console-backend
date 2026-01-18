@@ -59,6 +59,33 @@ resilience4j:
         failureRateThreshold: 55
         waitDurationInOpenState: 5s
 
+      cb-apm:
+        baseConfig: default
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+      cb-discord:
+        baseConfig: default
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 20
+        failureRateThreshold: 80
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+      cb-email:
+        baseConfig: default
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 30
+        minimumNumberOfCalls: 20
+        failureRateThreshold: 70
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 2
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
   retry:
     configs:
       # 기본 OFF (maxAttempts=1)
@@ -141,4 +168,14 @@ resilience4j:
       retry-neutron-put:
         baseConfig: default-off
       retry-neutron-delete:
+        baseConfig: default-off
+
+      retry-apm-write:
+        baseConfig: default-off
+      retry-apm-read:
+        baseConfig: default-get
+
+      retry-discord-post:
+        baseConfig: default-off
+      retry-email-post:
         baseConfig: default-off
