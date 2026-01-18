@@ -18,7 +18,8 @@ public enum KeypairExternalErrorCode implements ErrorCode {
     KEYPAIR_EXTERNAL_ALREADY_EXISTS(409, "ACC-KEYPAIR-EXTERNAL-ALREADY-EXISTS", "이미 존재하는 키페어 이름입니다."),
 
     KEYPAIR_EXTERNAL_CREATION_FAILED(500, "ACC-KEYPAIR-EXTERNAL-CREATION-FAILED", "OpenStack 키페어 생성에 실패했습니다."),
-    KEYPAIR_EXTERNAL_DELETION_FAILED(500, "ACC-KEYPAIR-EXTERNAL-DELETION-FAILED", "OpenStack 키페어 삭제에 실패했습니다.");
+    KEYPAIR_EXTERNAL_DELETION_FAILED(500, "ACC-KEYPAIR-EXTERNAL-DELETION-FAILED", "OpenStack 키페어 삭제에 실패했습니다."),
+    KEYPAIR_EXTERNAL_LIST_FAILED(500, "ACC-KEYPAIR-EXTERNAL-LIST-FAILED", "OpenStack 키페어 목록 조회에 실패했습니다.");
 
     private final int status;
     private final String code;

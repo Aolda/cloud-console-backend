@@ -22,7 +22,10 @@ public class KeypairController implements KeypairDocs {
 
     @Override
     public ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(Authentication authentication, PageRequest page, String projectId) {
-        PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, projectId);
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
+
+        PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, userId, projectId);
         return ResponseEntity.ok(response);
     }
 

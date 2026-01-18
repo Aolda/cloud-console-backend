@@ -41,6 +41,10 @@ out/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+**/.DS_Store
+
 .env
 
 src/main/resources/google/aolda-acc-account.json
