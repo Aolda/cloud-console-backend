@@ -1,94 +1,94 @@
 plugins {
-	id 'java'
-	id 'jacoco'
-	id 'org.springframework.boot' version '3.3.2'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'jacoco'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.acc'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	// Spring Web
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	// Spring Security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-	// Spring Data JPA
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Spring Data JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	// WebClient for HTTP requests
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // WebClient for HTTP requests
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// MariaDB
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    // MariaDB
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	// Test
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation 'org.junit.platform:junit-platform-suite-api'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testRuntimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.junit.platform:junit-platform-suite-api'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'com.h2database:h2'
 
     // GCP
-	implementation 'com.google.apis:google-api-services-sheets:v4-rev612-1.25.0'
-	implementation 'com.google.api-client:google-api-client:1.34.1'
-	implementation 'com.google.auth:google-auth-library-oauth2-http:1.37.1'
-	implementation 'com.google.api-client:google-api-client:2.0.0'
-	implementation 'com.google.apis:google-api-services-people:v1-rev20240313-2.0.0'
-	implementation 'com.google.auth:google-auth-library-oauth2-http:1.15.0'
+    implementation 'com.google.apis:google-api-services-sheets:v4-rev612-1.25.0'
+    implementation 'com.google.api-client:google-api-client:1.34.1'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.37.1'
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+    implementation 'com.google.apis:google-api-services-people:v1-rev20240313-2.0.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.15.0'
 
 
-	//Jwt
-	// JWT
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    //Jwt
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	// Swagger
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-	// .env 지원 (spring-dotenv)
-	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    // .env 지원 (spring-dotenv)
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
-	// Mail
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// Thymeleaf
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-	// keycloak Admin RestAPI 자동화 라이브러리
-	implementation 'org.keycloak:keycloak-admin-client:26.0.6'
+    // keycloak Admin RestAPI 자동화 라이브러리
+    implementation 'org.keycloak:keycloak-admin-client:26.0.6'
 
-	// Querydsl
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    // Querydsl
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // Resilience4j
     implementation "io.github.resilience4j:resilience4j-spring-boot3:2.3.0"
@@ -104,22 +104,23 @@ dependencies {
 	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	implementation 'com.github.loki4j:loki-logback-appender:1.5.1'
 	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 test {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport // test 끝나면 커버리지 리포트도 실행
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // test 끝나면 커버리지 리포트도 실행
 }
 
 jacocoTestReport {
-	reports {
-		xml.required = true   // GitLab에서 coverage 수치 읽을 때 필요
-		html.required = true  // 로컬에서 눈으로 확인할 때 편함
-	}
+    reports {
+        xml.required = true   // GitLab에서 coverage 수치 읽을 때 필요
+        html.required = true  // 로컬에서 눈으로 확인할 때 편함
+    }
 }
 
 // Q-Type을 생성할 경로 설정
@@ -127,10 +128,10 @@ def querydslDir = file("$buildDir/generated/querydsl")
 
 // Java 컴파일 시 Q-타입을 생성하도록 설정
 tasks.withType(JavaCompile).configureEach {
-	options.getGeneratedSourceOutputDirectory().set(querydslDir)
+    options.getGeneratedSourceOutputDirectory().set(querydslDir)
 }
 
 // 생성된 Q-타입을 소스 코드로 인식
 sourceSets {
-	main.java.srcDirs += [querydslDir]
+    main.java.srcDirs += [querydslDir]
 }

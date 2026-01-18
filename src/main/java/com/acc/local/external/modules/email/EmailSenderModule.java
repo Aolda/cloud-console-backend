@@ -3,6 +3,8 @@ package com.acc.local.external.modules.email;
 import com.acc.global.exception.email.EmailErrorCode;
 import com.acc.global.exception.email.EmailException;
 import com.acc.global.properties.EmailProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,11 @@ public class EmailSenderModule {
     
     private final JavaMailSender mailSender;
     private final EmailProperties emailProperties;
+    private static final String CB_NAME = "cb-email";
+    private static final String RETRY_NAME = "retry-email-post";
 
+    @Retry(name = RETRY_NAME)
+    @CircuitBreaker(name = CB_NAME)
     public void sendEmail(String to, String subject, String htmlContent) {
 
         try {

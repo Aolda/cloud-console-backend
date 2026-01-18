@@ -56,7 +56,7 @@ public interface VolumeSnapshotDocs {
 
 
     @Operation(summary = "볼륨 스냅샷 상세 조회",
-    description = "지정된 스냅샷 ID에 해당하는 단일 볼륨 스냅샷의 상세 정보를 조회합니다.")
+            description = "지정된 스냅샷 ID에 해당하는 단일 볼륨 스냅샷의 상세 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
