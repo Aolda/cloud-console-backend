@@ -7,24 +7,20 @@ import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.RoleAssignmentListResponse;
-import com.acc.local.domain.model.auth.UserAuthDetail;
-import com.acc.local.domain.model.auth.UserDetail;
+import com.acc.local.domain.model.auth.User;
 import com.acc.local.domain.model.auth.UserListResponse;
+import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.dto.auth.AdminCreateUserRequest;
-import com.acc.local.dto.auth.AdminGetUserResponse;
-import com.acc.local.dto.auth.AdminListUsersResponse;
 import com.acc.local.dto.auth.AdminUpdateUserRequest;
-import com.acc.local.entity.UserAuthDetailEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
 import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,13 +53,24 @@ public class UserModule {
         UserKeystoneDto createdUserKeystoneDto = keystoneAPIExternalPort.createUser(adminToken, newUserKeystoneDto);
         String userIdentityId = createdUserKeystoneDto.id();
 
-        // 2. UserDetail 도메인 모델 생성 및 저장
-        UserDetail userDetail = UserDetail.createForAdmin(userIdentityId, request);
-        UserDetailEntity userDetailEntity = userRepositoryPort.saveUserDetail(userDetail.toEntity());
+        // 2. UserDbExtra Entity 생성 및 저장
+        UserDbExtraEntity userDbExtraEntity = UserDbExtraEntity.builder()
+                .userId(userIdentityId)
+                .userName(request.username())
+                .userPhoneNumber(request.phoneNumber())
+                .isAdmin(request.isAdmin())
+                .build();
+        userRepositoryPort.saveUserDetail(userDbExtraEntity);
 
-        // 3. UserAuthDetail 도메인 모델 생성 및 저장
-        UserAuthDetail userAuthDetail = UserAuthDetail.createForAdmin(userIdentityId, request);
-        userRepositoryPort.saveUserAuth(userAuthDetail.toEntity(userDetailEntity));
+        // 3. UserIdentity Entity 생성 및 저장
+        UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
+                .userId(userIdentityId)
+                .department(request.department())
+                .studentId(request.studentId())
+                .authType(request.authType().getCode())
+                .userEmail(request.email())
+                .build();
+        userRepositoryPort.saveUserIdentity(userIdentityEntity);
 
         return userIdentityId;
     }
@@ -86,12 +93,12 @@ public class UserModule {
         // 2. ACC DB 업데이트
         // UserDetailEntity 업데이트
         if (request.username() != null || request.phoneNumber() != null) {
-            UserDetailEntity userDetailEntity = userRepositoryPort.findUserDetailById(userId)
+            UserDbExtraEntity userDbExtraEntity = userRepositoryPort.findUserDetailById(userId)
                     .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
 
-            UserDetailEntity updatedEntity = userDetailEntity.toBuilder()
-                    .userName(request.username() != null ? request.username() : userDetailEntity.getUserName())
-                    .userPhoneNumber(request.phoneNumber() != null ? request.phoneNumber() : userDetailEntity.getUserPhoneNumber())
+            UserDbExtraEntity updatedEntity = userDbExtraEntity.toBuilder()
+                    .userName(request.username() != null ? request.username() : userDbExtraEntity.getUserName())
+                    .userPhoneNumber(request.phoneNumber() != null ? request.phoneNumber() : userDbExtraEntity.getUserPhoneNumber())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
@@ -100,10 +107,10 @@ public class UserModule {
 
         // UserAuthDetailEntity 업데이트
         if (request.department() != null || request.studentId() != null || request.email() != null) {
-            UserAuthDetailEntity userAuthEntity = userRepositoryPort.findUserAuthById(userId)
+            UserIdentityEntity userAuthEntity = userRepositoryPort.findUserAuthById(userId)
                     .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 인증 정보를 찾을 수 없습니다."));
 
-            UserAuthDetailEntity updatedAuthEntity = UserAuthDetailEntity.builder()
+            UserIdentityEntity updatedAuthEntity = UserIdentityEntity.builder()
                     .userId(userAuthEntity.getUserId())
                     .department(request.department() != null ? request.department() : userAuthEntity.getDepartment())
                     .studentId(request.studentId() != null ? request.studentId() : userAuthEntity.getStudentId())
@@ -111,45 +118,16 @@ public class UserModule {
                     .userEmail(request.email() != null ? request.email() : userAuthEntity.getUserEmail())
                     .build();
 
-            userRepositoryPort.saveUserAuth(updatedAuthEntity);
+            userRepositoryPort.saveUserIdentity(updatedAuthEntity);
         }
 
         return userId;
     }
 
-    /**
-     * 관리자 사용자 상세 조회
-     * System Admin 권한으로 Keystone 사용자 조회 및 ACC DB 정보 병합
-     */
-    @Transactional(readOnly = true)
-    public AdminGetUserResponse adminGetUser(String userId, String adminToken) {
-        // 1. Keystone에서 사용자 정보 조회
-        UserKeystoneDto userKeystoneDto = keystoneAPIExternalPort.getUserDetail(userId, adminToken);
 
-        // 2. ACC DB에서 추가 정보 조회
-        UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
-
-        UserAuthDetailEntity userAuth = userRepositoryPort.findUserAuthById(userId)
-                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 인증 정보를 찾을 수 없습니다."));
-
-        // 4. 병합하여 반환
-        return AdminGetUserResponse.builder()
-                .userId(userKeystoneDto.id())
-                .username(userDetail.getUserName())
-                .email(userAuth.getUserEmail())
-                .department(userAuth.getDepartment())
-                .studentId(userAuth.getStudentId())
-                .phoneNumber(userDetail.getUserPhoneNumber())
-                .isEnabled(userKeystoneDto.enabled())
-                .isAdmin(userDetail.getIsAdmin())
-                .isDeleted(userDetail.getIsDeleted())
-                .build();
-    }
-
-    public UserDetailEntity adminGetUserDetailDB(String userId) {
+    public UserDbExtraEntity adminGetUserDetailDB(String userId) {
         try {
-            UserDetailEntity userDetail = userRepositoryPort.findUserDetailById(userId)
+            UserDbExtraEntity userDetail = userRepositoryPort.findUserDetailById(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
 
             return userDetail;
@@ -162,16 +140,6 @@ public class UserModule {
         }
     }
 
-    public AdminGetUserResponse adminGetUserWithoutAuthInfoResponse(String userId, String adminToken) {
-        try {
-            return adminGetUser(userId, adminToken);
-        } catch (AccBaseException e) {
-            if (e.getErrorCode().equals(AuthErrorCode.USER_NOT_FOUND)) {
-                return null;
-            }
-            throw e;
-        }
-    }
 
     /**
      * 관리자 사용자 목록 조회
@@ -179,8 +147,8 @@ public class UserModule {
      * 필터링(미가입/삭제 제외) 후에도 요청한 개수를 채우기 위해 반복 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String adminToken) {
-        List<AdminListUsersResponse> validUsers = new ArrayList<>();
+    public PageResponse<User> adminListUsers(PageRequest page, String adminToken) {
+        List<User> validUsers = new ArrayList<>();
         String currentMarker = page.getMarker();
         String lastNextMarker = null;
 
@@ -190,8 +158,8 @@ public class UserModule {
                     adminToken, currentMarker, page.getLimit()
             );
 
-            // Keystone 사용자들을 필터링하여 유효한 사용자만 추가
-            List<AdminListUsersResponse> filtered = filterAndConvertUsers(keystoneResponse.getUserKeystoneDtos());
+            // Keystone 사용자들을 필터링하여 User 도메인 모델로 변환
+            List<User> filtered = filterAndConvertToUsers(keystoneResponse.getUserKeystoneDtos());
             validUsers.addAll(filtered);
 
             lastNextMarker = keystoneResponse.getNextMarker();
@@ -210,74 +178,57 @@ public class UserModule {
             currentMarker = lastNextMarker;
         }
 
-        return buildPageResponse(validUsers, page.getMarker(), lastNextMarker);
+        return buildUserPageResponse(validUsers, page.getMarker(), lastNextMarker);
     }
 
     /**
-     * Keystone 사용자 목록을 필터링하고 DTO로 변환
+     * Keystone 사용자 목록을 필터링하고 User 도메인 모델로 변환
      * 미가입 사용자 및 삭제된 사용자 제외
      */
-    private List<AdminListUsersResponse> filterAndConvertUsers(List<UserKeystoneDto> userKeystoneDtos) {
+    private List<User> filterAndConvertToUsers(List<UserKeystoneDto> userKeystoneDtos) {
         List<String> userIds = userKeystoneDtos.stream()
                 .map(UserKeystoneDto::id)
                 .toList();
 
-        // ACC DB에서 사용자 정보 bulk 조회
-        Map<String, UserDetailEntity> userDetailMap = userRepositoryPort.findUserDetailsByIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(UserDetailEntity::getUserId, entity -> entity));
+        // ACC DB에서 사용자 정보 bulk 조회 (JOIN 쿼리 1번)
+        // 이미 삭제되지 않은 사용자만 필터링되어 반환됨
+        List<UserDBDto> userDBDtos = userRepositoryPort.findUserDBsByUserIds(userIds);
 
-        Map<String, UserAuthDetailEntity> userAuthMap = userRepositoryPort.findUserAuthsByIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(UserAuthDetailEntity::getUserId, entity -> entity));
+        // UserDBDto를 Map으로 변환 (빠른 조회를 위해)
+        Map<String, UserDBDto> userDBMap = userDBDtos.stream()
+                .collect(Collectors.toMap(UserDBDto::getUserId, dto -> dto));
 
-        // 필터링 및 변환
+        // Keystone 데이터와 DB 데이터를 결합하여 User 생성
         return userKeystoneDtos.stream()
-                .map(keystoneUser -> convertToAdminListResponse(keystoneUser, userDetailMap, userAuthMap))
-                .filter(response -> response != null)
+                .map(keystoneUser -> {
+                    String userId = keystoneUser.id();
+                    UserDBDto userDBDto = userDBMap.get(userId);
+
+                    // DB에 없거나 삭제된 사용자는 제외
+                    if (userDBDto == null) {
+                        return null;
+                    }
+
+                    // User 도메인 모델 생성
+                    return User.from(
+                            keystoneUser,
+                            userDBDto.userDbExtra(),
+                            userDBDto.userIdentity()
+                    );
+                })
+                .filter(user -> user != null)
                 .toList();
     }
 
     /**
-     * Keystone 사용자를 AdminListUsersResponse로 변환
-     * 미가입 또는 삭제된 사용자는 null 반환
+     * 페이지 응답 객체 생성 (User 도메인 모델용)
      */
-    private AdminListUsersResponse convertToAdminListResponse(
-            UserKeystoneDto userKeystoneDto,
-            Map<String, UserDetailEntity> userDetailMap,
-            Map<String, UserAuthDetailEntity> userAuthMap) {
-
-        String userId = userKeystoneDto.id();
-        UserDetailEntity userDetail = userDetailMap.get(userId);
-
-        // 미가입 사용자 또는 삭제된 사용자는 제외
-        if (userDetail == null || userDetail.getIsDeleted()) {
-            return null;
-        }
-
-        UserAuthDetailEntity userAuth = userAuthMap.get(userId);
-
-        return AdminListUsersResponse.builder()
-                .userId(userId)
-                .username(userDetail.getUserName())
-                .isAdmin(userDetail.getIsAdmin())
-                .email(userAuth != null ? userAuth.getUserEmail() : null)
-                .phoneNumber(userDetail.getUserPhoneNumber())
-                .department(userAuth != null ? userAuth.getDepartment() : null)
-                .enabled(userKeystoneDto.enabled())
-                .defaultProjectName(null)
-                .build();
-    }
-
-    /**
-     * 페이지 응답 객체 생성
-     */
-    private PageResponse<AdminListUsersResponse> buildPageResponse(
-            List<AdminListUsersResponse> users,
+    private PageResponse<User> buildUserPageResponse(
+            List<User> users,
             String requestMarker,
             String nextMarker) {
 
-        return PageResponse.<AdminListUsersResponse>builder()
+        return PageResponse.<User>builder()
                 .contents(users)
                 .first(requestMarker == null || requestMarker.isEmpty())
                 .last(nextMarker == null)
@@ -294,10 +245,10 @@ public class UserModule {
     @Transactional
     public void adminDeleteUser(String userId, String adminToken) {
         // ACC DB에서 UserDetailEntity의 isDeleted를 true로 설정
-        UserDetailEntity userDetailEntity = userRepositoryPort.findUserDetailById(userId)
+        UserDbExtraEntity userDbExtraEntity = userRepositoryPort.findUserDetailById(userId)
                 .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 정보를 찾을 수 없습니다."));
 
-        UserDetailEntity deletedEntity = userDetailEntity.toBuilder()
+        UserDbExtraEntity deletedEntity = userDbExtraEntity.toBuilder()
                 .isDeleted(true)
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -311,8 +262,8 @@ public class UserModule {
      * 기존 listUsers API 대비 효율적으로 권한 정보를 함께 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<AdminListUsersResponse> adminListUsersViaRoleAssignments(PageRequest page, String adminToken) {
-        List<AdminListUsersResponse> validUsers = new ArrayList<>();
+    public PageResponse<User> adminListUsersViaRoleAssignments(PageRequest page, String adminToken) {
+        List<User> validUsers = new ArrayList<>();
         String currentMarker = page.getMarker();
         String lastNextMarker = null;
 
@@ -329,8 +280,8 @@ public class UserModule {
             // 2. role assignments에서 KeystoneUser 목록 추출 (중복 제거)
             List<UserKeystoneDto> userKeystoneDtos = convertRoleAssignmentsToKeystoneUsers(roleAssignmentResponse);
 
-            // 3. ACC DB에서 해당 사용자들의 정보를 bulk 조회하여 필터링
-            List<AdminListUsersResponse> filtered = filterAndConvertUsers(userKeystoneDtos);
+            // 3. ACC DB에서 해당 사용자들의 정보를 bulk 조회하여 User 도메인 모델로 변환
+            List<User> filtered = filterAndConvertToUsers(userKeystoneDtos);
             validUsers.addAll(filtered);
 
             lastNextMarker = roleAssignmentResponse.getNextMarker();
@@ -349,7 +300,7 @@ public class UserModule {
             currentMarker = lastNextMarker;
         }
 
-        return buildPageResponse(validUsers, page.getMarker(), lastNextMarker);
+        return buildUserPageResponse(validUsers, page.getMarker(), lastNextMarker);
     }
 
     /**
@@ -379,7 +330,7 @@ public class UserModule {
     // 요청자의 UserId를 통해서 관리자인지 확인할 수 있는 메서드
     @Transactional
     public void isAdminUser(String requesterId) {
-        UserDetailEntity requesterDetail = userRepositoryPort.findUserDetailById(requesterId)
+        UserDbExtraEntity requesterDetail = userRepositoryPort.findUserDetailById(requesterId)
                 .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "관리자 정보를 찾을 수 없습니다."));
 
         // 삭제된 사용자는 권한 없음
@@ -390,6 +341,35 @@ public class UserModule {
         if (!requesterDetail.getIsAdmin()) {
             throw new AuthServiceException(AuthErrorCode.FORBIDDEN_ACCESS, "관리자 권한이 필요한 기능입니다.");
         }
+    }
+
+    /**
+     * 재사용 가능한 User 조회 메서드
+     * Keystone + DB 정보를 조합하여 완전한 User 도메인 모델 반환
+     *
+     * @param userId 조회할 사용자 ID
+     * @param adminToken Keystone 조회에 사용할 관리자 토큰
+     * @return 완전한 User 도메인 모델 (모든 필드가 채워짐)
+     * @throws AuthServiceException Keystone에는 존재하지만 DB에 없는 경우 정합성 에러 발생
+     */
+    @Transactional(readOnly = true)
+    public User getUserById(String userId, String adminToken) {
+        // 1. Keystone에서 사용자 정보 조회
+        UserKeystoneDto userKeystoneDto = keystoneAPIExternalPort.getUserDetail(userId, adminToken);
+
+        // 2. DB에서 사용자 정보 조회 (조인 쿼리로 한 번에 가져옴)
+        // Keystone에 존재하는데 DB에 없으면 정합성 불일치 에러
+        UserDBDto userDBDto = userRepositoryPort.findUserDBByUserId(userId)
+                .orElseThrow(() -> new AuthServiceException(
+                        AuthErrorCode.USER_DATA_INCONSISTENCY
+                ));
+
+        // 3. User 도메인 모델 생성 및 반환 (모든 필드가 완전히 채워짐)
+        return User.from(
+                userKeystoneDto,
+                userDBDto.userDbExtra(),
+                userDBDto.userIdentity()
+        );
     }
 
 }

@@ -34,7 +34,7 @@ public class ProjectParticipantEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("userId")
 	@JoinColumn(name = "user_id")
-	private UserDetailEntity userDetail;
+	private UserDbExtraEntity userDetail;
 
 	@JoinColumn(name = "role")
 	private ProjectRole role;

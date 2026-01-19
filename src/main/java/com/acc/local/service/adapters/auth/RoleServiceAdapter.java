@@ -2,12 +2,9 @@ package com.acc.local.service.adapters.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.dto.auth.CreateRoleRequest;
 import com.acc.local.dto.auth.CreateRoleResponse;
 import com.acc.local.dto.auth.ListRolesResponse;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.RoleModule;

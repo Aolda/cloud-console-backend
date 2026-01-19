@@ -4,7 +4,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.dto.auth.ListNoticesResponse;
 import com.acc.local.dto.auth.NoticeFilterRequest;
 import com.acc.local.entity.QNoticeEntity;
-import com.acc.local.entity.QUserDetailEntity;
+import com.acc.local.entity.QUserDbExtraEntity;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -22,7 +22,7 @@ public class NoticeQueryDSLModule {
 
     private final JPAQueryFactory queryFactory;
     private final QNoticeEntity notice = QNoticeEntity.noticeEntity;
-    private final QUserDetailEntity userDetail = QUserDetailEntity.userDetailEntity;
+    private final QUserDbExtraEntity userDetail = QUserDbExtraEntity.userDbExtraEntity;
 
     public PageResponse<ListNoticesResponse> findAllNotices(String marker, String direction, int limit, NoticeFilterRequest filter) {
         boolean isPrev = "prev".equals(direction);

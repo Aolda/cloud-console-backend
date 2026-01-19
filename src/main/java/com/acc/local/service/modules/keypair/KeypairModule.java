@@ -11,7 +11,7 @@ import com.acc.local.dto.keypair.CreateKeypairResponse;
 import com.acc.local.dto.keypair.KeypairListResponse;
 import com.acc.local.dto.keypair.KeypairSyncDto;
 import com.acc.local.entity.KeypairEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.id.KeypairProjectId;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.external.ports.KeypairExternalPort;
@@ -59,7 +59,7 @@ public class KeypairModule {
                 .orElseThrow(() -> new KeystoneException(KeypairErrorCode.DB_PROJECT_NOT_FOUND));
 
         // 사용자 정보 조회
-        UserDetailEntity user = userRepositoryPort.findUserDetailById(userId)
+        UserDbExtraEntity user = userRepositoryPort.findUserDetailById(userId)
                 .orElseThrow(() -> new KeypairException(KeypairErrorCode.USER_NOT_FOUND));
 
         // OpenStack에 Keypair 생성

@@ -2,14 +2,10 @@ package com.acc.local.service.adapters.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.dto.auth.*;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.service.modules.auth.NoticeModule;
 import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.NoticeServicePort;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;

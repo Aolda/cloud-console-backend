@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 사용자 기본정보 엔티티
@@ -16,7 +14,7 @@ import java.util.List;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserDetailEntity {
+public class UserDbExtraEntity {
 
     @Id
     @Column(name = "user_id", length = 64, nullable = false)

@@ -40,6 +40,7 @@ public enum AuthErrorCode implements ErrorCode {
     USER_IS_DELETED(409,"ACC-USER-IS-DELETED","삭제된 사용자입니다."),
 
     // 500 Internal Server Error
+    USER_DATA_INCONSISTENCY(500, "ACC-AUTH-USER-DATA-INCONSISTENCY", "Keystone과 DB 간 사용자 데이터 정합성이 맞지 않습니다."),
     KEYSTONE_API_FAILURE(500, "ACC-AUTH-KEYSTONE-API-FAILURE", "OpenStack Keystone API 통신 중 오류가 발생하였습니다."),
     KEYSTONE_USER_CREATION_FAILED(500, "ACC-AUTH-KEYSTONE-CREATION-FAILED", "Keystone 사용자 생성에 실패했습니다."),
     KEYSTONE_PROJECT_CREATION_FAILED(500, "ACC-AUTH-KEYSTONE-PROJECT-CREATION-FAILED", "Keystone 프로젝트 생성에 실패했습니다."),

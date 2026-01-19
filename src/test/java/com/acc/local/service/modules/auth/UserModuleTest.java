@@ -5,20 +5,16 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.auth.AuthType;
+import com.acc.local.domain.model.auth.User;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserListResponse;
 import com.acc.local.dto.auth.AdminCreateUserRequest;
-import com.acc.local.dto.auth.AdminGetUserResponse;
-import com.acc.local.dto.auth.AdminListUsersResponse;
 import com.acc.local.dto.auth.AdminUpdateUserRequest;
-import com.acc.local.entity.UserAuthDetailEntity;
-import com.acc.local.entity.UserDetailEntity;
-import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
+import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
+import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.repository.ports.UserRepositoryPort;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,10 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,8 +42,6 @@ class UserModuleTest {
 
     @InjectMocks
     private UserModule userModule;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ----------------------------------------------------
     // 사용자 생성
@@ -75,45 +66,38 @@ class UserModuleTest {
         String adminToken = "token";
         String newUserId = "new-id-111";
 
-        JsonNode responseUser =
-                objectMapper.readTree("{\"user\": {\"id\": \"" + newUserId + "\", \"name\": \"hong@ajou.ac.kr\", \"enabled\": true}}");
+        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
+                .id(newUserId)
+                .name("hong@ajou.ac.kr")
+                .enabled(true)
+                .build();
 
         when(keystoneAPIExternalPort.createUser(eq(adminToken), any()))
-                .thenReturn(ResponseEntity.ok(responseUser));
+                .thenReturn(userKeystoneDto);
 
-        try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
+        when(userRepositoryPort.saveUserDetail(any()))
+                .thenReturn(UserDbExtraEntity.builder()
+                        .userId(newUserId)
+                        .userName("홍길동")
+                        .userPhoneNumber("01012345678")
+                        .isAdmin(false)
+                        .build());
 
-            mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(UserKeystoneDto.builder()
-                            .id(newUserId)
-                            .name("hong@ajou.ac.kr")
-                            .enabled(true)
-                            .build());
+        when(userRepositoryPort.saveUserIdentity(any()))
+                .thenReturn(UserIdentityEntity.builder()
+                        .userId(newUserId)
+                        .department("컴퓨터공학과")
+                        .studentId("2021123")
+                        .authType(0)
+                        .userEmail("hong@ajou.ac.kr")
+                        .build());
 
-            when(userRepositoryPort.saveUserDetail(any()))
-                    .thenReturn(UserDetailEntity.builder()
-                            .userId(newUserId)
-                            .userName("홍길동")
-                            .userPhoneNumber("01012345678")
-                            .isAdmin(false)
-                            .build());
+        // when
+        String result = userModule.adminCreateUser(request, adminToken);
 
-            when(userRepositoryPort.saveUserAuth(any()))
-                    .thenReturn(UserAuthDetailEntity.builder()
-                            .userId(newUserId)
-                            .department("컴퓨터공학과")
-                            .studentId("2021123")
-                            .authType(0)
-                            .userEmail("hong@ajou.ac.kr")
-                            .build());
-
-            // when
-            String result = userModule.adminCreateUser(request, adminToken);
-
-            // then
-            assertEquals(newUserId, result);
-            verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
-        }
+        // then
+        assertEquals(newUserId, result);
+        verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
     }
 
 
@@ -137,15 +121,18 @@ class UserModuleTest {
                 .isEnabled(true)
                 .build();
 
-        JsonNode resp = objectMapper.readTree(
-                "{ \"user\": {\"id\":\"uid-1\", \"name\":\"updated@ajou.ac.kr\", \"enabled\":true}}");
+        UserKeystoneDto updatedUserKeystoneDto = UserKeystoneDto.builder()
+                .id(userId)
+                .name("updated@ajou.ac.kr")
+                .enabled(true)
+                .build();
 
         when(keystoneAPIExternalPort.updateUser(eq(userId), eq(token), any()))
-                .thenReturn(ResponseEntity.ok(resp));
+                .thenReturn(updatedUserKeystoneDto);
 
         when(userRepositoryPort.findUserDetailById(userId))
                 .thenReturn(Optional.of(
-                        UserDetailEntity.builder()
+                        UserDbExtraEntity.builder()
                                 .userId(userId)
                                 .userName("기존")
                                 .userPhoneNumber("01000000000")
@@ -154,7 +141,7 @@ class UserModuleTest {
 
         when(userRepositoryPort.findUserAuthById(userId))
                 .thenReturn(Optional.of(
-                        UserAuthDetailEntity.builder()
+                        UserIdentityEntity.builder()
                                 .userId(userId)
                                 .department("old")
                                 .studentId("old")
@@ -176,91 +163,81 @@ class UserModuleTest {
     // ----------------------------------------------------
     @Test
     @DisplayName("관리자는 Keystone 사용자 상세 정보를 조회하여 ACC DB 정보와 병합한다.")
-    void whenAdminGetUser_thenReturnMerged() throws Exception {
+    void whenGetUserById_thenReturnUser() throws Exception {
 
         String userId = "uid-1";
         String token = "admin-token";
 
-        JsonNode resp = objectMapper.readTree(
-                "{ \"user\": {\"id\":\"uid-1\", \"name\":\"user@ajou.ac.kr\", \"enabled\":true}}");
+        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
+                .id("uid-1")
+                .name("user@ajou.ac.kr")
+                .enabled(true)
+                .build();
 
         when(keystoneAPIExternalPort.getUserDetail(userId, token))
-                .thenReturn(ResponseEntity.ok(resp));
+                .thenReturn(userKeystoneDto);
 
-        try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
+        UserDbExtraEntity userDbExtra = UserDbExtraEntity.builder()
+                .userId("uid-1")
+                .userName("홍길동")
+                .userPhoneNumber("01011112222")
+                .isAdmin(false)
+                .build();
 
-            mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(UserKeystoneDto.builder()
-                            .id("uid-1")
-                            .name("user@ajou.ac.kr")
-                            .enabled(true)
-                            .build());
+        UserIdentityEntity userIdentity = UserIdentityEntity.builder()
+                .userId("uid-1")
+                .department("소프트웨어")
+                .studentId("2021333")
+                .authType(0)
+                .userEmail("user@ajou.ac.kr")
+                .build();
 
-            when(userRepositoryPort.findUserDetailById(userId))
-                    .thenReturn(Optional.of(
-                            UserDetailEntity.builder()
-                                    .userId("uid-1")
-                                    .userName("홍길동")
-                                    .userPhoneNumber("01011112222")
-                                    .isAdmin(false)
-                                    .build()));
+        UserDBDto userDBDto = new UserDBDto(userIdentity, userDbExtra);
 
-            when(userRepositoryPort.findUserAuthById(userId))
-                    .thenReturn(Optional.of(
-                            UserAuthDetailEntity.builder()
-                                    .userId("uid-1")
-                                    .department("소프트웨어")
-                                    .studentId("2021333")
-                                    .authType(0)
-                                    .userEmail("user@ajou.ac.kr")
-                                    .build()));
+        when(userRepositoryPort.findUserDBByUserId(userId))
+                .thenReturn(Optional.of(userDBDto));
 
-            // when
-            AdminGetUserResponse r = userModule.adminGetUser(userId, token);
+        // when
+        User user = userModule.getUserById(userId, token);
 
-            // then
-            assertEquals("홍길동", r.username());
-            assertEquals("user@ajou.ac.kr", r.email());
-            verify(keystoneAPIExternalPort).getUserDetail(userId, token);
-        }
+        // then
+        assertEquals("홍길동", user.getUsername());
+        assertEquals("user@ajou.ac.kr", user.getEmail());
+        assertEquals("소프트웨어", user.getDepartment());
+        assertEquals("2021333", user.getStudentId());
+        verify(keystoneAPIExternalPort).getUserDetail(userId, token);
+        verify(userRepositoryPort).findUserDBByUserId(userId);
     }
 
 
     // ----------------------------------------------------
-    // DB UserDetail 없음 예외 테스트
+    // DB UserDetail 없음 예외 테스트 (정합성 불일치)
     // ----------------------------------------------------
     @Test
-    @DisplayName("ACC DB UserDetail 없음 → USER_NOT_FOUND 발생")
-    void whenUserDetailMissing_thenThrowException() throws Exception {
+    @DisplayName("Keystone에는 존재하지만 DB에 없음 → USER_DATA_INCONSISTENCY 발생")
+    void whenUserDetailMissing_thenThrowDataInconsistencyException() throws Exception {
 
         String userId = "uid-x";
         String token = "admin-token";
 
-        JsonNode resp = objectMapper.readTree(
-                "{ \"user\": {\"id\":\"uid-x\", \"name\":\"aaa@ajou.ac.kr\", \"enabled\":true}}");
+        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
+                .id("uid-x")
+                .name("aaa@ajou.ac.kr")
+                .enabled(true)
+                .build();
 
         when(keystoneAPIExternalPort.getUserDetail(userId, token))
-                .thenReturn(ResponseEntity.ok(resp));
+                .thenReturn(userKeystoneDto);
 
-        try (MockedStatic<KeystoneAPIUtils> mocked = mockStatic(KeystoneAPIUtils.class)) {
+        when(userRepositoryPort.findUserDBByUserId(userId))
+                .thenReturn(Optional.empty());
 
-            mocked.when(() -> KeystoneAPIUtils.parseKeystoneUserResponse(any()))
-                    .thenReturn(UserKeystoneDto.builder()
-                            .id("uid-x")
-                            .name("aaa@ajou.ac.kr")
-                            .enabled(true)
-                            .build());
+        // when & then
+        AuthServiceException ex =
+                assertThrows(AuthServiceException.class,
+                        () -> userModule.getUserById(userId, token));
 
-            when(userRepositoryPort.findUserDetailById(userId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            AuthServiceException ex =
-                    assertThrows(AuthServiceException.class,
-                            () -> userModule.adminGetUser(userId, token));
-
-            assertEquals(AuthErrorCode.USER_NOT_FOUND, ex.getErrorCode());
-        }
+        assertEquals(AuthErrorCode.USER_DATA_INCONSISTENCY, ex.getErrorCode());
     }
 
 
@@ -268,33 +245,94 @@ class UserModuleTest {
     // 사용자 목록 조회
     // ----------------------------------------------------
     @Test
-    @DisplayName("관리자는 사용자 목록을 조회(LIST USERS)한다.")
-    void whenListUsers_thenReturnPage() throws Exception {
+    @DisplayName("관리자는 사용자 목록을 조회하여 User 도메인 모델 목록을 반환한다.")
+    void whenListUsers_thenReturnPageOfUsers() throws Exception {
 
+        // given
         PageRequest req = new PageRequest();
         req.setMarker(null);
         req.setLimit(10);
 
-        UserKeystoneDto u1 = UserKeystoneDto.builder().id("u1").name("user1@ajou.ac.kr").enabled(true).defaultProjectId("p1").build();
-        UserKeystoneDto u2 = UserKeystoneDto.builder().id("u2").name("user2@ajou.ac.kr").enabled(false).build();
+        UserKeystoneDto u1 = UserKeystoneDto.builder()
+                .id("u1")
+                .name("user1@ajou.ac.kr")
+                .enabled(true)
+                .defaultProjectId("p1")
+                .build();
+        UserKeystoneDto u2 = UserKeystoneDto.builder()
+                .id("u2")
+                .name("user2@ajou.ac.kr")
+                .enabled(false)
+                .build();
 
-        UserListResponse list = UserListResponse.builder()
+        UserListResponse keystoneResponse = UserListResponse.builder()
                 .userKeystoneDtos(List.of(u1, u2))
-                .nextMarker("u2")
+                .nextMarker(null)
                 .prevMarker(null)
                 .build();
 
         when(keystoneAPIExternalPort.listUsers(anyString(), any(), anyInt()))
-                .thenReturn(list);
+                .thenReturn(keystoneResponse);
+
+        // DB에서 조회될 UserDBDto 목록 설정
+        UserDbExtraEntity dbExtra1 = UserDbExtraEntity.builder()
+                .userId("u1")
+                .userName("홍길동")
+                .userPhoneNumber("01011111111")
+                .isAdmin(false)
+                .isDeleted(false)
+                .build();
+        UserIdentityEntity identity1 = UserIdentityEntity.builder()
+                .userId("u1")
+                .department("컴퓨터공학과")
+                .studentId("2021001")
+                .authType(0)
+                .userEmail("user1@ajou.ac.kr")
+                .build();
+
+        UserDbExtraEntity dbExtra2 = UserDbExtraEntity.builder()
+                .userId("u2")
+                .userName("김철수")
+                .userPhoneNumber("01022222222")
+                .isAdmin(true)
+                .isDeleted(false)
+                .build();
+        UserIdentityEntity identity2 = UserIdentityEntity.builder()
+                .userId("u2")
+                .department("소프트웨어학과")
+                .studentId("2021002")
+                .authType(1)
+                .userEmail("user2@ajou.ac.kr")
+                .build();
+
+        List<UserDBDto> userDBDtos = List.of(
+                new UserDBDto(identity1, dbExtra1),
+                new UserDBDto(identity2, dbExtra2)
+        );
+
+        when(userRepositoryPort.findUserDBsByUserIds(List.of("u1", "u2")))
+                .thenReturn(userDBDtos);
 
         // when
-        PageResponse<AdminListUsersResponse> result =
-                userModule.adminListUsers(req, "admin-token");
+        PageResponse<User> result = userModule.adminListUsers(req, "admin-token");
 
         // then
         assertEquals(2, result.getContents().size());
-        assertEquals("u2", result.getNextMarker());
+
+        User firstUser = result.getContents().get(0);
+        assertEquals("u1", firstUser.getUserId());
+        assertEquals("홍길동", firstUser.getUsername());
+        assertEquals("user1@ajou.ac.kr", firstUser.getEmail());
+        assertEquals("컴퓨터공학과", firstUser.getDepartment());
+        assertEquals(true, firstUser.getIsEnabled());
+
+        User secondUser = result.getContents().get(1);
+        assertEquals("u2", secondUser.getUserId());
+        assertEquals("김철수", secondUser.getUsername());
+        assertEquals(true, secondUser.getIsAdmin());
+
         verify(keystoneAPIExternalPort).listUsers(anyString(), any(), anyInt());
+        verify(userRepositoryPort).findUserDBsByUserIds(anyList());
     }
 
 
@@ -312,7 +350,7 @@ class UserModuleTest {
         //     .thenReturn(ResponseEntity.status(HttpStatus.NO_CONTENT).build());
 
         when(userRepositoryPort.findUserDetailById(userId))
-                .thenReturn(Optional.ofNullable(UserDetailEntity.builder().build()));
+                .thenReturn(Optional.ofNullable(UserDbExtraEntity.builder().build()));
 
         assertDoesNotThrow(() -> userModule.adminDeleteUser(userId, token));
 

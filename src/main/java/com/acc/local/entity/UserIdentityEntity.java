@@ -13,7 +13,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserAuthDetailEntity {
+public class UserIdentityEntity {
 
     @Id
     @Column(name = "user_id", length = 64, nullable = false)

@@ -2,11 +2,9 @@ package com.acc.local.service.adapters.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.util.UserUtil;
+import com.acc.local.domain.model.auth.User;
 import com.acc.local.dto.auth.*;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.UserModule;
@@ -72,7 +70,21 @@ public class UserServiceAdapter implements UserServicePort {
 
         String adminToken = authModule.issueSystemAdminToken("admin-get-user");
         try {
-            return userModule.adminGetUser(userId, adminToken);
+            // Module에서 User 도메인 모델 조회
+            User user = userModule.getUserById(userId, adminToken);
+
+            // Adapter에서 User → DTO 변환
+            return AdminGetUserResponse.builder()
+                    .userId(user.getUserId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .department(user.getDepartment())
+                    .studentId(user.getStudentId())
+                    .phoneNumber(user.getPhoneNumber())
+                    .isEnabled(user.getIsEnabled())
+                    .isAdmin(user.getIsAdmin())
+                    .isDeleted(user.getIsDeleted())
+                    .build();
         } finally {
             authModule.invalidateSystemAdminToken(adminToken);
         }
@@ -86,8 +98,21 @@ public class UserServiceAdapter implements UserServicePort {
 
         String adminToken = authModule.issueSystemAdminToken("admin-list-users");
         try {
-            // 기존 listUsers API 사용 (모든 사용자 조회)
-            return userModule.adminListUsers(page, adminToken);
+            // Module에서 PageResponse<User> 받기
+            PageResponse<User> userPage = userModule.adminListUsers(page, adminToken);
+
+            // map() 메서드로 User → AdminListUsersResponse 변환
+            return userPage.map(user -> AdminListUsersResponse.builder()
+                    .userId(user.getUserId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .department(user.getDepartment())
+                    .phoneNumber(user.getPhoneNumber())
+                    .isAdmin(user.getIsAdmin())
+                    .enabled(user.getIsEnabled())
+                    .defaultProjectName(null)  // TODO: 프로젝트 이름 조회 필요시 추가
+                    .build());
+
         } finally {
             authModule.invalidateSystemAdminToken(adminToken);
         }

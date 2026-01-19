@@ -3,7 +3,7 @@ package com.acc.local.service.modules.keypair;
 import com.acc.local.dto.keypair.KeypairSyncDto;
 import com.acc.local.entity.KeypairEntity;
 import com.acc.local.entity.ProjectEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.ports.KeypairExternalPort;
 import com.acc.local.repository.ports.KeypairRepositoryPort;
 import com.acc.local.repository.ports.ProjectRepositoryPort;
@@ -102,7 +102,7 @@ public class KeypairSyncModule {
         for (String userId : allUserIds) {
             try {
                 // 사용자 정보 조회
-                UserDetailEntity user = userRepositoryPort.findUserDetailById(userId).orElse(null);
+                UserDbExtraEntity user = userRepositoryPort.findUserDetailById(userId).orElse(null);
                 if (user == null) {
                     log.warn("User not found in DB: {}", userId);
                     continue;
