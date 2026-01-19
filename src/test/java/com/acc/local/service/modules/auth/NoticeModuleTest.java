@@ -4,12 +4,11 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
-import com.acc.local.domain.model.auth.Notice;
 import com.acc.local.dto.auth.CreateNoticeRequest;
 import com.acc.local.dto.auth.CreateNoticeResponse;
 import com.acc.local.dto.auth.ListNoticesResponse;
 import com.acc.local.entity.NoticeEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.repository.ports.NoticeRepositoryPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
 
@@ -20,10 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,7 +73,7 @@ class NoticeModuleTest {
 
         when(userRepositoryPort.findUserDetailById(creatorId))
                 .thenReturn(Optional.of(
-                        UserDetailEntity.builder()
+                        UserDbExtraEntity.builder()
                                 .userId(creatorId)
                                 .userName("홍길동")
                                 .build()));

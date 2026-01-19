@@ -4,13 +4,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
-import org.hibernate.sql.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,6 @@ import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.entity.ProjectEntity;
 import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.entity.ProjectRequestEntity;
-import com.acc.local.entity.UserDetailEntity;
 import com.acc.local.entity.id.ProjectParticipantId;
 import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
@@ -252,7 +250,7 @@ public class ProjectModule {
 			.build();
 		projectRepositoryPort.save(aoldaProject);
 
-		UserDetailEntity projectOwnerUserDetail = userRepositoryPort.findUserDetailById(request.projectOwnerId())
+		UserDbExtraEntity projectOwnerUserDetail = userRepositoryPort.findUserDetailById(request.projectOwnerId())
 			.orElseThrow(() -> new ProjectServiceException(ProjectErrorCode.USER_NOT_FOUND));
 
 		ProjectParticipantId participantId = new ProjectParticipantId(
@@ -480,20 +478,20 @@ public class ProjectModule {
 		ResponseEntity<JsonNode> listUsersOpenstackResponse = keystoneUserAPIModule.listUsers(token, null, 30, email);
 		List<UserKeystoneDto> users = KeystoneAPIUtils.parseKeystoneUserListResponse(listUsersOpenstackResponse).getUserKeystoneDtos();
 
-		List<UserDetailEntity> userDetailsByIds = userRepositoryPort.findUserDetailsByIds(users.stream().map(UserKeystoneDto::id).toList());
+		List<UserDbExtraEntity> userDetailsByIds = userRepositoryPort.findUserDetailsByIds(users.stream().map(UserKeystoneDto::id).toList());
 
 		List<InvitableUser> invitableUsers = new ArrayList<>();
-		for (UserDetailEntity userDetailEntity : userDetailsByIds) {
+		for (UserDbExtraEntity userDbExtraEntity : userDetailsByIds) {
 			UserKeystoneDto matchUser = users.stream()
-				.filter(v -> v.id().equals(userDetailEntity.getUserId()))
+				.filter(v -> v.id().equals(userDbExtraEntity.getUserId()))
 				.findFirst()
 				.orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
 
 			invitableUsers.add(
 				InvitableUser.builder()
 					.userEmail(matchUser.name())
-					.userName(userDetailEntity.getUserName())
-					.userId(userDetailEntity.getUserId())
+					.userName(userDbExtraEntity.getUserName())
+					.userId(userDbExtraEntity.getUserId())
 					.build()
 			);
 		}
@@ -502,18 +500,18 @@ public class ProjectModule {
 	}
 
 	private List<InvitableUser> findInvitableUsersByName(String name, String projectId, String token) {
-		List<UserDetailEntity> userDetailsByIds = userRepositoryPort.findUserByUserName(name);
+		List<UserDbExtraEntity> userDetailsByIds = userRepositoryPort.findUserByUserName(name);
 
 		List<InvitableUser> invitableUsers = new ArrayList<>();
-		for (UserDetailEntity userDetailEntity : userDetailsByIds) {
-			ResponseEntity<JsonNode> listUsersOpenstackResponse = keystoneUserAPIModule.getUserDetail(userDetailEntity.getUserId(), token);
+		for (UserDbExtraEntity userDbExtraEntity : userDetailsByIds) {
+			ResponseEntity<JsonNode> listUsersOpenstackResponse = keystoneUserAPIModule.getUserDetail(userDbExtraEntity.getUserId(), token);
 			UserKeystoneDto user = KeystoneAPIUtils.parseKeystoneUserResponse(listUsersOpenstackResponse);
 
 			invitableUsers.add(
 				InvitableUser.builder()
 					.userEmail(user.name())
-					.userName(userDetailEntity.getUserName())
-					.userId(userDetailEntity.getUserId())
+					.userName(userDbExtraEntity.getUserName())
+					.userId(userDbExtraEntity.getUserId())
 					.build()
 			);
 		}

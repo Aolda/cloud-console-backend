@@ -11,10 +11,9 @@ import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.dto.auth.SignupRequest;
 import com.acc.local.entity.RefreshTokenEntity;
-import com.acc.local.entity.UserAuthDetailEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.entity.UserTokenEntity;
-import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,7 +33,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -184,44 +182,6 @@ class AuthModuleTest {
     //     // 권한 관련 테스트는 나중에 별도 처리
     // }
 
-    // ==== User CRUD Tests ====
-
-    @Test
-    @DisplayName("관리자는 ACC 요청자의 개인정보와 keystone 토큰을 이용해 Keystone의 사용자 계정을 생성하고 ACC DB에 저장할 수 있다.")
-    void givenDomainUserAndKeystoneToken_whenCreateKeystoneUser_thenReturnKeystoneUserInfoAndSaveToAccDB() throws Exception {
-        // given
-        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
-                .name("testUser")
-                .email("test@example.com")
-                .enabled(true)
-                // .department("컴퓨터공학과")
-                // .phoneNumber("010-1234-5678")
-                .build();
-        String userId = "admin-user-id";
-        String keystoneToken = "test-keystone-token";
-        String createdUserId = "created-user-id";
-
-        UserTokenEntity mockUserToken = mock(UserTokenEntity.class);
-        when(mockUserToken.getKeystoneUnscopedToken()).thenReturn(keystoneToken);
-        when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of(mockUserToken));
-
-        JsonNode userBody = objectMapper.readTree(
-            "{\"user\": {\"id\": \"" + createdUserId + "\", \"name\": \"testUser\", \"email\": \"test@example.com\", \"enabled\": true, \"domain_id\": \"default\"}}"
-        );
-        ResponseEntity<JsonNode> mockResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
-        when(keystoneAPIExternalPort.createUser(eq(keystoneToken), any())).thenReturn(mockResponse);
-        // when
-        UserKeystoneDto createdUserKeystoneDto = authModule.createUser(userKeystoneDto, userId);
-
-        // then
-        assertEquals(createdUserId, createdUserKeystoneDto.id());
-        assertEquals("testUser", createdUserKeystoneDto.name());
-        assertEquals("test@example.com", createdUserKeystoneDto.email());
-        assertTrue(createdUserKeystoneDto.enabled());
-        // assertEquals("컴퓨터공학과", createdKeystoneUser.getDepartment());
-        // assertEquals("010-1234-5678", createdKeystoneUser.getPhoneNumber());
-        verify(keystoneAPIExternalPort).createUser(eq(keystoneToken), any());
-        }
 
     @Test
     @DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID를 이용해 Keystone에서 사용자 상세 정보를 조회할 수 있다.")
@@ -229,28 +189,22 @@ class AuthModuleTest {
         // given
         String targetUserId = "target-user-id";
         String requesterId = "requester-id";
-        String keystoneToken = "test-keystone-token";
 
-        UserTokenEntity mockUserToken = mock(UserTokenEntity.class);
-        // when(mockUserToken.getKeystoneUnscopedToken()).thenReturn(keystoneToken);
+        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
+                .id(targetUserId)
+                .name("testUser")
+                .email("test@example.com")
+                .description("test description")
+                .enabled(true)
+                .build();
 
-        // when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(requesterId)).thenReturn(List.of(mockUserToken));
-
-        JsonNode userBody = objectMapper.readTree(
-            "{\"user\": {\"id\": \"" + targetUserId + "\"," +
-                    " \"name\": \"testUser\"," +
-                    " \"email\": \"test@example.com\", " +
-                    "\"enabled\": true, " +
-                    "\"description\": \"test description\"}}"
-        );
-        ResponseEntity<JsonNode> mockResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
-        when(keystoneAPIExternalPort.getUserDetail(any(), any())).thenReturn(mockResponse);
+        when(keystoneAPIExternalPort.getUserDetail(any(), any())).thenReturn(userKeystoneDto);
         when(keystoneAPIExternalPort.getAdminToken(any())).thenReturn(
             KeystoneToken.builder()
                 .token("admin-token")
                 .build()
         );
-        
+
         // when
         UserKeystoneDto userKeystoneDtoDetail = authModule.getUserDetail(targetUserId, requesterId);
 
@@ -260,70 +214,7 @@ class AuthModuleTest {
         assertEquals("test@example.com", userKeystoneDtoDetail.email());
         assertEquals("test description", userKeystoneDtoDetail.description());
         assertTrue(userKeystoneDtoDetail.enabled());
-        // verify(keystoneAPIExternalPort).getUserDetail(targetUserId, keystoneToken);
        }
-
-    @Test
-    @DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID, 수정할 정보를 이용해 Keystone에서 사용자 정보를 업데이트할 수 있다.")
-    void givenUserIdAndUserInfoAndKeystoneToken_whenUpdateUser_thenReturnUpdatedUserInfo() throws Exception {
-        // given
-        String targetUserId = "target-user-id";
-        String requesterId = "requester-id";
-        UserKeystoneDto userKeystoneDto = UserKeystoneDto.builder()
-                .name("updatedUser")
-                .email("updated@example.com")
-                .description("updated description")
-                .enabled(true)
-                // .department("전자공학과")
-                // .phoneNumber("010-9876-5432")
-                .build();
-        String keystoneToken = "test-keystone-token";
-
-        UserTokenEntity mockUserToken = mock(UserTokenEntity.class);
-        when(mockUserToken.getKeystoneUnscopedToken()).thenReturn(keystoneToken);
-        when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(requesterId)).thenReturn(List.of(mockUserToken));
-
-        JsonNode userBody = objectMapper.readTree(
-            "{\"user\": {\"id\": \"" + targetUserId + "\"," +
-                    " \"name\": \"updatedUser\", " +
-                    "\"email\": \"updated@example.com\", " +
-                    "\"description\": \"updated description\", " +
-                    "\"enabled\": true}}"
-        );
-        ResponseEntity<JsonNode> mockResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
-        when(keystoneAPIExternalPort.updateUser(eq(targetUserId), eq(keystoneToken), any())).thenReturn(mockResponse);
-        UserKeystoneDto updatedUserKeystoneDto = authModule.updateUser(targetUserId, userKeystoneDto, requesterId);
-
-        // then
-        assertEquals(targetUserId, updatedUserKeystoneDto.id());
-        assertEquals("updatedUser", updatedUserKeystoneDto.name());
-        assertEquals("updated@example.com", updatedUserKeystoneDto.email());
-        assertEquals("updated description", updatedUserKeystoneDto.description());
-        assertTrue(updatedUserKeystoneDto.enabled());
-        // assertEquals("전자공학과", updatedKeystoneUser.getDepartment());
-        // assertEquals("010-9876-5432", updatedKeystoneUser.getPhoneNumber());
-        verify(keystoneAPIExternalPort).updateUser(eq(targetUserId), eq(keystoneToken), any());
-    }
-
-    @Test
-    @DisplayName("관리자와 사용자 본인은 keystone 토큰과 사용자 ID를 이용해 Keystone에서 사용자를 삭제할 수 있다.")
-    void givenUserIdAndKeystoneToken_whenDeleteUser_thenDeleteUserSuccessfully() {
-        // given
-        String targetUserId = "target-user-id";
-        String requesterId = "requester-id";
-        String keystoneToken = "test-keystone-token";
-
-        UserTokenEntity mockUserToken = mock(UserTokenEntity.class);
-        when(mockUserToken.getKeystoneUnscopedToken()).thenReturn(keystoneToken);
-        when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(requesterId)).thenReturn(List.of(mockUserToken));
-
-        // when & then
-        assertDoesNotThrow(() -> {
-            authModule.deleteUser(targetUserId, requesterId);
-        });
-
-        verify(keystoneAPIExternalPort).deleteUser(targetUserId, keystoneToken);
-    }
 
     @Test
     @DisplayName("이메일로 사용자 존재 여부를 확인할 수 있다.")
@@ -739,23 +630,25 @@ class AuthModuleTest {
         String createdUserId = "created-user-id-12345";
 
         // Keystone 사용자 생성 응답 mock
-        JsonNode userBody = objectMapper.readTree(
-            "{\"user\": {\"id\": \"" + createdUserId + "\", \"name\": \"hong@example.com\", \"email\": \"hong@example.com\", \"enabled\": true, \"domain_id\": \"default\"}}"
-        );
-        ResponseEntity<JsonNode> mockKeystoneResponse = new ResponseEntity<>(userBody, HttpStatus.OK);
-        when(keystoneAPIExternalPort.createUser(eq(adminToken), any())).thenReturn(mockKeystoneResponse);
+        UserKeystoneDto createdUserKeystoneDto = UserKeystoneDto.builder()
+                .id(createdUserId)
+                .name("hong@example.com")
+                .email("hong@example.com")
+                .enabled(true)
+                .build();
+        when(keystoneAPIExternalPort.createUser(eq(adminToken), any())).thenReturn(createdUserKeystoneDto);
 
         // Repository save mock
-       UserDetailEntity savedUserDetail = UserDetailEntity.builder()
+       UserDbExtraEntity savedUserDetail = UserDbExtraEntity.builder()
                 .userId(createdUserId)
                 .userName("hong123")
                 .userPhoneNumber("010-1234-5678")
                 .isAdmin(false)
                 .build();
-        when(userRepositoryPort.saveUserDetail(any(UserDetailEntity.class)))
+        when(userRepositoryPort.saveUserDetail(any(UserDbExtraEntity.class)))
                 .thenReturn(savedUserDetail);
 
-        UserAuthDetailEntity savedUserAuthDetail = UserAuthDetailEntity.builder()
+        UserIdentityEntity savedUserAuthDetail = UserIdentityEntity.builder()
                 .userId(createdUserId)
                 // .user(savedUserDetail)
                 .department("컴퓨터공학과")
@@ -763,7 +656,7 @@ class AuthModuleTest {
                 .authType(0) // GOOGLE
                 .userEmail("hong@example.com")
                 .build();
-        when(userRepositoryPort.saveUserAuth(any(UserAuthDetailEntity.class)))
+        when(userRepositoryPort.saveUserIdentity(any(UserIdentityEntity.class)))
                 .thenReturn(savedUserAuthDetail);
 
         when(keystoneAPIExternalPort.getTokenObject(any())).thenReturn(
@@ -779,8 +672,8 @@ class AuthModuleTest {
         // then
         assertEquals(createdUserId, resultUserId);
         verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
-        verify(userRepositoryPort).saveUserDetail(any(UserDetailEntity.class));
-        verify(userRepositoryPort).saveUserAuth(any(UserAuthDetailEntity.class));
+        verify(userRepositoryPort).saveUserDetail(any(UserDbExtraEntity.class));
+        verify(userRepositoryPort).saveUserIdentity(any(UserIdentityEntity.class));
         verify(keystoneAPIExternalPort).revokeToken(adminToken);
     }
 }

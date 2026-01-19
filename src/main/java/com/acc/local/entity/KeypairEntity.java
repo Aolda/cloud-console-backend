@@ -23,7 +23,7 @@ public class KeypairEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserDetailEntity user;
+    private UserDbExtraEntity user;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,7 @@ public class KeypairEntity {
     private ProjectEntity project;
 
     @Builder
-    public KeypairEntity(String keypairId, String keypairName, UserDetailEntity user, ProjectEntity project) {
+    public KeypairEntity(String keypairId, String keypairName, UserDbExtraEntity user, ProjectEntity project) {
         this.keypairId = keypairId;
         this.keypairName = keypairName;
         this.user = user;

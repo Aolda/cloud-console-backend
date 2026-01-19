@@ -1,28 +1,42 @@
 package com.acc.local.repository.ports;
 
-import com.acc.local.entity.UserDetailEntity;
-import com.acc.local.entity.UserAuthDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.repository.dto.UserDBDto;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserRepositoryPort {
 
-    UserDetailEntity saveUserDetail(UserDetailEntity userDetailEntity);
+    UserDbExtraEntity saveUserDetail(UserDbExtraEntity userDbExtraEntity);
 
-    UserAuthDetailEntity saveUserAuth(UserAuthDetailEntity userAuthDetailEntity);
+    UserIdentityEntity saveUserIdentity(UserIdentityEntity userIdentityEntity);
 
-    Optional<UserDetailEntity> findUserDetailById(String userId);
+    Optional<UserDbExtraEntity> findUserDetailById(String userId);
 
-    Optional<UserAuthDetailEntity> findUserAuthById(String userId);
+    Optional<UserIdentityEntity> findUserAuthById(String userId);
 
-    List<UserDetailEntity> findUserDetailsByIds(List<String> userIds);
+    List<UserDbExtraEntity> findUserDetailsByIds(List<String> userIds);
 
-    List<UserAuthDetailEntity> findUserAuthsByIds(List<String> userIds);
+    List<UserIdentityEntity> findUserAuthsByIds(List<String> userIds);
 
     void deleteUserDetailById(String userId);
 
     void deleteUserAuthById(String userId);
 
-	List<UserDetailEntity> findUserByUserName(String userName);
+	List<UserDbExtraEntity> findUserByUserName(String userName);
+
+    /**
+     * userId로 User 관련 정보를 조인하여 조회
+     * UserIdentity와 UserDbExtra를 inner join으로 조회
+     */
+    Optional<UserDBDto> findUserDBByUserId(String userId);
+
+    /**
+     * 여러 userId로 User 관련 정보를 조인하여 bulk 조회
+     * UserIdentity와 UserDbExtra를 inner join으로 조회
+     * 삭제되지 않은 사용자만 반환
+     */
+    List<UserDBDto> findUserDBsByUserIds(List<String> userIds);
 }

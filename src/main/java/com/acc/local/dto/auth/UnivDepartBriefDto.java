@@ -1,6 +1,7 @@
 package com.acc.local.dto.auth;
 
 import com.acc.local.domain.enums.UnivAccountType;
+import com.acc.local.domain.model.auth.User;
 
 import lombok.Builder;
 
@@ -25,6 +26,13 @@ public record UnivDepartBriefDto(
 			// .grade(adminGetUserResponse.)
 			.grade(1 + "학년") // TODO: 회원가입 시 나이 저장되도록 수정 필요
 			.univDepartment(adminGetUserResponse.department())
+			.build();
+	}
+
+	public static UnivDepartBriefDto from(User user) {
+		return UnivDepartBriefDto.builder()
+			.grade(1 + "학년") // TODO: 회원가입 시 나이 저장되도록 수정 필요
+			.univDepartment(user.getDepartment())
 			.build();
 	}
 }

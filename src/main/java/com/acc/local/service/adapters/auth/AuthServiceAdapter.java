@@ -2,13 +2,12 @@ package com.acc.local.service.adapters.auth;
 
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.domain.model.auth.RefreshToken;
+import com.acc.local.domain.model.auth.User;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.UserPermissionResponse;
-import com.acc.local.entity.UserDetailEntity;
-import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 public class AuthServiceAdapter implements AuthServicePort {
 
     private final AuthModule authModule;
-    private final UserRepositoryPort userRepositoryPort;
     private final UserModule userModule;
     private final ProjectModule projectModule;
 
@@ -133,10 +131,12 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     @Override
     public LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId) {
+        String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
+
         try {
-            String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
-            AdminGetUserResponse adminGetUserResponse = userModule.adminGetUserWithoutAuthInfoResponse(userId, adminToken);
-            authModule.invalidateSystemAdminToken(adminToken);
+            // Module에서 User 도메인 모델 조회 (정합성 불일치 시 예외 발생)
+            //TODO: 추후 정합성 맞추는 Flow 필요시 진행
+            User user = userModule.getUserById(userId, adminToken);
 
             // projectId가 존재하면 프로젝트 정보 조회
             ProjectServiceDto projectServiceDto = null;
@@ -145,23 +145,13 @@ public class AuthServiceAdapter implements AuthServicePort {
                 projectServiceDto = projectModule.getProjectDetail(projectId, scopedToken);
             }
 
-            if (adminGetUserResponse != null) {
-                return LoginedUserProfileResponse.builder()
-                    .userName(adminGetUserResponse.username())
-                    .univ(UnivDepartBriefDto.from(adminGetUserResponse))
-                    .project(projectServiceDto)
-                    .build();
-            }
-
-            UserDetailEntity userDetailEntity = userModule.adminGetUserDetailDB(userId);
             return LoginedUserProfileResponse.builder()
-                .userName(userDetailEntity.getUserName())
+                .userName(user.getUsername())
+                .univ(UnivDepartBriefDto.from(user))
                 .project(projectServiceDto)
                 .build();
-
-        } catch(Exception e) {
-            e.printStackTrace();
-            throw e;
+        } finally {
+            authModule.invalidateSystemAdminToken(adminToken);
         }
     }
 

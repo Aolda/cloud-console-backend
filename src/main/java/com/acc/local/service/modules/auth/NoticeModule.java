@@ -2,7 +2,6 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.exception.ErrorCode;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.notice.NoticeErrorCode;
@@ -10,23 +9,13 @@ import com.acc.global.exception.notice.NoticeServiceException;
 import com.acc.local.domain.model.auth.Notice;
 import com.acc.local.dto.auth.*;
 import com.acc.local.entity.NoticeEntity;
-import com.acc.local.entity.UserDetailEntity;
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.repository.ports.NoticeRepositoryPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -103,7 +92,7 @@ public class NoticeModule {
      */
     private String getUserNameById(String userId) {
         return userRepositoryPort.findUserDetailById(userId)
-                .map(UserDetailEntity::getUserName)
+                .map(UserDbExtraEntity::getUserName)
                 .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
     }
 }

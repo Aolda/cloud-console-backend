@@ -25,7 +25,7 @@ public class UserTermAgreementEntity {
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserDetailEntity user;
+    private UserDbExtraEntity user;
 
     @Column(name = "is_agreed", nullable = false)
     private Boolean isAgreed;
