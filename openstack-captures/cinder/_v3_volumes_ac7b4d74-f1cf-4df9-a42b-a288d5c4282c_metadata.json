@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v3/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4/metadata",
+    "uri": "/v3/volumes/ac7b4d74-f1cf-4df9-a42b-a288d5c4282c/metadata",
     "port": 8776,
     "headers": {
   "X-Auth-Token-Scope" : "project",

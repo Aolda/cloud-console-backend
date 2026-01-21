@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v2.1/servers/219eba21-d950-4cab-8781-a245dc7cb303/diagnostics",
+    "uri": "/v2.1/servers/22bfb37c-887c-433c-b1f9-4e3f3a42adde/diagnostics",
     "port": 8774,
     "headers": {
   "X-Auth-Token" : "__MASKED__"

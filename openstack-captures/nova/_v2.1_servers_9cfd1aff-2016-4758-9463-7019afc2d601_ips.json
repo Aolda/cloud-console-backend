@@ -1,8 +1,8 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v3/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4/metadata",
-    "port": 8776,
+    "uri": "/v2.1/servers/9cfd1aff-2016-4758-9463-7019afc2d601/ips",
+    "port": 8774,
     "headers": {
   "X-Auth-Token-Scope" : "project",
   "X-Auth-Token" : "__MASKED__"
@@ -12,7 +12,12 @@
   "response": {
     "status": 200,
     "body": {
-  "metadata" : { }
+  "addresses" : {
+    "private" : [ {
+      "version" : 4,
+      "addr" : "172.31.0.22"
+    } ]
+  }
 }
   }
 }

@@ -4,8 +4,8 @@
     "uri": "/v2.0/floatingips",
     "port": 9696,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
@@ -13,6 +13,31 @@
     "status": 200,
     "body": {
   "floatingips" : [ {
+    "id" : "0627e087-6a28-4e15-bd2d-1c6fffb282f0",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "floating_ip_address" : "10.16.0.156",
+    "floating_network_id" : "1ca8140f-1fec-4978-b09c-5e42919aeed6",
+    "router_id" : "fde2e182-01c3-45e6-87ff-5600952def96",
+    "port_id" : "c99b4884-2847-4da7-8669-4b5500826b7e",
+    "fixed_ip_address" : "192.168.0.73",
+    "status" : "ACTIVE",
+    "description" : "",
+    "port_details" : {
+      "name" : "test",
+      "network_id" : "0dfbcfc7-0e2c-4422-b26d-a5ed655ccfe7",
+      "mac_address" : "fa:16:3e:09:2d:87",
+      "admin_state_up" : true,
+      "status" : "ACTIVE",
+      "device_id" : "7255198f-4d43-4a41-8e71-24105b5e2303",
+      "device_owner" : "compute:nova"
+    },
+    "port_forwardings" : [ ],
+    "tags" : [ ],
+    "created_at" : "2026-01-20T07:34:33Z",
+    "updated_at" : "2026-01-20T07:34:57Z",
+    "revision_number" : 2,
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac"
+  }, {
     "id" : "2ebd8c12-8e6f-4ccc-8963-b28862ebfc62",
     "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
     "floating_ip_address" : "10.16.2.246",
@@ -113,6 +138,31 @@
     "updated_at" : "2026-01-10T05:08:28Z",
     "revision_number" : 2,
     "project_id" : "4366519bbaf54b4b97da6321cebb0fde"
+  }, {
+    "id" : "d5bde316-56f8-481a-9b9e-24b17667dffd",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "floating_ip_address" : "10.16.0.17",
+    "floating_network_id" : "1ca8140f-1fec-4978-b09c-5e42919aeed6",
+    "router_id" : "fde2e182-01c3-45e6-87ff-5600952def96",
+    "port_id" : "1f0483ae-9b8a-494c-ab17-0470298421ef",
+    "fixed_ip_address" : "192.168.0.19",
+    "status" : "ACTIVE",
+    "description" : "",
+    "port_details" : {
+      "name" : "tmp",
+      "network_id" : "0dfbcfc7-0e2c-4422-b26d-a5ed655ccfe7",
+      "mac_address" : "fa:16:3e:4e:48:3a",
+      "admin_state_up" : true,
+      "status" : "ACTIVE",
+      "device_id" : "9be4ef4b-a5b1-4ee4-99b4-1d487dac9dad",
+      "device_owner" : "compute:nova"
+    },
+    "port_forwardings" : [ ],
+    "tags" : [ ],
+    "created_at" : "2026-01-20T05:37:57Z",
+    "updated_at" : "2026-01-20T05:43:14Z",
+    "revision_number" : 6,
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac"
   }, {
     "id" : "de546df7-25af-4db2-ab5b-3afebe800268",
     "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",

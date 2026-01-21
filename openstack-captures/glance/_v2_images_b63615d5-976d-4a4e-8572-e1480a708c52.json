@@ -4,8 +4,8 @@
     "uri": "/v2/images/b63615d5-976d-4a4e-8572-e1480a708c52",
     "port": 9292,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },

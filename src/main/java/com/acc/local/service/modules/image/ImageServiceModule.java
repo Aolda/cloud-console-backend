@@ -82,8 +82,8 @@ public class ImageServiceModule {
         boolean first = (marker == null);
         boolean last = (endIdx >= all.size());
 
-        String nextMarker = last ? null : contents.get(contents.size() - 1).id();
-        String prevMarker = first ? null : contents.get(0).id();
+        String nextMarker = (last || contents.isEmpty()) ? null : contents.get(contents.size() - 1).id();
+        String prevMarker = (first || contents.isEmpty()) ? null : contents.get(0).id();
 
         return PageResponse.<GlanceImageSummary>builder()
                 .contents(contents)

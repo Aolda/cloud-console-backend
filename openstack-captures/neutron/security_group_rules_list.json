@@ -4,8 +4,8 @@
     "uri": "/v2.0/security-group-rules",
     "port": 9696,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
@@ -222,6 +222,25 @@
     "updated_at" : "2025-12-23T09:01:42Z",
     "revision_number" : 0
   }, {
+    "id" : "47816d09-012f-4469-a3e4-b94c4964e1f9",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv6",
+    "direction" : "egress",
+    "protocol" : null,
+    "port_range_min" : null,
+    "port_range_max" : null,
+    "remote_ip_prefix" : null,
+    "remote_address_group_id" : null,
+    "normalized_cidr" : null,
+    "remote_group_id" : null,
+    "belongs_to_default_sg" : true,
+    "description" : null,
+    "created_at" : "2026-01-20T05:17:09Z",
+    "updated_at" : "2026-01-20T05:17:09Z",
+    "revision_number" : 0
+  }, {
     "id" : "5c9e4a22-ed4a-4c36-b436-f3821b76d114",
     "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
     "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
@@ -239,6 +258,25 @@
     "description" : null,
     "created_at" : "2026-01-03T09:08:53Z",
     "updated_at" : "2026-01-03T09:08:53Z",
+    "revision_number" : 0
+  }, {
+    "id" : "5e6825ca-e11f-4adc-a419-bf8db0283a39",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv4",
+    "direction" : "egress",
+    "protocol" : null,
+    "port_range_min" : null,
+    "port_range_max" : null,
+    "remote_ip_prefix" : null,
+    "remote_address_group_id" : null,
+    "normalized_cidr" : null,
+    "remote_group_id" : null,
+    "belongs_to_default_sg" : true,
+    "description" : null,
+    "created_at" : "2026-01-20T05:17:09Z",
+    "updated_at" : "2026-01-20T05:17:09Z",
     "revision_number" : 0
   }, {
     "id" : "5e86f152-4e0c-4d5e-bf73-d028c2d719f9",
@@ -279,6 +317,25 @@
     "updated_at" : "2025-12-23T09:01:07Z",
     "revision_number" : 0
   }, {
+    "id" : "6412d401-39c0-4639-8ac0-bff877fed91e",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv4",
+    "direction" : "ingress",
+    "protocol" : "tcp",
+    "port_range_min" : 8080,
+    "port_range_max" : 8080,
+    "remote_ip_prefix" : "0.0.0.0/0",
+    "remote_address_group_id" : null,
+    "normalized_cidr" : "0.0.0.0/0",
+    "remote_group_id" : null,
+    "belongs_to_default_sg" : true,
+    "description" : "",
+    "created_at" : "2026-01-20T12:50:25Z",
+    "updated_at" : "2026-01-20T12:50:25Z",
+    "revision_number" : 0
+  }, {
     "id" : "6b27a228-992c-46b9-83e6-52d4a1ebe14c",
     "project_id" : "ee2c511910a3480b8ee395ec1bb0ff1b",
     "tenant_id" : "ee2c511910a3480b8ee395ec1bb0ff1b",
@@ -296,6 +353,25 @@
     "description" : null,
     "created_at" : "2026-01-13T05:24:44Z",
     "updated_at" : "2026-01-13T05:24:44Z",
+    "revision_number" : 0
+  }, {
+    "id" : "786cf1a5-57d0-454c-9557-2af760be1203",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv4",
+    "direction" : "ingress",
+    "protocol" : null,
+    "port_range_min" : null,
+    "port_range_max" : null,
+    "remote_ip_prefix" : null,
+    "remote_address_group_id" : null,
+    "normalized_cidr" : null,
+    "remote_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "belongs_to_default_sg" : true,
+    "description" : null,
+    "created_at" : "2026-01-20T05:17:09Z",
+    "updated_at" : "2026-01-20T05:17:09Z",
     "revision_number" : 0
   }, {
     "id" : "7bef6864-0b45-4d2b-966e-66baf63a57e9",
@@ -355,6 +431,25 @@
     "updated_at" : "2025-12-23T09:03:53Z",
     "revision_number" : 0
   }, {
+    "id" : "975a19a5-43cf-47ae-bede-e0aecff0aff8",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv4",
+    "direction" : "ingress",
+    "protocol" : "tcp",
+    "port_range_min" : 22,
+    "port_range_max" : 22,
+    "remote_ip_prefix" : "0.0.0.0/0",
+    "remote_address_group_id" : null,
+    "normalized_cidr" : "0.0.0.0/0",
+    "remote_group_id" : null,
+    "belongs_to_default_sg" : true,
+    "description" : "",
+    "created_at" : "2026-01-20T05:38:48Z",
+    "updated_at" : "2026-01-20T05:38:48Z",
+    "revision_number" : 0
+  }, {
     "id" : "9abe2e3b-2040-4aec-b7bf-391708481c15",
     "project_id" : "4366519bbaf54b4b97da6321cebb0fde",
     "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
@@ -374,6 +469,25 @@
     "updated_at" : "2026-01-10T03:32:59Z",
     "revision_number" : 0
   }, {
+    "id" : "b5865e44-9be0-4896-95d9-6724485b13a9",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv6",
+    "direction" : "ingress",
+    "protocol" : null,
+    "port_range_min" : null,
+    "port_range_max" : null,
+    "remote_ip_prefix" : null,
+    "remote_address_group_id" : null,
+    "normalized_cidr" : null,
+    "remote_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "belongs_to_default_sg" : true,
+    "description" : null,
+    "created_at" : "2026-01-20T05:17:09Z",
+    "updated_at" : "2026-01-20T05:17:09Z",
+    "revision_number" : 0
+  }, {
     "id" : "b7d5964f-5aa7-4e0b-900d-fdc07bb308f2",
     "project_id" : "ee2c511910a3480b8ee395ec1bb0ff1b",
     "tenant_id" : "ee2c511910a3480b8ee395ec1bb0ff1b",
@@ -391,6 +505,25 @@
     "description" : null,
     "created_at" : "2026-01-13T05:24:44Z",
     "updated_at" : "2026-01-13T05:24:44Z",
+    "revision_number" : 0
+  }, {
+    "id" : "bc787a93-9926-489c-9c63-d43c86b75c7b",
+    "project_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "security_group_id" : "91bb98c3-8d43-46ad-ad30-86e6731fb421",
+    "ethertype" : "IPv4",
+    "direction" : "ingress",
+    "protocol" : "icmp",
+    "port_range_min" : null,
+    "port_range_max" : null,
+    "remote_ip_prefix" : null,
+    "remote_address_group_id" : null,
+    "normalized_cidr" : null,
+    "remote_group_id" : null,
+    "belongs_to_default_sg" : true,
+    "description" : "",
+    "created_at" : "2026-01-20T05:56:09Z",
+    "updated_at" : "2026-01-20T05:56:09Z",
     "revision_number" : 0
   }, {
     "id" : "bed8a8d4-60c1-4676-a9b8-9702cece80ac",

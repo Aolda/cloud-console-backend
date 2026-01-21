@@ -4,8 +4,8 @@
     "uri": "/v2.1/flavors/168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec",
     "port": 8774,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },

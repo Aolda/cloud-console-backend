@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v2.1/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6",
+    "uri": "/v2.1/servers/9cfd1aff-2016-4758-9463-7019afc2d601",
     "port": 8774,
     "headers": {
   "X-Auth-Token-Scope" : "project",
@@ -13,58 +13,57 @@
     "status": 200,
     "body": {
   "server" : {
-    "id" : "2002e7a8-147e-4572-8bc5-05db23dd09d6",
-    "name" : "test4",
-    "status" : "ACTIVE",
-    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "id" : "9cfd1aff-2016-4758-9463-7019afc2d601",
+    "name" : "test-5",
+    "status" : "SHUTOFF",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
     "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
     "metadata" : { },
-    "hostId" : "7a1638cc5d20779aed7718ab810307358598ef938295dfa22a76c95b",
+    "hostId" : "fe8c4d348f9ea1f30d28a284c56e72bc5060f7261ecc45c248dfbc1b",
     "image" : "",
     "flavor" : {
-      "id" : "7bf15e03-6fc1-48f5-a365-fa62ddf53714",
+      "id" : "951e358a-e833-4ff5-86d5-8b81108a6c07",
       "links" : [ {
         "rel" : "bookmark",
-        "href" : "http://172.16.10.100:8774/flavors/7bf15e03-6fc1-48f5-a365-fa62ddf53714"
+        "href" : "http://172.16.10.100:8774/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07"
       } ]
     },
-    "created" : "2026-01-10T05:20:01Z",
-    "updated" : "2026-01-10T05:21:29Z",
+    "created" : "2026-01-03T09:46:20Z",
+    "updated" : "2026-01-03T11:26:57Z",
     "addresses" : {
       "private" : [ {
         "version" : 4,
-        "addr" : "172.31.0.18",
+        "addr" : "172.31.0.22",
         "OS-EXT-IPS:type" : "fixed",
-        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:df:19:4a"
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:2c:07:52"
       } ]
     },
     "accessIPv4" : "",
     "accessIPv6" : "",
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8774/v2.1/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6"
+      "href" : "http://172.16.10.100:8774/v2.1/servers/9cfd1aff-2016-4758-9463-7019afc2d601"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8774/servers/2002e7a8-147e-4572-8bc5-05db23dd09d6"
+      "href" : "http://172.16.10.100:8774/servers/9cfd1aff-2016-4758-9463-7019afc2d601"
     } ],
     "OS-DCF:diskConfig" : "MANUAL",
-    "progress" : 0,
     "OS-EXT-AZ:availability_zone" : "nova",
     "config_drive" : "",
     "key_name" : null,
-    "OS-SRV-USG:launched_at" : "2026-01-10T05:21:29.000000",
+    "OS-SRV-USG:launched_at" : "2026-01-03T09:47:29.000000",
     "OS-SRV-USG:terminated_at" : null,
     "security_groups" : [ {
       "name" : "default"
     } ],
     "OS-EXT-SRV-ATTR:host" : "aolda-compute",
-    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000025",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000011",
     "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
     "OS-EXT-STS:task_state" : null,
-    "OS-EXT-STS:vm_state" : "active",
-    "OS-EXT-STS:power_state" : 1,
+    "OS-EXT-STS:vm_state" : "stopped",
+    "OS-EXT-STS:power_state" : 4,
     "os-extended-volumes:volumes_attached" : [ {
-      "id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0"
+      "id" : "2630a240-37f3-4a17-b5ba-6b79732a9d64"
     } ]
   }
 }

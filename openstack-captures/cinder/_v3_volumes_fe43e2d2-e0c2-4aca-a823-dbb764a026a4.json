@@ -4,8 +4,8 @@
     "uri": "/v3/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4",
     "port": 8776,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
@@ -48,8 +48,9 @@
       "attached_at" : "2026-01-10T05:05:29.000000"
     } ],
     "migration_status" : null,
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null,
     "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
-    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
     "volume_image_metadata" : {
       "signature_verified" : "False",
       "usage_type" : "common",
@@ -66,8 +67,7 @@
       "min_ram" : "0",
       "size" : "625476096"
     },
-    "os-vol-mig-status-attr:migstat" : null,
-    "os-vol-mig-status-attr:name_id" : null
+    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde"
   }
 }
   }

@@ -1,18 +1,15 @@
 {
   "request": {
     "method": "GET",
-    "uri": "/v3/backups",
-    "port": 8776,
+    "uri": "/v2.1/servers/9cfd1aff-2016-4758-9463-7019afc2d601/diagnostics",
+    "port": 8774,
     "headers": {
-  "X-Auth-Token-Scope" : "project",
   "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
   "response": {
-    "status": 200,
-    "body": {
-  "backups" : [ ]
-}
+    "status": -1,
+    "body": null
   }
 }

@@ -43,7 +43,7 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
             queryParams.put("marker", marker);
         }
         try {
-            ResponseEntity<CinderVolumesResponse> response = cinderVolumesModule.listVolumes(token, projectId, queryParams);
+            ResponseEntity<CinderVolumesResponse> response = cinderVolumesModule.listVolumesDetail(token, projectId, queryParams);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);

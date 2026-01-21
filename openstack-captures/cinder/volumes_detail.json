@@ -4,8 +4,8 @@
     "uri": "/v3/volumes/detail",
     "port": 8776,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
@@ -13,12 +13,12 @@
     "status": 200,
     "body": {
   "volumes" : [ {
-    "id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0",
+    "id" : "e16fe0b5-2e01-4ad3-9b7a-49b717790523",
     "status" : "in-use",
-    "size" : 100,
+    "size" : 10,
     "availability_zone" : "nova",
-    "created_at" : "2026-01-10T05:20:09.000000",
-    "updated_at" : "2026-01-10T05:21:23.000000",
+    "created_at" : "2026-01-05T11:03:26.000000",
+    "updated_at" : "2026-01-05T11:10:30.000000",
     "name" : "",
     "description" : "",
     "volume_type" : "__DEFAULT__",
@@ -27,10 +27,10 @@
     "metadata" : { },
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8776/v3/volumes/7fb08657-3664-49fb-a93d-e66e5fde93f0"
+      "href" : "http://172.16.10.100:8776/v3/volumes/e16fe0b5-2e01-4ad3-9b7a-49b717790523"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8776/volumes/7fb08657-3664-49fb-a93d-e66e5fde93f0"
+      "href" : "http://172.16.10.100:8776/volumes/e16fe0b5-2e01-4ad3-9b7a-49b717790523"
     } ],
     "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
     "bootable" : "true",
@@ -39,129 +39,17 @@
     "consistencygroup_id" : null,
     "multiattach" : false,
     "attachments" : [ {
-      "id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0",
-      "attachment_id" : "1d0ba8fa-e1ef-4498-aaa6-d010edebf02f",
-      "volume_id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0",
-      "server_id" : "2002e7a8-147e-4572-8bc5-05db23dd09d6",
+      "id" : "e16fe0b5-2e01-4ad3-9b7a-49b717790523",
+      "attachment_id" : "fe0f7c3f-d2c7-4ed3-baec-4d1d730cd313",
+      "volume_id" : "e16fe0b5-2e01-4ad3-9b7a-49b717790523",
+      "server_id" : "22e487a2-f0ef-4321-bb0b-e2d84540e68a",
       "host_name" : "aolda-compute",
       "device" : "/dev/vda",
-      "attached_at" : "2026-01-10T05:21:22.000000"
-    } ],
-    "migration_status" : null,
-    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
-    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
-    "volume_image_metadata" : {
-      "signature_verified" : "False",
-      "usage_type" : "common",
-      "hw_qemu_guest_agent" : "yes",
-      "os_distro" : "ubuntu",
-      "os_version" : "24.04",
-      "os_admin_user" : "ubuntu",
-      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
-      "image_name" : "ubuntu_24.04",
-      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
-      "container_format" : "bare",
-      "disk_format" : "qcow2",
-      "min_disk" : "0",
-      "min_ram" : "0",
-      "size" : "625476096"
-    },
-    "os-vol-mig-status-attr:migstat" : null,
-    "os-vol-mig-status-attr:name_id" : null
-  }, {
-    "id" : "fe43e2d2-e0c2-4aca-a823-dbb764a026a4",
-    "status" : "in-use",
-    "size" : 100,
-    "availability_zone" : "nova",
-    "created_at" : "2026-01-10T05:04:38.000000",
-    "updated_at" : "2026-01-10T05:05:30.000000",
-    "name" : "",
-    "description" : "",
-    "volume_type" : "__DEFAULT__",
-    "snapshot_id" : null,
-    "source_volid" : null,
-    "metadata" : { },
-    "links" : [ {
-      "rel" : "self",
-      "href" : "http://172.16.10.100:8776/v3/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4"
-    }, {
-      "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8776/volumes/fe43e2d2-e0c2-4aca-a823-dbb764a026a4"
-    } ],
-    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
-    "bootable" : "true",
-    "encrypted" : false,
-    "replication_status" : null,
-    "consistencygroup_id" : null,
-    "multiattach" : false,
-    "attachments" : [ {
-      "id" : "fe43e2d2-e0c2-4aca-a823-dbb764a026a4",
-      "attachment_id" : "988abfb6-a305-40c0-af9a-ffe05b7e598c",
-      "volume_id" : "fe43e2d2-e0c2-4aca-a823-dbb764a026a4",
-      "server_id" : "5c05ad68-5dda-42cd-bbef-0bfabdb3e053",
-      "host_name" : "aolda-compute",
-      "device" : "/dev/vda",
-      "attached_at" : "2026-01-10T05:05:29.000000"
-    } ],
-    "migration_status" : null,
-    "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
-    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
-    "volume_image_metadata" : {
-      "signature_verified" : "False",
-      "usage_type" : "common",
-      "hw_qemu_guest_agent" : "yes",
-      "os_distro" : "ubuntu",
-      "os_version" : "24.04",
-      "os_admin_user" : "ubuntu",
-      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
-      "image_name" : "ubuntu_24.04",
-      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
-      "container_format" : "bare",
-      "disk_format" : "qcow2",
-      "min_disk" : "0",
-      "min_ram" : "0",
-      "size" : "625476096"
-    },
-    "os-vol-mig-status-attr:migstat" : null,
-    "os-vol-mig-status-attr:name_id" : null
-  }, {
-    "id" : "83735110-4e91-47a5-bc0b-c8c024502c46",
-    "status" : "in-use",
-    "size" : 100,
-    "availability_zone" : "nova",
-    "created_at" : "2026-01-10T04:59:47.000000",
-    "updated_at" : "2026-01-14T09:06:33.000000",
-    "name" : "",
-    "description" : "",
-    "volume_type" : "__DEFAULT__",
-    "snapshot_id" : null,
-    "source_volid" : null,
-    "metadata" : { },
-    "links" : [ {
-      "rel" : "self",
-      "href" : "http://172.16.10.100:8776/v3/volumes/83735110-4e91-47a5-bc0b-c8c024502c46"
-    }, {
-      "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8776/volumes/83735110-4e91-47a5-bc0b-c8c024502c46"
-    } ],
-    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
-    "bootable" : "true",
-    "encrypted" : false,
-    "replication_status" : null,
-    "consistencygroup_id" : null,
-    "multiattach" : false,
-    "attachments" : [ {
-      "id" : "83735110-4e91-47a5-bc0b-c8c024502c46",
-      "attachment_id" : "8d35ccaa-525e-49d0-9e17-14100b6a1ce9",
-      "volume_id" : "83735110-4e91-47a5-bc0b-c8c024502c46",
-      "server_id" : "ed1a5d7a-3698-447c-890f-10e53c80261a",
-      "host_name" : "aolda-compute",
-      "device" : "/dev/vda",
-      "attached_at" : "2026-01-10T05:00:42.000000"
+      "attached_at" : "2026-01-05T11:10:27.000000"
     } ],
     "migration_status" : null,
     "os-vol-host-attr:host" : "aolda-control@rbd-1#rbd-1",
-    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
     "volume_image_metadata" : {
       "signature_verified" : "False",
       "usage_type" : "common",
@@ -181,12 +69,12 @@
     "os-vol-mig-status-attr:migstat" : null,
     "os-vol-mig-status-attr:name_id" : null
   }, {
-    "id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
+    "id" : "0cf6b0a7-fd42-40a3-94e4-6306ddaf4101",
     "status" : "in-use",
-    "size" : 100,
+    "size" : 10,
     "availability_zone" : "nova",
-    "created_at" : "2026-01-10T04:25:10.000000",
-    "updated_at" : "2026-01-10T04:26:27.000000",
+    "created_at" : "2026-01-05T10:39:57.000000",
+    "updated_at" : "2026-01-05T10:40:55.000000",
     "name" : "",
     "description" : "",
     "volume_type" : "__DEFAULT__",
@@ -195,10 +83,10 @@
     "metadata" : { },
     "links" : [ {
       "rel" : "self",
-      "href" : "http://172.16.10.100:8776/v3/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+      "href" : "http://172.16.10.100:8776/v3/volumes/0cf6b0a7-fd42-40a3-94e4-6306ddaf4101"
     }, {
       "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8776/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568"
+      "href" : "http://172.16.10.100:8776/volumes/0cf6b0a7-fd42-40a3-94e4-6306ddaf4101"
     } ],
     "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
     "bootable" : "true",
@@ -207,17 +95,17 @@
     "consistencygroup_id" : null,
     "multiattach" : false,
     "attachments" : [ {
-      "id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
-      "attachment_id" : "9ddb835e-435e-47fc-8caa-d3d7fa27655f",
-      "volume_id" : "0c903a8b-cece-4f2b-b41e-99ab3da4c568",
-      "server_id" : "e3e5a9e3-b724-46ad-9404-f61f939b7d5f",
+      "id" : "0cf6b0a7-fd42-40a3-94e4-6306ddaf4101",
+      "attachment_id" : "d999b1fd-2e80-494b-914f-3aacf6de6320",
+      "volume_id" : "0cf6b0a7-fd42-40a3-94e4-6306ddaf4101",
+      "server_id" : "30bb25cc-2e0d-4820-ba2e-94b92c8496c8",
       "host_name" : "aolda-compute",
       "device" : "/dev/vda",
-      "attached_at" : "2026-01-10T04:26:26.000000"
+      "attached_at" : "2026-01-05T10:40:54.000000"
     } ],
     "migration_status" : null,
-    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
-    "os-vol-tenant-attr:tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
     "volume_image_metadata" : {
       "signature_verified" : "False",
       "usage_type" : "common",
@@ -234,6 +122,326 @@
       "min_ram" : "0",
       "size" : "625476096"
     },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "2d0771bc-d8ca-4fec-998c-0afd6b8b73a7",
+    "status" : "in-use",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-05T06:58:11.000000",
+    "updated_at" : "2026-01-05T07:08:25.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/2d0771bc-d8ca-4fec-998c-0afd6b8b73a7"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/2d0771bc-d8ca-4fec-998c-0afd6b8b73a7"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "2d0771bc-d8ca-4fec-998c-0afd6b8b73a7",
+      "attachment_id" : "b9114a6f-bc15-4cea-9bc4-5fb4e232f73a",
+      "volume_id" : "2d0771bc-d8ca-4fec-998c-0afd6b8b73a7",
+      "server_id" : "0e5a48c7-48b7-4905-88ad-834489abad7a",
+      "host_name" : "aolda-compute",
+      "device" : "/dev/vda",
+      "attached_at" : "2026-01-05T06:59:10.000000"
+    } ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-control@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "usage_type" : "common",
+      "hw_qemu_guest_agent" : "yes",
+      "os_distro" : "ubuntu",
+      "os_version" : "24.04",
+      "os_admin_user" : "ubuntu",
+      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+      "image_name" : "ubuntu_24.04",
+      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "625476096"
+    },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "2630a240-37f3-4a17-b5ba-6b79732a9d64",
+    "status" : "in-use",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:46:28.000000",
+    "updated_at" : "2026-01-03T09:47:22.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/2630a240-37f3-4a17-b5ba-6b79732a9d64"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/2630a240-37f3-4a17-b5ba-6b79732a9d64"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "2630a240-37f3-4a17-b5ba-6b79732a9d64",
+      "attachment_id" : "e764a523-3245-4d23-9415-2ecb41ddfbf3",
+      "volume_id" : "2630a240-37f3-4a17-b5ba-6b79732a9d64",
+      "server_id" : "9cfd1aff-2016-4758-9463-7019afc2d601",
+      "host_name" : "aolda-compute",
+      "device" : "/dev/vda",
+      "attached_at" : "2026-01-03T09:47:22.000000"
+    } ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "usage_type" : "common",
+      "hw_qemu_guest_agent" : "yes",
+      "os_distro" : "ubuntu",
+      "os_version" : "24.04",
+      "os_admin_user" : "ubuntu",
+      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+      "image_name" : "ubuntu_24.04",
+      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "625476096"
+    },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "97c32fe5-4f31-4cbd-ab77-e4aa38f4a726",
+    "status" : "error",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:32:16.000000",
+    "updated_at" : "2026-01-03T11:25:44.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/97c32fe5-4f31-4cbd-ab77-e4aa38f4a726"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/97c32fe5-4f31-4cbd-ab77-e4aa38f4a726"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "false",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "1ecd9a92-0728-40c7-9087-6d6af8335424",
+    "status" : "in-use",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:29:59.000000",
+    "updated_at" : "2026-01-03T09:30:50.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/1ecd9a92-0728-40c7-9087-6d6af8335424"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/1ecd9a92-0728-40c7-9087-6d6af8335424"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "1ecd9a92-0728-40c7-9087-6d6af8335424",
+      "attachment_id" : "bcc9e6e8-3a13-4464-8bcf-13f1f4cdc3bf",
+      "volume_id" : "1ecd9a92-0728-40c7-9087-6d6af8335424",
+      "server_id" : "7b2d0530-10d7-4c49-a201-5fc082127e91",
+      "host_name" : "aolda-compute",
+      "device" : "/dev/vda",
+      "attached_at" : "2026-01-03T09:30:50.000000"
+    } ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "usage_type" : "common",
+      "hw_qemu_guest_agent" : "yes",
+      "os_distro" : "ubuntu",
+      "os_version" : "24.04",
+      "os_admin_user" : "ubuntu",
+      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+      "image_name" : "ubuntu_24.04",
+      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "625476096"
+    },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "3b22407b-db0d-4bed-970f-2a5db7054c54",
+    "status" : "error",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:24:21.000000",
+    "updated_at" : "2026-01-03T11:25:44.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/3b22407b-db0d-4bed-970f-2a5db7054c54"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/3b22407b-db0d-4bed-970f-2a5db7054c54"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "false",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "ac7b4d74-f1cf-4df9-a42b-a288d5c4282c",
+    "status" : "in-use",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:21:29.000000",
+    "updated_at" : "2026-01-03T09:22:25.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/ac7b4d74-f1cf-4df9-a42b-a288d5c4282c"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/ac7b4d74-f1cf-4df9-a42b-a288d5c4282c"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "ac7b4d74-f1cf-4df9-a42b-a288d5c4282c",
+      "attachment_id" : "49629dce-d5f7-40f8-8f96-7a1a53d82806",
+      "volume_id" : "ac7b4d74-f1cf-4df9-a42b-a288d5c4282c",
+      "server_id" : "22bfb37c-887c-433c-b1f9-4e3f3a42adde",
+      "host_name" : "aolda-compute",
+      "device" : "/dev/vda",
+      "attached_at" : "2026-01-03T09:22:24.000000"
+    } ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-compute@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "usage_type" : "common",
+      "hw_qemu_guest_agent" : "yes",
+      "os_distro" : "ubuntu",
+      "os_version" : "24.04",
+      "os_admin_user" : "ubuntu",
+      "image_id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+      "image_name" : "ubuntu_24.04",
+      "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "625476096"
+    },
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }, {
+    "id" : "a84262d3-73e0-46ee-8969-c7d0b24240bb",
+    "status" : "error",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:18:52.000000",
+    "updated_at" : "2026-01-03T11:25:44.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/a84262d3-73e0-46ee-8969-c7d0b24240bb"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/a84262d3-73e0-46ee-8969-c7d0b24240bb"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "false",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
     "os-vol-mig-status-attr:migstat" : null,
     "os-vol-mig-status-attr:name_id" : null
   } ]

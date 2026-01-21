@@ -4,25 +4,15 @@
     "uri": "/v3/backups",
     "port": 8776,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },
   "response": {
     "status": 200,
     "body": {
-  "backups" : [ {
-    "id" : "ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5",
-    "name" : "backup_test",
-    "links" : [ {
-      "rel" : "self",
-      "href" : "http://172.16.10.100:8776/v3/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5"
-    }, {
-      "rel" : "bookmark",
-      "href" : "http://172.16.10.100:8776/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5"
-    } ]
-  } ]
+  "backups" : [ ]
 }
   }
 }

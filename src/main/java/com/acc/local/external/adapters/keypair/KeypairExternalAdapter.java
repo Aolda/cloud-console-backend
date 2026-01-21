@@ -115,23 +115,23 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                     queryParams.put("marker", marker);
                 }
 
-                ResponseEntity<JsonNode> response = novaKeypairAPIModule.listKeyPairs(keystoneToken, queryParams);
+                ResponseEntity<NovaKeypairsResponse> response = novaKeypairAPIModule.listKeyPairs(keystoneToken, queryParams);
                 if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                     throw new KeypairExternalException(
                         KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED
                     );
                 }
 
-                JsonNode body = response.getBody();
-                JsonNode keypairs = body.get("keypairs");
+                NovaKeypairsResponse body = response.getBody();
+                List<NovaKeypairsResponse.KeypairWrapper> keypairs = body.getKeypairs();
 
-                if (keypairs != null && keypairs.isArray()) {
-                    for (JsonNode item : keypairs) {
-                        JsonNode keypair = item.get("keypair");
+                if (keypairs != null && !keypairs.isEmpty()) {
+                    for (NovaKeypairsResponse.KeypairWrapper item : keypairs) {
+                        NovaKeypairsResponse.Keypair keypair = item.getKeypair();
 
                         KeypairSyncDto dto = KeypairSyncDto.builder()
-                            .name(keypair.get("name").asText())
-                            .fingerprint(keypair.get("fingerprint").asText())
+                            .name(keypair.getName())
+                            .fingerprint(keypair.getFingerprint())
                             .build();
 
                         allKeypairs.add(dto);
@@ -139,9 +139,8 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                     }
                 }
 
-                // keypairs_links가 없거나 비어있으면 마지막 페이지
-                JsonNode links = body.get("keypairs_links");
-                hasMore = (links != null && links.isArray() && links.size() > 0);
+                // 가져온 개수가 limit보다 적으면 마지막 페이지
+                hasMore = (keypairs != null && keypairs.size() >= 100);
             }
             return allKeypairs;
 

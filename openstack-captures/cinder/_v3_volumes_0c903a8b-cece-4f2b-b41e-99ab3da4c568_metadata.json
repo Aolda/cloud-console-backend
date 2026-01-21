@@ -4,8 +4,8 @@
     "uri": "/v3/volumes/0c903a8b-cece-4f2b-b41e-99ab3da4c568/metadata",
     "port": 8776,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },

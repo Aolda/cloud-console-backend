@@ -4,8 +4,8 @@
     "uri": "/v2.1/servers/ed1a5d7a-3698-447c-890f-10e53c80261a/ips",
     "port": 8774,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },

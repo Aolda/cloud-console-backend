@@ -4,8 +4,8 @@
     "uri": "/v3/backups/ea8d1dd3-b9b8-48fb-9d3c-97dd0076ddd5",
     "port": 8776,
     "headers": {
-  "X-Auth-Token" : "__MASKED__",
-  "X-Auth-Token-Scope" : "project"
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
 },
     "query": {}
   },

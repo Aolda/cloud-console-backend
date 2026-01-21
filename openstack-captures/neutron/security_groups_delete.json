@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "DELETE",
-    "uri": "/v2.0/security-groups/5e4008cc-130f-4663-ba3f-b5694a3ecfac",
+    "uri": "/v2.0/security-groups/c8969c8d-6fca-4332-a020-edc187695277",
     "port": 9696,
     "headers": {
   "X-Auth-Token" : "__MASKED__"
