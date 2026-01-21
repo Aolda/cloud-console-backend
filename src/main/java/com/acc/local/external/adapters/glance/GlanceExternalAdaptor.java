@@ -1,7 +1,5 @@
 package com.acc.local.external.adapters.glance;
 
-import com.acc.global.exception.image.ImageException;
-import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.local.dto.image.ImageFilterRequest;
 import com.acc.local.dto.image.ImageMetadataRequest;
 import com.acc.local.external.dto.glance.image.GlanceCreateImageRequest;

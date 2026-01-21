@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,7 @@ public class ExtraGetCaptureService {
                         resp = openstackAPICallModule.callGetAPI(uri,
                                 Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
                         break;
-                    } catch (org.springframework.web.reactive.function.client.WebClientRequestException cre) {
+                    } catch (WebClientRequestException cre) {
                         if (i < attempts - 1) rateLimiter.backoffSleep(i + 1);
                         else throw cre;
                     }
@@ -68,7 +69,7 @@ public class ExtraGetCaptureService {
                         try {
                             resp = openstackAPICallModule.callGetAPI(uri, headers, Collections.emptyMap(), port);
                             break;
-                        } catch (org.springframework.web.reactive.function.client.WebClientRequestException cre) {
+                        } catch (WebClientRequestException cre) {
                             if (i < attempts - 1) rateLimiter.backoffSleep(i + 1);
                             else throw cre;
                         }

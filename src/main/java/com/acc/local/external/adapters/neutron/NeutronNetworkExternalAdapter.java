@@ -12,15 +12,11 @@ import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronSubnetsAPIModule;
 import com.acc.local.external.ports.NeutronNetworkExternalPort;
-import com.acc.local.external.dto.neutron.response.NeutronNetworksResponse;
-import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
-import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.ArrayList;

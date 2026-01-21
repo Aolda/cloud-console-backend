@@ -188,7 +188,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
                 .build();
     }
 
-    private List<ViewSecurityGroupsResponse.Rule> parseSecurityRules(java.util.List<NeutronSecurityGroupsResponse.SecurityGroupRule> securityGroupRules) {
+    private List<ViewSecurityGroupsResponse.Rule> parseSecurityRules(List<NeutronSecurityGroupsResponse.SecurityGroupRule> securityGroupRules) {
         List<ViewSecurityGroupsResponse.Rule> rules = new ArrayList<>();
         for (NeutronSecurityGroupsResponse.SecurityGroupRule ruleNode : securityGroupRules) {
             ViewSecurityGroupsResponse.Rule rule = ViewSecurityGroupsResponse.Rule.builder()
