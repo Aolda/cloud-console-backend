@@ -1,0 +1,107 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/networks",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {
+  "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "networks" : [ {
+    "id" : "26508704-c5b8-4576-a08c-330f81309167",
+    "name" : "test",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ "b348850d-8c88-4ed1-975e-ac8f7881a7c7" ],
+    "shared" : false,
+    "availability_zone_hints" : [ "nova" ],
+    "availability_zones" : [ "nova" ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "router:external" : false,
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2025-11-06T04:36:56Z",
+    "updated_at" : "2025-11-06T04:36:56Z",
+    "revision_number" : 2,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "679254ce-d4e5-41c5-8c4f-607f526ba43e",
+    "name" : "default-network",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ "6f2d2002-7f0c-470e-8ee3-db2ee414ed80" ],
+    "shared" : false,
+    "availability_zone_hints" : [ "nova" ],
+    "availability_zones" : [ "nova" ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "router:external" : false,
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2025-11-26T15:43:48Z",
+    "updated_at" : "2025-11-26T15:43:48Z",
+    "revision_number" : 2,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "99a0daa3-5831-49ce-95fd-9e3a9d3dc111",
+    "name" : "test-network",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ ],
+    "shared" : false,
+    "availability_zone_hints" : [ ],
+    "availability_zones" : [ "nova" ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "router:external" : false,
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2025-09-22T06:13:33Z",
+    "updated_at" : "2025-09-22T06:13:33Z",
+    "revision_number" : 1,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "bcf69c37-fe62-4c1d-be4c-3328aa752294",
+    "name" : "test-network",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ ],
+    "shared" : false,
+    "availability_zone_hints" : [ ],
+    "availability_zones" : [ ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "router:external" : false,
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2025-09-22T06:07:27Z",
+    "updated_at" : "2025-09-22T06:07:27Z",
+    "revision_number" : 1,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  } ]
+}
+  }
+}

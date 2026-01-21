@@ -3,21 +3,17 @@ package com.acc.local.external.adapters.neutron;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.network.NeutronErrorCode;
 import com.acc.global.exception.network.NeutronException;
-import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewSubnetsResponse;
 import com.acc.local.external.dto.neutron.subnets.BulkCreateSubnetRequest;
 import com.acc.local.external.modules.neutron.NeutronSubnetsAPIModule;
 import com.acc.local.external.ports.NeutronSubnetExternalPort;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.v3.core.util.Json;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -35,7 +31,7 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
 
     public List<Map<String, String>> callCreateSubnet(String keystoneToken, List<CreateSubnetRequest> subnets, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = subnetsAPIModule.bulkCreateSubnets(keystoneToken,
+            ResponseEntity<NeutronSubnetsResponse> response = subnetsAPIModule.bulkCreateSubnets(keystoneToken,
                     BulkCreateSubnetRequest.builder()
                             .subnets(
                                     subnets.stream().map(subnet -> BulkCreateSubnetRequest.Subnet.builder()
@@ -55,11 +51,11 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
             }
 
             List<Map<String, String>> sub = new ArrayList<>();
-            for (JsonNode node : response.getBody().get("subnets")) {
-                sub.add(
-                        Map.of("id", node.get("id").asText(),
-                                "name", node.get("name").asText())
-                );
+            for (NeutronSubnetsResponse.Subnet node : response.getBody().getSubnets()) {
+                sub.add(Map.of(
+                        "id", node.getId(),
+                        "name", node.getName()
+                ));
             }
             return sub;
         } catch (WebClientResponseException e) {
@@ -75,9 +71,9 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
     @Override
     public void callDeleteSubnet(String keystoneToken, String subnetId) {
         try {
-            ResponseEntity<JsonNode> response = subnetsAPIModule.deleteSubnet(keystoneToken, subnetId);
+            ResponseEntity<Void> response = subnetsAPIModule.deleteSubnet(keystoneToken, subnetId);
 
-            if (!response.getStatusCode().is2xxSuccessful()) {
+            if (response == null || !response.getStatusCode().is2xxSuccessful()) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_DELETION_FAILED);
             }
         } catch (WebClientResponseException e) {
@@ -93,7 +89,7 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
     @Override
     public PageResponse<ViewSubnetsResponse> callListSubnets(String keystoneToken, String networkId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<JsonNode> response = subnetsAPIModule.listSubnets(keystoneToken,
+            ResponseEntity<NeutronSubnetsResponse> response = subnetsAPIModule.listSubnets(keystoneToken,
                     getListSubnetsParams(networkId, marker, direction, limit > 0 ? limit + 1 : 0));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -116,21 +112,21 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
     public ViewSubnetsResponse getSubnetDetails(String keystoneToken, String subnetId) {
         try {
 
-            ResponseEntity<JsonNode> response = subnetsAPIModule.showSubnet(keystoneToken, subnetId);
+            ResponseEntity<NeutronSubnetResponse> response = subnetsAPIModule.showSubnet(keystoneToken, subnetId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
             }
 
-            JsonNode body = response.getBody().get("subnet");
+            var body = response.getBody().getSubnet();
             return ViewSubnetsResponse.builder()
-                    .subnetId(body.get("id").asText())
-                    .subnetName(body.get("name").asText())
-                    .networkId(body.get("network_id").asText())
-                    .cidr(body.get("cidr").asText())
-                    .gatewayIp(body.get("gateway_ip").asText())
-                    .createdAt(body.get("created_at").asText())
-                    .description(body.get("description").asText())
+                    .subnetId(body.getId())
+                    .subnetName(body.getName())
+                    .networkId(body.getNetworkId())
+                    .cidr(body.getCidr())
+                    .gatewayIp(body.getGatewayIp())
+                    .createdAt(body.getCreatedAt())
+                    .description(body.getDescription())
                     .build();
         } catch (WebClientResponseException e) {
             switch (e.getStatusCode().value()) {
@@ -156,18 +152,18 @@ public class NeutronSubnetExternalAdapter implements NeutronSubnetExternalPort {
         return params;
     }
 
-    private List<ViewSubnetsResponse> parseSubnets(ResponseEntity<JsonNode> response) {
+    private List<ViewSubnetsResponse> parseSubnets(ResponseEntity<NeutronSubnetsResponse> response) {
         List<ViewSubnetsResponse> subnets = new ArrayList<>();
-        for (JsonNode node : response.getBody().get("subnets")) {
+        for (NeutronSubnetsResponse.Subnet node : response.getBody().getSubnets()) {
             subnets.add(
                     ViewSubnetsResponse.builder()
-                            .subnetId(node.get("id").asText())
-                            .subnetName(node.get("name").asText())
-                            .networkId(node.get("network_id").asText())
-                            .cidr(node.get("cidr").asText())
-                            .gatewayIp(node.get("gateway_ip").asText())
-                            .createdAt(node.get("created_at").asText())
-                            .description(node.get("description").asText())
+                            .subnetId(node.getId())
+                            .subnetName(node.getName())
+                            .networkId(node.getNetworkId())
+                            .cidr(node.getCidr())
+                            .gatewayIp(node.getGatewayIp())
+                            .createdAt(node.getCreatedAt())
+                            .description(node.getDescription())
                             .build()
             );
         }

@@ -1,16 +1,17 @@
 package com.acc.local.external.adapters.glance;
 
-import com.acc.global.exception.image.ImageException;
-import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.local.dto.image.ImageFilterRequest;
 import com.acc.local.dto.image.ImageMetadataRequest;
 import com.acc.local.external.dto.glance.image.GlanceCreateImageRequest;
 import com.acc.local.external.dto.glance.image.GlanceFetchImagesRequestParam;
 import com.acc.local.external.dto.glance.image.GlanceImportImageRequest;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
 import com.acc.local.external.modules.glance.GlanceImageAPIModule;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,15 +22,16 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class GlanceExternalAdaptor implements GlanceExternalPort {
     private final GlanceImageAPIModule glanceImageAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<JsonNode> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
+    public ResponseEntity<GlanceImagesResponse> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
         GlanceFetchImagesRequestParam param = requestParamMapper(filters);
         return glanceImageAPIModule.fetchImageList(token, param);
     }
 
     @Override
-    public ResponseEntity<JsonNode> fetchImageDetail(String token, String imageId) {
+    public ResponseEntity<GlanceImageResponse> fetchImageDetail(String token, String imageId) {
         return glanceImageAPIModule.fetchImage(token, imageId);
     }
 

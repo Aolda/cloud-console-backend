@@ -2,21 +2,22 @@ package com.acc.local.external.ports;
 
 import com.acc.local.dto.image.ImageFilterRequest;
 import com.acc.local.dto.image.ImageMetadataRequest;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 
 import java.io.InputStream;
-import java.util.Map;
 
 public interface GlanceExternalPort {
 
-    ResponseEntity<JsonNode> fetchImageList(String token, String projectId, ImageFilterRequest filters);
+    ResponseEntity<GlanceImagesResponse> fetchImageList(String token, String projectId, ImageFilterRequest filters);
 
 //    ResponseEntity<JsonNode> fetchPrivateImageList(String token, String projectId);
 //
 //    ResponseEntity<JsonNode> fetchPublicImageList(String token);
 
-    ResponseEntity<JsonNode> fetchImageDetail(String token, String imageId);
+    ResponseEntity<GlanceImageResponse> fetchImageDetail(String token, String imageId);
 
     ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req);
 

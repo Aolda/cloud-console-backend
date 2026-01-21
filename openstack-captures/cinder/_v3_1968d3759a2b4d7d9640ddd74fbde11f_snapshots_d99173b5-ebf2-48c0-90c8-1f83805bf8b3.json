@@ -1,0 +1,30 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/1968d3759a2b4d7d9640ddd74fbde11f/snapshots/d99173b5-ebf2-48c0-90c8-1f83805bf8b3",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "snapshot" : {
+    "id" : "d99173b5-ebf2-48c0-90c8-1f83805bf8b3",
+    "created_at" : "2026-01-14T09:06:55.000000",
+    "updated_at" : "2026-01-14T09:06:57.000000",
+    "name" : "snapshot-test",
+    "description" : null,
+    "volume_id" : "7fb08657-3664-49fb-a93d-e66e5fde93f0",
+    "status" : "available",
+    "size" : 100,
+    "metadata" : { },
+    "os-extended-snapshot-attributes:project_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "os-extended-snapshot-attributes:progress" : "100%"
+  }
+}
+  }
+}

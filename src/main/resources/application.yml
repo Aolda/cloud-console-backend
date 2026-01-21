@@ -83,3 +83,7 @@ logging:
 
 quick-start:
   default-image-id: ${DEFAULT_IMAGE_ID_X86_64}
+
+acc:
+  dump:
+    enabled: true

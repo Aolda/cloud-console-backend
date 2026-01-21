@@ -1,0 +1,84 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/floatingips",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "floatingips" : [ {
+    "id" : "b434c395-e08d-42b7-906d-eaa71c90feb3",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "floating_ip_address" : "172.32.100.167",
+    "floating_network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+    "router_id" : null,
+    "port_id" : null,
+    "fixed_ip_address" : null,
+    "status" : "DOWN",
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_details" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-18T13:44:09Z",
+    "updated_at" : "2026-01-05T16:10:44Z",
+    "revision_number" : 4,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "bac71f85-4452-4440-963d-2d8ae5e09aeb",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "floating_ip_address" : "172.32.100.163",
+    "floating_network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+    "router_id" : "f7f4f37e-80e7-4ba3-a6f3-f1d0beeab0f9",
+    "port_id" : "120b412d-7d32-4f84-b6aa-0c1387f5f1c5",
+    "fixed_ip_address" : "192.168.0.183",
+    "status" : "ACTIVE",
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_details" : {
+      "name" : "default-interface",
+      "network_id" : "679254ce-d4e5-41c5-8c4f-607f526ba43e",
+      "mac_address" : "fa:16:3e:93:30:c3",
+      "admin_state_up" : true,
+      "status" : "ACTIVE",
+      "device_id" : "1f72c950-169e-4a52-98bc-b05b4e74b70e",
+      "device_owner" : "compute:nova"
+    },
+    "tags" : [ ],
+    "created_at" : "2025-11-26T15:45:37Z",
+    "updated_at" : "2026-01-05T16:10:44Z",
+    "revision_number" : 1,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "f54fc2bb-58a4-4778-842b-c158dfe35aa6",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "floating_ip_address" : "172.32.100.200",
+    "floating_network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+    "router_id" : "de0537d2-4560-4582-aa2b-40f8bc50d63d",
+    "port_id" : "9492d61f-b727-4b78-a422-0901b9c885ad",
+    "fixed_ip_address" : "192.168.0.170",
+    "status" : "ACTIVE",
+    "description" : "",
+    "qos_policy_id" : null,
+    "port_details" : {
+      "name" : "ssss",
+      "network_id" : "26508704-c5b8-4576-a08c-330f81309167",
+      "mac_address" : "fa:16:3e:30:fa:73",
+      "admin_state_up" : true,
+      "status" : "DOWN",
+      "device_id" : "",
+      "device_owner" : ""
+    },
+    "tags" : [ ],
+    "created_at" : "2025-11-06T12:53:03Z",
+    "updated_at" : "2026-01-05T16:10:44Z",
+    "revision_number" : 6,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  } ]
+}
+  }
+}

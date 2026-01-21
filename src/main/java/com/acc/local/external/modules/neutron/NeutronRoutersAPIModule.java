@@ -4,6 +4,8 @@ import com.acc.local.external.dto.neutron.conntrackhelpers.CreateConntrackHelper
 import com.acc.local.external.dto.neutron.conntrackhelpers.UpdateConntrackHelperRequest;
 import com.acc.local.external.dto.neutron.routers.*;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.neutron.response.NeutronRouterResponse;
+import com.acc.local.external.dto.neutron.response.NeutronRoutersResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,24 +21,24 @@ public class NeutronRoutersAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listRouters(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronRoutersResponse> listRouters(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/routers";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronRoutersResponse.class);
     }
 
-    public ResponseEntity<JsonNode> listRouters(String token, MultiValueMap<String, String> queryParams) {
+    public ResponseEntity<NeutronRoutersResponse> listRouters(String token, MultiValueMap<String, String> queryParams) {
         String uri = "/v2.0/routers";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronRoutersResponse.class);
     }
 
-    public ResponseEntity<JsonNode> createRouter(String token, CreateRouterRequest request) {
+    public ResponseEntity<NeutronRouterResponse> createRouter(String token, CreateRouterRequest request) {
         String uri = "/v2.0/routers";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronRouterResponse.class);
     }
 
-    public ResponseEntity<JsonNode> showRouter(String token, String routerId) {
+    public ResponseEntity<NeutronRouterResponse> showRouter(String token, String routerId) {
         String uri = "/v2.0/routers/" + routerId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronRouterResponse.class);
     }
 
     public ResponseEntity<JsonNode> updateRouter(String token, String routerId, UpdateRouterRequest request) {

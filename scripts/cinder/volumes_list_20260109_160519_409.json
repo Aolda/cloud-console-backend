@@ -1,0 +1,37 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "volumes" : [ {
+    "id" : "32b5e310-9766-4c7d-b528-b3c5a3fab155",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8776/v3/volumes/32b5e310-9766-4c7d-b528-b3c5a3fab155"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8776/volumes/32b5e310-9766-4c7d-b528-b3c5a3fab155"
+    } ]
+  }, {
+    "id" : "25e6e98b-1d48-4f9e-a84d-cd75858631ea",
+    "name" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8776/v3/volumes/25e6e98b-1d48-4f9e-a84d-cd75858631ea"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8776/volumes/25e6e98b-1d48-4f9e-a84d-cd75858631ea"
+    } ]
+  } ]
+}
+  }
+}

@@ -1,5 +1,4 @@
 package com.acc.local.external.modules;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
@@ -22,7 +21,7 @@ public class OpenstackAPICallModule {
     private final OpenstackResilienceExecutor openstackResilienceExecutor;
 
     public ResponseEntity<JsonNode> callGetAPI(String uri, Map<String, String> headers, Map<String, String> queryParams, int port) {
-        return openstackResilienceExecutor.execute("get", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("get", port, () ->
                 openstackWebClient.get()
                         .uri(uriBuilder -> {
                             uriBuilder.port(port);
@@ -36,10 +35,11 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+        return response;
     }
 
     public ResponseEntity<JsonNode> callGetAPI(String uri, Map<String, String> headers, MultiValueMap<String, String> queryParams, int port) {
-        return openstackResilienceExecutor.execute("get", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("get", port, () ->
                 openstackWebClient.get()
                         .uri(uriBuilder -> {
                             uriBuilder.port(port);
@@ -57,10 +57,11 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+        return response;
     }
 
     public ResponseEntity<JsonNode> callPostAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("post", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("post", port, () ->
                 openstackWebClient.post()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -69,10 +70,11 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+        return response;
     }
 
     public ResponseEntity<JsonNode> callPutAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("put", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("put", port, () ->
                 openstackWebClient.put()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -81,6 +83,7 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+        return response;
     }
 
     public ResponseEntity<JsonNode> callDeleteAPI(String uri, Map<String, String> headers, int port) {
@@ -96,7 +99,7 @@ public class OpenstackAPICallModule {
     }
 
     public ResponseEntity<JsonNode> callPatchAPI(String uri, Map<String, String> headers, Object requestBody, int port) {
-        return openstackResilienceExecutor.execute("patch", port, () ->
+        ResponseEntity<JsonNode> response = openstackResilienceExecutor.execute("patch", port, () ->
                 openstackWebClient.patch()
                         .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
@@ -105,6 +108,7 @@ public class OpenstackAPICallModule {
                         .toEntity(JsonNode.class)
                         .block()
         );
+        return response;
     }
 
     public ResponseEntity<JsonNode> callHeadAPI(String uri, Map<String, String> headers, int port) {
@@ -162,6 +166,81 @@ public class OpenstackAPICallModule {
                         .headers(httpHeaders -> headers.forEach(httpHeaders::add))
                         .retrieve()
                         .toBodilessEntity()
+                        .block()
+        );
+    }
+
+    // Generic DTO overloads for typed deserialization
+    public <T> ResponseEntity<T> callGetAPI(String uri, Map<String, String> headers, Map<String, String> queryParams, int port, Class<T> responseType) {
+        return openstackResilienceExecutor.execute("get", port, () ->
+                openstackWebClient.get()
+                        .uri(uriBuilder -> {
+                            uriBuilder.port(port);
+                            if (queryParams != null) {
+                                queryParams.forEach(uriBuilder::queryParam);
+                            }
+                            return uriBuilder.path(uri).build();
+                        })
+                        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                        .retrieve()
+                        .toEntity(responseType)
+                        .block()
+        );
+    }
+
+    public <T> ResponseEntity<T> callGetAPI(String uri, Map<String, String> headers, MultiValueMap<String, String> queryParams, int port, Class<T> responseType) {
+        return openstackResilienceExecutor.execute("get", port, () ->
+                openstackWebClient.get()
+                        .uri(uriBuilder -> {
+                            uriBuilder.port(port);
+                            if (queryParams != null) {
+                                queryParams.forEach((key, values) -> {
+                                    if (values != null) {
+                                        values.forEach(value -> uriBuilder.queryParam(key, value));
+                                    }
+                                });
+                            }
+                            return uriBuilder.path(uri).build();
+                        })
+                        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                        .retrieve()
+                        .toEntity(responseType)
+                        .block()
+        );
+    }
+
+    public <T> ResponseEntity<T> callPostAPI(String uri, Map<String, String> headers, Object requestBody, int port, Class<T> responseType) {
+        return openstackResilienceExecutor.execute("post", port, () ->
+                openstackWebClient.post()
+                        .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .toEntity(responseType)
+                        .block()
+        );
+    }
+
+    public <T> ResponseEntity<T> callPutAPI(String uri, Map<String, String> headers, Object requestBody, int port, Class<T> responseType) {
+        return openstackResilienceExecutor.execute("put", port, () ->
+                openstackWebClient.put()
+                        .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .toEntity(responseType)
+                        .block()
+        );
+    }
+
+    public <T> ResponseEntity<T> callPatchAPI(String uri, Map<String, String> headers, Object requestBody, int port, Class<T> responseType) {
+        return openstackResilienceExecutor.execute("patch", port, () ->
+                openstackWebClient.patch()
+                        .uri(uriBuilder -> uriBuilder.port(port).path(uri).build())
+                        .headers(httpHeaders -> headers.forEach(httpHeaders::add))
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .toEntity(responseType)
                         .block()
         );
     }

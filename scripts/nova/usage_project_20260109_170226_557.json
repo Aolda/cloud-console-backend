@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/os-simple-tenant-usage/95282c49df5d47f68bb79bf4ad63a69b",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "tenant_usage" : {
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "server_usages" : [ {
+      "hours" : 3.3333333333333334E-9,
+      "flavor" : "tb1.micro",
+      "instance_id" : "1f72c950-169e-4a52-98bc-b05b4e74b70e",
+      "name" : "my-instance",
+      "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+      "memory_mb" : 512,
+      "local_gb" : 0,
+      "vcpus" : 1,
+      "started_at" : "2025-11-26T15:48:55.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 3773611
+    }, {
+      "hours" : 3.3333333333333334E-9,
+      "flavor" : "tb1.micro",
+      "instance_id" : "e833bc89-4c75-4bdd-9a7c-0b461393f2b1",
+      "name" : "test",
+      "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+      "memory_mb" : 512,
+      "local_gb" : 0,
+      "vcpus" : 1,
+      "started_at" : "2025-11-07T09:55:44.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 5436402
+    } ],
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 6.666666666666667E-9,
+    "total_memory_mb_usage" : 3.4133333333333334E-6,
+    "total_hours" : 6.666666666666667E-9,
+    "start" : "2026-01-09T08:02:26.582747",
+    "stop" : "2026-01-09T08:02:26.582759"
+  }
+}
+  }
+}

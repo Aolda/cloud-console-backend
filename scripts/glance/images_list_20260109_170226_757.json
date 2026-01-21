@@ -1,0 +1,51 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2/images",
+    "port": 9292,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "images" : [ {
+    "architecture" : "x86_64",
+    "os_distro" : "ubuntu",
+    "os_version" : "24.04",
+    "hw_machine_type" : "q35",
+    "hw_disk_bus" : "virtio",
+    "hw_rng_model" : "virtio",
+    "os_glance_importing_to_stores" : "",
+    "os_glance_failed_import" : "",
+    "name" : "ubuntu-24.04-noble",
+    "disk_format" : "qcow2",
+    "container_format" : "bare",
+    "visibility" : "public",
+    "size" : 625911296,
+    "virtual_size" : 3758096384,
+    "status" : "active",
+    "checksum" : "6ff9c27a2d598d4f577801e318cf7806",
+    "protected" : false,
+    "min_ram" : 0,
+    "min_disk" : 0,
+    "owner" : "466c03db9b5d4f368b917ab6ba8d9190",
+    "os_hidden" : false,
+    "os_hash_algo" : "sha512",
+    "os_hash_value" : "27506be4765e201a1cfd3e39d20412ed15de5bf4b7fea18e6df73c69d7fe46b903d70c06422c2cd8f24c844a0ca9401d6c3a156da99049bc2286abd4e754b646",
+    "id" : "4c64f22d-f832-42f2-ae83-8767937cfcf2",
+    "created_at" : "2025-11-23T18:08:55Z",
+    "updated_at" : "2025-11-23T18:54:53Z",
+    "tags" : [ "noble", "linux", "ubuntu", "cloud" ],
+    "self" : "/v2/images/4c64f22d-f832-42f2-ae83-8767937cfcf2",
+    "file" : "/v2/images/4c64f22d-f832-42f2-ae83-8767937cfcf2/file",
+    "schema" : "/v2/schemas/image",
+    "stores" : "file"
+  } ],
+  "first" : "/v2/images",
+  "schema" : "/v2/schemas/images"
+}
+  }
+}

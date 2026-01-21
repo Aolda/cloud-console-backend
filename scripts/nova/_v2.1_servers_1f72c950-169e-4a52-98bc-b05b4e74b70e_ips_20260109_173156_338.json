@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/1f72c950-169e-4a52-98bc-b05b4e74b70e/ips",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "addresses" : {
+    "default-network" : [ {
+      "version" : 4,
+      "addr" : "192.168.0.183"
+    }, {
+      "version" : 4,
+      "addr" : "172.32.100.163"
+    } ]
+  }
+}
+  }
+}

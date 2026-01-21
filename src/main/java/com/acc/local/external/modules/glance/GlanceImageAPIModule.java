@@ -1,6 +1,8 @@
 package com.acc.local.external.modules.glance;
 
 import com.acc.local.external.dto.glance.image.*;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +20,15 @@ public class GlanceImageAPIModule {
     private final int port = 9292;
 
     // Show image
-    public ResponseEntity<JsonNode> fetchImage(String token, String imageId) {
+    public ResponseEntity<GlanceImageResponse> fetchImage(String token, String imageId) {
         String uri = "/v2/images/" + imageId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, GlanceImageResponse.class);
     }
 
     // List images
-    public ResponseEntity<JsonNode> fetchImageList(String token, GlanceFetchImagesRequestParam params) {
+    public ResponseEntity<GlanceImagesResponse> fetchImageList(String token, GlanceFetchImagesRequestParam params) {
         String uri = "/v2/images";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), params.toQueryParams(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), params.toQueryParams(), port, GlanceImagesResponse.class);
     }
 
     // Show tasks associated with image

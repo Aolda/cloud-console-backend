@@ -1,7 +1,7 @@
 package com.acc.local.external.modules.nova;
 
 import com.acc.local.external.modules.OpenstackAPICallModule;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.acc.local.external.dto.nova.response.NovaLimitsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -16,12 +16,12 @@ public class NovaLimitAPIModule extends NovaAPIUtil {
     private final OpenstackAPICallModule openstackAPICallModule;
 
     // Get Server Limits
-    public ResponseEntity<JsonNode> getServerLimits(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NovaLimitsResponse> getServerLimits(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/limits";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NovaLimitsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> getServerLimits(String token) {
+    public ResponseEntity<NovaLimitsResponse> getServerLimits(String token) {
         return getServerLimits(token, Collections.emptyMap());
     }
 }

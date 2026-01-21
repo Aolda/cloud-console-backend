@@ -1,0 +1,125 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/routers",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {
+  "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "routers" : [ {
+    "id" : "b680048a-1581-476c-abc7-cd7ba155ba7d",
+    "name" : "my-router",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : null,
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "availability_zone_hints" : [ ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-05T11:19:57Z",
+    "updated_at" : "2025-11-05T11:19:57Z",
+    "revision_number" : 1,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "be869b30-f092-46be-96c7-c0c1789c0e73",
+    "name" : "my-router2",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : null,
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "availability_zone_hints" : [ ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-05T11:14:32Z",
+    "updated_at" : "2025-11-05T11:14:32Z",
+    "revision_number" : 1,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "d243f458-fa4e-4f30-b8d9-6bd89d04e498",
+    "name" : "my-router",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : {
+      "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+      "external_fixed_ips" : [ {
+        "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+        "ip_address" : "172.32.100.161"
+      } ],
+      "enable_snat" : true
+    },
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "availability_zone_hints" : [ ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-05T11:19:46Z",
+    "updated_at" : "2025-11-05T11:19:46Z",
+    "revision_number" : 2,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "de0537d2-4560-4582-aa2b-40f8bc50d63d",
+    "name" : "aaa",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : {
+      "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+      "external_fixed_ips" : [ {
+        "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+        "ip_address" : "172.32.100.181"
+      } ],
+      "enable_snat" : true
+    },
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "availability_zone_hints" : [ "nova" ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-05T09:02:20Z",
+    "updated_at" : "2025-11-06T12:19:23Z",
+    "revision_number" : 3,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "f7f4f37e-80e7-4ba3-a6f3-f1d0beeab0f9",
+    "name" : "default-router",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "external_gateway_info" : {
+      "network_id" : "c61e0138-2c59-4398-bb95-5887fbe2f221",
+      "external_fixed_ips" : [ {
+        "subnet_id" : "b59e63c0-3328-4c43-9b62-0c438745bc60",
+        "ip_address" : "172.32.100.177"
+      } ],
+      "enable_snat" : true
+    },
+    "description" : "",
+    "availability_zones" : [ "nova" ],
+    "availability_zone_hints" : [ ],
+    "routes" : [ ],
+    "flavor_id" : null,
+    "tags" : [ ],
+    "created_at" : "2025-11-26T15:44:29Z",
+    "updated_at" : "2025-11-26T15:45:08Z",
+    "revision_number" : 3,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  } ]
+}
+  }
+}

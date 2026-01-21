@@ -1,0 +1,105 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/os-simple-tenant-usage/1968d3759a2b4d7d9640ddd74fbde11f",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "tenant_usage" : {
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "server_usages" : [ {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.medium",
+      "instance_id" : "0e5a48c7-48b7-4905-88ad-834489abad7a",
+      "name" : "test-6",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 8192,
+      "local_gb" : 0,
+      "vcpus" : 4,
+      "started_at" : "2026-01-05T06:59:17.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1371100
+    }, {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.medium",
+      "instance_id" : "22bfb37c-887c-433c-b1f9-4e3f3a42adde",
+      "name" : "test-3",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 8192,
+      "local_gb" : 0,
+      "vcpus" : 4,
+      "started_at" : "2026-01-03T09:22:32.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1535305
+    }, {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.small",
+      "instance_id" : "22e487a2-f0ef-4321-bb0b-e2d84540e68a",
+      "name" : "test-8",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 2048,
+      "local_gb" : 0,
+      "vcpus" : 1,
+      "started_at" : "2026-01-05T11:04:28.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1356389
+    }, {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.small",
+      "instance_id" : "30bb25cc-2e0d-4820-ba2e-94b92c8496c8",
+      "name" : "test-7",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 2048,
+      "local_gb" : 0,
+      "vcpus" : 1,
+      "started_at" : "2026-01-05T10:41:02.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1357795
+    }, {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.medium",
+      "instance_id" : "7b2d0530-10d7-4c49-a201-5fc082127e91",
+      "name" : "test-4",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 8192,
+      "local_gb" : 0,
+      "vcpus" : 4,
+      "started_at" : "2026-01-03T09:30:57.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1534800
+    }, {
+      "hours" : 6.666666666666667E-9,
+      "flavor" : "m1.medium",
+      "instance_id" : "9cfd1aff-2016-4758-9463-7019afc2d601",
+      "name" : "test-5",
+      "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+      "memory_mb" : 8192,
+      "local_gb" : 0,
+      "vcpus" : 4,
+      "started_at" : "2026-01-03T09:47:29.000000",
+      "ended_at" : null,
+      "state" : "stopped",
+      "uptime" : 1533808
+    } ],
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 1.2000000000000002E-7,
+    "total_memory_mb_usage" : 2.4576000000000003E-4,
+    "total_hours" : 4.0E-8,
+    "start" : "2026-01-21T03:50:57.118485",
+    "stop" : "2026-01-21T03:50:57.118509"
+  }
+}
+  }
+}

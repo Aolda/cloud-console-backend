@@ -9,6 +9,8 @@ import com.acc.local.external.dto.nova.keypair.CreateKeyPairRequest;
 import com.acc.local.external.modules.nova.NovaKeypairAPIModule;
 import com.acc.local.external.ports.KeypairExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.nova.response.NovaKeypairsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class KeypairExternalAdapter implements KeypairExternalPort {
 
     private final NovaKeypairAPIModule novaKeypairAPIModule;
+    private final ObjectMapper objectMapper;
 
     @Override
     public CreateKeypairResponse createKeypair(String keystoneToken, CreateKeypairRequest request) {
@@ -67,12 +70,21 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
             throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_CREATION_FAILED);
         }
 
-        return CreateKeypairResponse.builder()
-                .keypairName(response.getBody().get("keypair").get("name").asText())
-                .fingerprint(response.getBody().get("keypair").get("fingerprint").asText())
-                .publicKey(response.getBody().get("keypair").get("public_key").asText())
-                .privateKey(response.getBody().get("keypair").get("private_key").asText())
-                .build();
+        try {
+            // JsonNode를 DTO로 변환 (단일 keypair wrapper 형태)
+            JsonNode keypairNode = response.getBody().path("keypair");
+            NovaKeypairsResponse.Keypair keypair = objectMapper.treeToValue(keypairNode, NovaKeypairsResponse.Keypair.class);
+
+            return CreateKeypairResponse.builder()
+                    .keypairName(keypair.getName())
+                    .fingerprint(keypair.getFingerprint())
+                    .publicKey(keypair.getPublicKey())
+                    .privateKey(keypair.getPrivateKey())
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to parse keypair response", e);
+            throw new KeypairExternalException(KeypairExternalErrorCode.KEYPAIR_EXTERNAL_CREATION_FAILED);
+        }
     }
 
     @Override
@@ -103,23 +115,23 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                     queryParams.put("marker", marker);
                 }
 
-                ResponseEntity<JsonNode> response = novaKeypairAPIModule.listKeyPairs(keystoneToken, queryParams);
+                ResponseEntity<NovaKeypairsResponse> response = novaKeypairAPIModule.listKeyPairs(keystoneToken, queryParams);
                 if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                     throw new KeypairExternalException(
                         KeypairExternalErrorCode.KEYPAIR_EXTERNAL_LIST_FAILED
                     );
                 }
 
-                JsonNode body = response.getBody();
-                JsonNode keypairs = body.get("keypairs");
+                NovaKeypairsResponse body = response.getBody();
+                List<NovaKeypairsResponse.KeypairWrapper> keypairs = body.getKeypairs();
 
-                if (keypairs != null && keypairs.isArray()) {
-                    for (JsonNode item : keypairs) {
-                        JsonNode keypair = item.get("keypair");
+                if (keypairs != null && !keypairs.isEmpty()) {
+                    for (NovaKeypairsResponse.KeypairWrapper item : keypairs) {
+                        NovaKeypairsResponse.Keypair keypair = item.getKeypair();
 
                         KeypairSyncDto dto = KeypairSyncDto.builder()
-                            .name(keypair.get("name").asText())
-                            .fingerprint(keypair.get("fingerprint").asText())
+                            .name(keypair.getName())
+                            .fingerprint(keypair.getFingerprint())
                             .build();
 
                         allKeypairs.add(dto);
@@ -127,9 +139,8 @@ public class KeypairExternalAdapter implements KeypairExternalPort {
                     }
                 }
 
-                // keypairs_links가 없거나 비어있으면 마지막 페이지
-                JsonNode links = body.get("keypairs_links");
-                hasMore = (links != null && links.isArray() && links.size() > 0);
+                // 가져온 개수가 limit보다 적으면 마지막 페이지
+                hasMore = (keypairs != null && keypairs.size() >= 100);
             }
             return allKeypairs;
 

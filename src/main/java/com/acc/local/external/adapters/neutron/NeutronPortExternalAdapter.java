@@ -10,6 +10,11 @@ import com.acc.global.exception.network.NeutronException;
 import com.acc.local.domain.enums.network.InterfaceStatus;
 import com.acc.local.dto.network.ViewInterfacesResponse;
 import com.acc.local.external.dto.neutron.ports.CreatePortRequest;
+import com.acc.local.external.dto.neutron.response.NeutronPortsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
+import com.acc.local.external.dto.neutron.response.NeutronPortResponse;
+import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
+import com.acc.local.external.dto.nova.response.NovaServerResponse;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronPortsAPIModule;
@@ -22,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.ArrayList;
@@ -53,7 +57,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
     @Override
     public Map<String, String> callCreatePort(String keystoneToken, String networkId, String portName, String subnetId, List<String> securityGroupIds, String description, boolean portSecurity) {
         try {
-            ResponseEntity<JsonNode> response = portsAPIModule.createPort( keystoneToken,
+            ResponseEntity<NeutronPortResponse> response = portsAPIModule.createPort( keystoneToken,
                     CreatePortRequest.builder().port(
                             CreatePortRequest.Port.builder()
                                     .name(portName)
@@ -75,9 +79,8 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_CREATION_FAILED);
             }
 
-            JsonNode portNode = response.getBody().get("port");
             return Map.of(
-                    "id", portNode.get("id").asText()
+                    "id", response.getBody().getPort().getId()
             );
 
         } catch (WebClientResponseException e) {
@@ -118,7 +121,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
                                                               int limit,
                                                               String deviceId,
                                                               String networkId) {
-        ResponseEntity<JsonNode> response;
+        ResponseEntity<NeutronPortsResponse> response;
         try {
             response = portsAPIModule.listPorts(keystoneToken,
                     getListPortsParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0, deviceId, networkId));
@@ -142,17 +145,17 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
     @Override
     public Map<String, String> getPortInfo(String keystoneToken, String portId) {
         try {
-            ResponseEntity<JsonNode> response = portsAPIModule.showPort(keystoneToken, portId);
+            ResponseEntity<NeutronPortResponse> response = portsAPIModule.showPort(keystoneToken, portId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
             }
 
-            JsonNode portNode = response.getBody().get("port");
+            var portNode = response.getBody().getPort();
 
             return Map.of(
-                    "id", portNode.get("id").asText(),
-                    "name", portNode.get("name").asText()
+                    "id", portNode.getId(),
+                    "name", portNode.getName()
             );
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
@@ -193,35 +196,35 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
         return params;
     }
 
-    private List<ViewInterfacesResponse> parseInterfaces(String keystoneToken, ResponseEntity<JsonNode> response) {
+    private List<ViewInterfacesResponse> parseInterfaces(String keystoneToken, ResponseEntity<NeutronPortsResponse> response) {
         List<ViewInterfacesResponse> ports = new ArrayList<>();
-        for (JsonNode portsNode : response.getBody().get("ports")) {
+        for (NeutronPortsResponse.Port portsNode : response.getBody().getPorts()) {
 
-            boolean hasNetwork = portsNode.hasNonNull("network_id") && !portsNode.get("network_id").asText().isEmpty();
-            boolean hasDevice = portsNode.hasNonNull("device_id") && !portsNode.get("device_id").asText().isEmpty();
-            String serverName = hasDevice ? getServerName(keystoneToken, portsNode.get("device_id").asText()) : null;
-            String networkName = hasNetwork ? getNetworkName(keystoneToken, portsNode.get("network_id").asText()) : null;
+            boolean hasNetwork = portsNode.getNetworkId() != null && !portsNode.getNetworkId().isEmpty();
+            boolean hasDevice = portsNode.getDeviceId() != null && !portsNode.getDeviceId().isEmpty();
+            String serverName = hasDevice ? getServerName(keystoneToken, portsNode.getDeviceId()) : null;
+            String networkName = hasNetwork ? getNetworkName(keystoneToken, portsNode.getNetworkId()) : null;
 
             ports.add(ViewInterfacesResponse.builder()
-                    .interfaceId(portsNode.get("id").asText())
-                    .interfaceName(portsNode.get("name").asText())
-                    .status(InterfaceStatus.findByStatusName(portsNode.get("status").asText()))
-                    .mac(portsNode.get("mac_address").asText())
+                    .interfaceId(portsNode.getId())
+                    .interfaceName(portsNode.getName())
+                    .status(InterfaceStatus.findByStatusName(portsNode.getStatus()))
+                    .mac(portsNode.getMacAddress())
                     .instance(hasDevice ? ViewInterfacesResponse.Instance.builder()
-                                    .instanceId(portsNode.get("device_id").asText())
+                                    .instanceId(portsNode.getDeviceId())
                                     .instanceName(serverName)
                                     .build() : null)
                     .network(hasNetwork ? ViewInterfacesResponse.Network.builder()
-                                    .networkId(portsNode.get("network_id").asText())
+                                    .networkId(portsNode.getNetworkId())
                                     .networkName(networkName)
                                     .subnetId(
-                                            portsNode.hasNonNull("fixed_ips") && !portsNode.get("fixed_ips").isEmpty() ?
-                                                    portsNode.get("fixed_ips").get(0).get("subnet_id").asText() : null
+                                            portsNode.getFixedIps() != null && !portsNode.getFixedIps().isEmpty() ?
+                                                    portsNode.getFixedIps().get(0).getSubnetId() : null
                                     )
                                     .build() : null)
-                    .internalIp(portsNode.hasNonNull("fixed_ips") && !portsNode.get("fixed_ips").isEmpty() ?
-                            portsNode.get("fixed_ips").get(0).get("ip_address").asText() : null)
-                    .externalIp(getFloatingIP(keystoneToken, portsNode.get("id").asText()))
+                    .internalIp(portsNode.getFixedIps() != null && !portsNode.getFixedIps().isEmpty() ?
+                            portsNode.getFixedIps().get(0).getIpAddress() : null)
+                    .externalIp(getFloatingIP(keystoneToken, portsNode.getId()))
                     .build());
         }
 
@@ -230,13 +233,13 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getServerName(String keystoneToken, String serverId) {
         try {
-            ResponseEntity<JsonNode> response = serverAPIModule.showServer(keystoneToken, serverId);
+            ResponseEntity<NovaServerResponse> response = serverAPIModule.showServer(keystoneToken, serverId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
             }
 
-            return response.getBody().get("server").get("name").asText();
+            return response.getBody().getServer().getName();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -249,12 +252,12 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getNetworkName(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
+            ResponseEntity<NeutronNetworkResponse> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
             }
-            return response.getBody().get("network").get("name").asText();
+            return response.getBody().getNetwork().getName();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -269,19 +272,18 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getFloatingIP(String keystoneToken, String portId) {
         try {
-            ResponseEntity<JsonNode> response = floatingIpsAPIModule.listFloatingIps(keystoneToken,
+            ResponseEntity<NeutronFloatingIpsResponse> response = floatingIpsAPIModule.listFloatingIps(keystoneToken,
                     Map.of("port_id", portId));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_FLOATING_IP_RETRIEVAL_FAILED);
             }
 
-            if (response.getBody().get("floatingips").isEmpty()) {
+            if (response.getBody().getFloatingips() == null || response.getBody().getFloatingips().isEmpty()) {
                 return null;
             }
-
-            JsonNode floatingIpNode = response.getBody().get("floatingips").get(0);
-            return floatingIpNode.get("floating_ip_address").asText();
+            var floatingIpNode = response.getBody().getFloatingips().get(0);
+            return floatingIpNode.getFloatingIpAddress();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {

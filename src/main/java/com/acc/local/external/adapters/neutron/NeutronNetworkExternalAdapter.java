@@ -7,15 +7,16 @@ import com.acc.global.exception.network.NeutronErrorCode;
 import com.acc.global.exception.network.NeutronException;
 import com.acc.local.dto.network.ViewNetworksResponse;
 import com.acc.local.external.dto.neutron.networks.CreateNetworkRequest;
+import com.acc.local.external.dto.neutron.response.NeutronNetworksResponse;
+import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronSubnetsAPIModule;
 import com.acc.local.external.ports.NeutronNetworkExternalPort;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public String callCreateGeneralNetwork(String keystoneToken, String name, String description, int mtu) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.createNeutronNetwork(keystoneToken,
+            ResponseEntity<NeutronNetworkResponse> response = networksAPIModule.createNeutronNetwork(keystoneToken,
                     CreateNetworkRequest.builder().
                             network(
                                     CreateNetworkRequest.Network.builder().
@@ -49,10 +50,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_CREATION_FAILED);
             }
 
-            return response.getBody().
-                    get("network").
-                    get("id").
-                    asText();
+            return response.getBody().getNetwork().getId();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -66,7 +64,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public void callDeleteNetwork(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.deleteNeutronNetwork(keystoneToken, networkId);
+            ResponseEntity<Void> response = networksAPIModule.deleteNeutronNetwork(keystoneToken, networkId);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_DELETION_FAILED);
@@ -85,7 +83,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public PageResponse<ViewNetworksResponse> callListNetworks(String keystoneToken, String projectId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(keystoneToken,
+            ResponseEntity<NeutronNetworksResponse> response = networksAPIModule.listNeutronNetworks(keystoneToken,
                     getListNetworksParams(projectId, marker, direction,  limit == 0 ? 0 : limit + 1));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -107,13 +105,17 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public Map<String, String> getNetworkNameAndId(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
+            ResponseEntity<NeutronNetworkResponse> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
             }
 
-            return parseNetworkNameAndId(response);
+            var network = response.getBody().getNetwork();
+            return Map.of(
+                    "id", network.getId(),
+                    "name", network.getName()
+            );
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -128,16 +130,17 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public Map<String, String> getProviderNetwork(String keystoneToken) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(keystoneToken,
+            ResponseEntity<NeutronNetworksResponse> response = networksAPIModule.listNeutronNetworks(keystoneToken,
                     Map.of("router:external", "true"));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
             }
 
+            var net = response.getBody().getNetworks().get(0);
             return Map.of(
-                    "id", response.getBody().get("networks").get(0).get("id").asText(),
-                    "name", response.getBody().get("networks").get(0).get("name").asText()
+                    "id", net.getId(),
+                    "name", net.getName()
             );
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
@@ -152,7 +155,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     @Override
     public List<String> callListNetworksByNetworkName(String keystoneToken, String projectId, String networkName) {
         try {
-            ResponseEntity<JsonNode> response = networksAPIModule.listNeutronNetworks(
+            ResponseEntity<NeutronNetworksResponse> response = networksAPIModule.listNeutronNetworks(
                     keystoneToken,
                     Map.of("project_id", projectId,
                             "name", networkName,
@@ -164,8 +167,8 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
             }
 
             List<String> networkIds = new ArrayList<>();
-            for (JsonNode node : response.getBody().get("networks")) {
-                networkIds.add(node.get("id").asText());
+            for (NeutronNetworksResponse.Network node : response.getBody().getNetworks()) {
+                networkIds.add(node.getId());
             }
 
             return networkIds;
@@ -181,18 +184,18 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
 
     private List<ViewNetworksResponse.Subnet> callListSubnetsByNetworkId(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = subnetsAPIModule.listSubnets(keystoneToken,
+            ResponseEntity<NeutronSubnetsResponse> response = subnetsAPIModule.listSubnets(keystoneToken,
                     Map.of("network_id", networkId));
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
             }
 
             List<ViewNetworksResponse.Subnet> subnets = new ArrayList<>();
-            for (JsonNode node : response.getBody().get("subnets")) {
+            for (NeutronSubnetsResponse.Subnet node : response.getBody().getSubnets()) {
                 subnets.add(ViewNetworksResponse.Subnet.builder()
-                        .subnetId(node.get("id").asText())
-                        .subnetName(node.get("name").asText())
-                        .cidr(node.get("cidr").asText())
+                        .subnetId(node.getId())
+                        .subnetName(node.getName())
+                        .cidr(node.getCidr())
                         .build());
             }
 
@@ -237,23 +240,16 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
                 .build();
     }
 
-    private List<ViewNetworksResponse> parseNetworks(String keystoneToken, ResponseEntity<JsonNode> response) {
+    private List<ViewNetworksResponse> parseNetworks(String keystoneToken, ResponseEntity<NeutronNetworksResponse> response) {
         List<ViewNetworksResponse> networks = new ArrayList<>();
-        for ( JsonNode node : response.getBody().get("networks")) {
+        for ( NeutronNetworksResponse.Network node : response.getBody().getNetworks()) {
             networks.add(ViewNetworksResponse.builder()
-                    .networkId(node.get("id").asText())
-                    .networkName(node.get("name").asText())
-                    .subnets(callListSubnetsByNetworkId(keystoneToken, node.get("id").asText()))
+                    .networkId(node.getId())
+                    .networkName(node.getName())
+                    .subnets(callListSubnetsByNetworkId(keystoneToken, node.getId()))
                     .build());
         }
         return networks;
     }
-
-    private Map<String, String> parseNetworkNameAndId(ResponseEntity<JsonNode> response) {
-        JsonNode networkNode = response.getBody().get("network");
-        Map<String, String> result = new HashMap<>();
-        result.put("id", networkNode.get("id").asText());
-        result.put("name", networkNode.get("name").asText());
-        return result;
-    }
+    
 }

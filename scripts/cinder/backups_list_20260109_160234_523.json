@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/backups",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "backups" : [ ]
+}
+  }
+}

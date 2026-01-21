@@ -1,7 +1,9 @@
 package com.acc.local.external.modules.cinder;
 
+import com.acc.local.external.dto.cinder.response.CinderVolumeResponse;
 import com.acc.local.external.dto.cinder.volume.*;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.cinder.response.CinderVolumesResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,9 @@ public class CinderVolumesModule extends CinderAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listVolumesDetail(String token, String projectId, Map<String, String> queryParams) {
+    public ResponseEntity<CinderVolumesResponse> listVolumesDetail(String token, String projectId, Map<String, String> queryParams) {
         String uri = "/v3/volumes/detail";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, CinderVolumesResponse.class);
     }
 
     public ResponseEntity<JsonNode> createVolume(String token, String projectId, CreateVolumeRequest request) {
@@ -26,14 +28,14 @@ public class CinderVolumesModule extends CinderAPIUtil {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> listVolumes(String token, String projectId, Map<String, String> queryParams) {
+    public ResponseEntity<CinderVolumesResponse> listVolumes(String token, String projectId, Map<String, String> queryParams) {
         String uri = "/v3/volumes";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, CinderVolumesResponse.class);
     }
 
-    public ResponseEntity<JsonNode> getVolume(String token, String projectId, String volumeId) {
+    public ResponseEntity<CinderVolumeResponse> getVolume(String token, String projectId, String volumeId) {
         String uri = "/v3/volumes/" + volumeId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, CinderVolumeResponse.class);
     }
 
     public ResponseEntity<JsonNode> updateVolume(String token, String projectId, String volumeId, UpdateVolumeRequest request) {

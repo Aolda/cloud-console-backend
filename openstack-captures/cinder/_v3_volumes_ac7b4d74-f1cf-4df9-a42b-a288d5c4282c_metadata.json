@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes/ac7b4d74-f1cf-4df9-a42b-a288d5c4282c/metadata",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "metadata" : { }
+}
+  }
+}

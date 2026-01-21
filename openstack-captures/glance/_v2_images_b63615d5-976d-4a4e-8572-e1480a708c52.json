@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2/images/b63615d5-976d-4a4e-8572-e1480a708c52",
+    "port": 9292,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "usage_type" : "common",
+  "hw_qemu_guest_agent" : "yes",
+  "os_distro" : "ubuntu",
+  "os_version" : "24.04",
+  "os_admin_user" : "ubuntu",
+  "name" : "ubuntu_24.04",
+  "disk_format" : "qcow2",
+  "container_format" : "bare",
+  "visibility" : "public",
+  "size" : 625476096,
+  "virtual_size" : 3758096384,
+  "status" : "active",
+  "checksum" : "66b07f6cfe43657ed32d2963e0ec68fd",
+  "protected" : false,
+  "min_ram" : 0,
+  "min_disk" : 0,
+  "owner" : "a17c99a39c0d466fae2c31472f9631f0",
+  "os_hidden" : false,
+  "os_hash_algo" : "sha512",
+  "os_hash_value" : "b1aa960d1533e3f5d73909a3631ff1da6cee9f706aeccf782175c524f4833d3ea2a183d79a4f0dee9812bb8d5faa0fb32b7bfab252e934c89148ddd4ea4b5b24",
+  "id" : "b63615d5-976d-4a4e-8572-e1480a708c52",
+  "created_at" : "2025-12-23T08:42:59Z",
+  "updated_at" : "2025-12-23T08:44:56Z",
+  "tags" : [ ],
+  "self" : "/v2/images/b63615d5-976d-4a4e-8572-e1480a708c52",
+  "file" : "/v2/images/b63615d5-976d-4a4e-8572-e1480a708c52/file",
+  "schema" : "/v2/schemas/image",
+  "stores" : "rbd"
+}
+  }
+}

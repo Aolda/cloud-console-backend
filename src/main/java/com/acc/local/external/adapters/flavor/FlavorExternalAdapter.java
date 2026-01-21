@@ -13,6 +13,8 @@ import com.acc.local.external.modules.nova.NovaFlavorAPIModule;
 import com.acc.local.external.modules.nova.NovaFlavorExtraSpecsModule;
 import com.acc.local.external.ports.NovaFlavorExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.nova.response.NovaFlavorsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,7 @@ public class FlavorExternalAdapter implements NovaFlavorExternalPort {
 
     private final NovaFlavorAPIModule novaFlavorAPIModule;
     private final NovaFlavorExtraSpecsModule novaFlavorExtraSpecsModule;
+    private final ObjectMapper objectMapper;
 
     private static final String KEY_ARCH = ":architecture";
     private static final String KEY_CATEGORY = ":category";
@@ -119,27 +122,36 @@ public class FlavorExternalAdapter implements NovaFlavorExternalPort {
     }
 
     private List<InstanceTypeResponse> parseFlavors(ResponseEntity<JsonNode> response) {
-        List<InstanceTypeResponse> flavors = new ArrayList<>();
-        JsonNode flavorsNode = response.getBody().path("flavors");
+        try {
+            // JsonNode를 NovaFlavorsResponse DTO로 자동 변환
+            NovaFlavorsResponse novaResponse = objectMapper.treeToValue(response.getBody(), NovaFlavorsResponse.class);
 
-        for (JsonNode flavorNode : flavorsNode) {
-            JsonNode specs = flavorNode.path("extra_specs");
-            flavors.add(InstanceTypeResponse.builder()
-                    .typeId(flavorNode.path("id").asText())
-                    .typeName(flavorNode.path("name").asText())
-                    .core(flavorNode.path("vcpus").asInt())
-                    .ram(flavorNode.path("ram").asInt())
-                    .diskSize(flavorNode.path("disk").asInt())
-                    .isPublic(flavorNode.path("os-flavor-access:is_public").asBoolean())
-                    .description(flavorNode.path("description").asText(null))
-                    .architect(Architecture.findByCode(getText(specs, KEY_ARCH)))
-                    .purpose(Purpose.findByCode(getText(specs, KEY_CATEGORY)))
-                    .bandwidth(asIntOrNull(specs.path(KEY_BANDWIDTH)))
-                    .usb(asBooleanOrNull(specs.path(KEY_USB)))
-                    .numa(asIntOrNull(specs.path(KEY_NUMA)))
-                    .build());
+            List<InstanceTypeResponse> flavors = new ArrayList<>();
+            for (NovaFlavorsResponse.Flavor flavor : novaResponse.getFlavors()) {
+                // extra_specs는 아직 NovaFlavorsResponse에 없으므로 JsonNode로 접근
+                JsonNode flavorNode = objectMapper.valueToTree(flavor);
+                JsonNode specs = flavorNode.path("extra_specs");
+
+                flavors.add(InstanceTypeResponse.builder()
+                        .typeId(flavor.getId())
+                        .typeName(flavor.getName())
+                        .core(flavor.getVcpus())
+                        .ram(flavor.getRam())
+                        .diskSize(flavor.getDisk())
+                        .isPublic(flavor.getIsPublic() != null ? flavor.getIsPublic() : false)
+                        .description(null) // description은 NovaFlavorsResponse에 없음
+                        .architect(Architecture.findByCode(getText(specs, KEY_ARCH)))
+                        .purpose(Purpose.findByCode(getText(specs, KEY_CATEGORY)))
+                        .bandwidth(asIntOrNull(specs.path(KEY_BANDWIDTH)))
+                        .usb(asBooleanOrNull(specs.path(KEY_USB)))
+                        .numa(asIntOrNull(specs.path(KEY_NUMA)))
+                        .build());
+            }
+            return flavors;
+        } catch (Exception e) {
+            log.error("Failed to parse flavors response", e);
+            throw new FlavorExternalException(FlavorExternalErrorCode.FLAVOR_EXTERNAL_RETRIEVAL_FAILED);
         }
-        return flavors;
     }
 
     private List<InstanceTypeResponse> filterByArchitect(List<InstanceTypeResponse> flavors, String architect) {

@@ -1,0 +1,73 @@
+app:
+  capture:
+    enabled: true
+    project-id: ${APP_CAPTURE_PROJECT_ID}
+    keystone:
+      username: ${OPENSTACK_BFF_USERNAME}
+      password: ${OPENSTACK_BFF_PASSWORD}
+      domain: "Default"
+    prefer-token-scope: project
+
+    # 1. 핵심 시나리오 설정 (Runner에서 사용)
+    neutron:
+      networks: true
+      ports: true
+      security-groups: true
+      security-group-rules: true
+      subnets: true
+      routers: true
+      floatingips: true
+      write:
+        enabled: true
+        networks: true
+        security-groups: true
+    nova:
+      servers: true
+      servers-detail: true
+      keypairs: true
+      limits: true
+      write:
+        enabled: false
+        keypairs: true
+    glance:
+      images: true
+      tasks: true
+    cinder:
+      volumes: true
+      volumes-detail: true
+      snapshots: true
+      backups: true
+      limits: true
+
+    # 2. 통합 Sweep 및 상세 조회 설정 (OpenstackSweepCaptureService에서 사용)
+    sweep:
+      enabled: true
+      nova: true
+      glance: true
+      cinder: true
+
+    auto-follow:
+      enabled: true # 이 값이 true여야 Sweep 시 ID 기반 상세 조회를 수행합니다.
+      nova:
+        servers-limit: 5
+        flavors-limit: 5
+      glance:
+        images-limit: 5
+      cinder:
+        volumes-limit: 5
+        snapshots-limit: 5
+        backups-limit: 5
+
+    # 3. 실행 속도 및 안정성 제어
+    rate:
+      sleep-ms: 800
+      jitter-ms: 1200
+      retries: 6
+      backoff-ms: 1000
+      cooldown-every: 10
+      cooldown-ms: 15000
+      startup-warmup-ms: 3000
+
+spring:
+  main:
+    banner-mode: "off"
