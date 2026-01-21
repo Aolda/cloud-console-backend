@@ -1,5 +1,8 @@
 package com.acc.local.capture;
 
+import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
+import com.acc.local.external.adapters.keystone.KeystoneAPIExternalAdapter;
+import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +29,9 @@ public class OpenstackCaptureRunner implements ApplicationRunner {
     private final GlanceCaptureScenarios glanceCaptureScenarios;
     private final CinderCaptureScenarios cinderCaptureScenarios;
     private final CaptureStorage captureStorage;
-    private final com.acc.local.external.modules.OpenstackAPICallModule openstackAPICallModule;
+    private final OpenstackAPICallModule openstackAPICallModule;
     private final TokenManager tokenManager;
-    private final com.acc.local.external.adapters.keystone.KeystoneAPIExternalAdapter keystoneExternalAdapter;
+    private final KeystoneAPIExternalAdapter keystoneExternalAdapter;
     private final NeutronWriteCaptureService neutronWriteCaptureService;
     private final NovaWriteCaptureService novaWriteCaptureService;
     private final ExtraGetCaptureService extraGetCaptureService;
@@ -302,7 +305,7 @@ public class OpenstackCaptureRunner implements ApplicationRunner {
                 log.warn("Keystone credentials not provided for capture login");
                 return null;
             }
-            var req = new com.acc.local.dto.auth.KeystonePasswordLoginRequest(username, password, domain);
+            var req = new KeystonePasswordLoginRequest(username, password, domain);
             String pref = preferTokenScope == null ? "project" : preferTokenScope.trim().toLowerCase();
             switch (pref) {
                 case "system" -> {

@@ -10,6 +10,7 @@ import com.acc.local.external.modules.neutron.NeutronSecurityGroupRulesAPIModule
 import com.acc.local.external.modules.neutron.NeutronSecurityGroupsAPIModule;
 import com.acc.local.external.ports.NeutronSecurityGroupExternalPort;
 import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupRulesResponse;
 import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +63,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
     public PageResponse<ViewSecurityGroupsResponse> callListSecurityGroups(String keystoneToken, String projectId, String marker, String direction, int limit) {
 
         try {
-            ResponseEntity<com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
             getListSecurityGroupsParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -114,7 +115,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
         try {
             Map<String, String> params = getListSecurityGroupsParams(projectId, null, "next", 0);
             params.put("name", securityGroupName);
-            ResponseEntity<com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
                     params);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -153,7 +154,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
 
     private PageResponse<ViewSecurityGroupsResponse.Rule> getSecurityGroupDetails(String keystoneToken, String securityGroupId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<com.acc.local.external.dto.neutron.response.NeutronSecurityGroupRulesResponse> response = securityRuleExternalPort.listSecurityGroupRules(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupRulesResponse> response = securityRuleExternalPort.listSecurityGroupRules(keystoneToken,
                     getListSecurityGroupRulesParams(securityGroupId, marker, direction, limit > 0 ? limit + 1 : 0));
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_RETRIEVAL_FAILED);

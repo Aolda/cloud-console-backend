@@ -1,8 +1,9 @@
 package com.acc.local.external.modules.glance;
 
 import com.acc.local.external.dto.glance.image.*;
-import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
 import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
+import com.acc.local.external.modules.OpenstackAPICallModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
@@ -19,9 +20,9 @@ public class GlanceImageAPIModule {
     private final int port = 9292;
 
     // Show image
-    public ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImageResponse> fetchImage(String token, String imageId) {
+    public ResponseEntity<GlanceImageResponse> fetchImage(String token, String imageId) {
         String uri = "/v2/images/" + imageId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, com.acc.local.external.dto.glance.response.GlanceImageResponse.class);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, GlanceImageResponse.class);
     }
 
     // List images

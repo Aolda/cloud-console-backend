@@ -4,6 +4,7 @@ import com.acc.local.dto.image.ImageFilterRequest;
 import com.acc.local.dto.image.ImageMetadataRequest;
 import com.acc.local.external.dto.glance.response.GlanceImageResponse;
 import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 
 import java.io.InputStream;
@@ -18,7 +19,7 @@ public interface GlanceExternalPort {
 
     ResponseEntity<GlanceImageResponse> fetchImageDetail(String token, String imageId);
 
-    ResponseEntity<com.fasterxml.jackson.databind.JsonNode> createImageMetadata(String token, ImageMetadataRequest req);
+    ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req);
 
     ResponseEntity<Void> importImageUrl(String token, String imageId, String fileUrl);
 

@@ -6,6 +6,8 @@ import com.acc.global.exception.image.ImageException;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.properties.QuickStartProperties;
 import com.acc.local.dto.image.*;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class ImageServiceModule {
 
     public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {
 
-        ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImagesResponse> res;
+        ResponseEntity<GlanceImagesResponse> res;
 
         try {
             res = glanceExternalPort.fetchImageList(token, projectId, filters);
@@ -97,7 +99,7 @@ public class ImageServiceModule {
 
     public ImageDetailResponse getImageDetail(String token, String imageId) {
 
-        ResponseEntity<com.acc.local.external.dto.glance.response.GlanceImageResponse> res;
+        ResponseEntity<GlanceImageResponse> res;
 
         try {
             res = glanceExternalPort.fetchImageDetail(token, imageId);
@@ -242,7 +244,7 @@ public class ImageServiceModule {
     public String fetchQuickStartImageId(String token) {
         String imageId = quickStartProperties.getDefaultImageId();
         // external에서 token error or 403 or image not found는 Exception으로 처리 (예정)
-        com.acc.local.external.dto.glance.response.GlanceImageResponse res;
+        GlanceImageResponse res;
         try {
             res = glanceExternalPort.fetchImageDetail(token, imageId).getBody();
             if (res == null) throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);

@@ -3,8 +3,6 @@ package com.acc.local.service.modules.snapshot.policy;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
-import com.acc.local.domain.enums.IntervalType;
-import com.acc.local.domain.enums.TaskStatus;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
 import com.acc.local.dto.snapshot.policy.SnapshotTaskResponse;
@@ -14,8 +12,8 @@ import com.acc.local.repository.ports.SnapshotPolicyRepositoryPort;
 import com.acc.local.repository.ports.SnapshotTaskRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -63,6 +61,7 @@ public class SnapshotPolicyModule {
 
         return PageRequest.of(pageNumber, size);
     }
+
 
     public <T> PageResponse<T> toPageResponse(Page<T> page, com.acc.global.common.PageRequest request) {
         boolean isFirst = page.isFirst();

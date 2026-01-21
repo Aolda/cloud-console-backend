@@ -48,7 +48,7 @@ public class NovaServerAPIModule extends NovaAPIUtil
     }
 
     // Compatibility: JsonNode variant for callers still parsing raw payload (e.g., addresses, flavor image objects)
-    public ResponseEntity<com.fasterxml.jackson.databind.JsonNode> listServersDetailJson(String token, Map<String, String> queryParams) {
+    public ResponseEntity<JsonNode> listServersDetailJson(String token, Map<String, String> queryParams) {
         String uri = "/v2.1/servers/detail";
         return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
     }

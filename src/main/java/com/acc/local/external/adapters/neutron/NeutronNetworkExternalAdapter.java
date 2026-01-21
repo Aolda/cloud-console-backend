@@ -15,6 +15,7 @@ import com.acc.local.external.ports.NeutronNetworkExternalPort;
 import com.acc.local.external.dto.neutron.response.NeutronNetworksResponse;
 import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
 import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -187,14 +188,14 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
 
     private List<ViewNetworksResponse.Subnet> callListSubnetsByNetworkId(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse> response = subnetsAPIModule.listSubnets(keystoneToken,
+            ResponseEntity<NeutronSubnetsResponse> response = subnetsAPIModule.listSubnets(keystoneToken,
                     Map.of("network_id", networkId));
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SUBNET_RETRIEVAL_FAILED);
             }
 
             List<ViewNetworksResponse.Subnet> subnets = new ArrayList<>();
-            for (com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse.Subnet node : response.getBody().getSubnets()) {
+            for (NeutronSubnetsResponse.Subnet node : response.getBody().getSubnets()) {
                 subnets.add(ViewNetworksResponse.Subnet.builder()
                         .subnetId(node.getId())
                         .subnetName(node.getName())

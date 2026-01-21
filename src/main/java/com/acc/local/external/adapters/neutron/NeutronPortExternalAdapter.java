@@ -11,8 +11,10 @@ import com.acc.local.domain.enums.network.InterfaceStatus;
 import com.acc.local.dto.network.ViewInterfacesResponse;
 import com.acc.local.external.dto.neutron.ports.CreatePortRequest;
 import com.acc.local.external.dto.neutron.response.NeutronPortsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronNetworkResponse;
 import com.acc.local.external.dto.neutron.response.NeutronPortResponse;
 import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
+import com.acc.local.external.dto.nova.response.NovaServerResponse;
 import com.acc.local.external.modules.neutron.NeutronFloatingIpsAPIModule;
 import com.acc.local.external.modules.neutron.NeutronNetworksAPIModule;
 import com.acc.local.external.modules.neutron.NeutronPortsAPIModule;
@@ -232,7 +234,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getServerName(String keystoneToken, String serverId) {
         try {
-            ResponseEntity<com.acc.local.external.dto.nova.response.NovaServerResponse> response = serverAPIModule.showServer(keystoneToken, serverId);
+            ResponseEntity<NovaServerResponse> response = serverAPIModule.showServer(keystoneToken, serverId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_PORT_RETRIEVAL_FAILED);
@@ -251,7 +253,7 @@ public class NeutronPortExternalAdapter implements NeutronPortExternalPort {
 
     private String getNetworkName(String keystoneToken, String networkId) {
         try {
-            ResponseEntity<com.acc.local.external.dto.neutron.response.NeutronNetworkResponse> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
+            ResponseEntity<NeutronNetworkResponse> response = networksAPIModule.showNeutronNetwork(keystoneToken, networkId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_NETWORK_RETRIEVAL_FAILED);
