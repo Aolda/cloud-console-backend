@@ -1,0 +1,326 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/ports",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {
+  "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "ports" : [ {
+    "id" : "004370e4-2fc1-4258-85cc-1c2496027111",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:0d:c8:b4",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "30bb25cc-2e0d-4820-ba2e-94b92c8496c8",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.102"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-05T10:39:57Z",
+    "updated_at" : "2026-01-05T10:41:00Z",
+    "revision_number" : 5,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "12a6655c-bddf-465c-b37d-e6b13b22bbde",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:da:6a:7e",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "0e5a48c7-48b7-4905-88ad-834489abad7a",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.14"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-05T06:58:11Z",
+    "updated_at" : "2026-01-05T07:08:38Z",
+    "revision_number" : 16,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "2c03d614-804e-4779-a6a6-5c8b7440b4db",
+    "name" : "",
+    "network_id" : "d57b7f3e-ceee-45f2-9906-de937ff0592d",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:3f:08:5a",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "dhcpd53e30bb-2952-5bf3-9673-12abefc240a9-d57b7f3e-ceee-45f2-9906-de937ff0592d",
+    "device_owner" : "network:dhcp",
+    "fixed_ips" : [ {
+      "subnet_id" : "16b19818-7f00-4ea7-abd3-177c18e3e530",
+      "ip_address" : "192.168.0.2"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : false,
+    "tags" : [ ],
+    "created_at" : "2026-01-21T03:41:11Z",
+    "updated_at" : "2026-01-21T03:41:13Z",
+    "revision_number" : 4,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "694d601f-ac7b-490a-8f8c-4017c1e38244",
+    "name" : "",
+    "network_id" : "d57b7f3e-ceee-45f2-9906-de937ff0592d",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:54:32:55",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "dhcp6eb6b10b-1f9d-5491-979e-2773323e0dd3-d57b7f3e-ceee-45f2-9906-de937ff0592d",
+    "device_owner" : "network:dhcp",
+    "fixed_ips" : [ {
+      "subnet_id" : "16b19818-7f00-4ea7-abd3-177c18e3e530",
+      "ip_address" : "192.168.0.3"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-storage",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : false,
+    "tags" : [ ],
+    "created_at" : "2026-01-21T03:41:11Z",
+    "updated_at" : "2026-01-21T03:41:13Z",
+    "revision_number" : 4,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "87ba95d6-d25b-4f22-a7ab-0fa4e48b5285",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:b5:85:a7",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "22bfb37c-887c-433c-b1f9-4e3f3a42adde",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.172"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-03T09:21:27Z",
+    "updated_at" : "2026-01-03T09:22:29Z",
+    "revision_number" : 5,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "a0a782f0-6d51-4930-838c-ef6841332e18",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:2c:07:52",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "9cfd1aff-2016-4758-9463-7019afc2d601",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.22"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-03T09:46:26Z",
+    "updated_at" : "2026-01-03T09:47:26Z",
+    "revision_number" : 5,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "c631eb31-bd5c-4cea-a75b-487d7fa5cdc9",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:8a:e6:c6",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "7b2d0530-10d7-4c49-a201-5fc082127e91",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.64"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : { },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-03T09:29:57Z",
+    "updated_at" : "2026-01-03T09:30:53Z",
+    "revision_number" : 5,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  }, {
+    "id" : "e418817e-ca98-41da-ba3b-35362fe96ac1",
+    "name" : "",
+    "network_id" : "197b24ea-206c-4c9a-bbcc-f38b745a0da6",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "mac_address" : "fa:16:3e:84:dc:57",
+    "admin_state_up" : true,
+    "status" : "ACTIVE",
+    "device_id" : "22e487a2-f0ef-4321-bb0b-e2d84540e68a",
+    "device_owner" : "compute:nova",
+    "fixed_ips" : [ {
+      "subnet_id" : "0e974ac9-cc25-4c42-960c-2c9799b63bd0",
+      "ip_address" : "172.31.0.103"
+    } ],
+    "allowed_address_pairs" : [ ],
+    "extra_dhcp_opts" : [ ],
+    "security_groups" : [ "adedef73-26f2-41d8-af95-9716df771d22" ],
+    "description" : "",
+    "binding:vnic_type" : "normal",
+    "binding:profile" : {
+      "os_vif_delegation" : true
+    },
+    "binding:host_id" : "aolda-compute",
+    "binding:vif_type" : "ovs",
+    "binding:vif_details" : {
+      "connectivity" : "l2",
+      "port_filter" : true,
+      "ovs_hybrid_plug" : true,
+      "datapath_type" : "system",
+      "bridge_name" : "br-int",
+      "bound_drivers" : {
+        "0" : "openvswitch"
+      }
+    },
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-05T11:03:25Z",
+    "updated_at" : "2026-01-05T11:10:46Z",
+    "revision_number" : 23,
+    "project_id" : "1968d3759a2b4d7d9640ddd74fbde11f"
+  } ]
+}
+  }
+}

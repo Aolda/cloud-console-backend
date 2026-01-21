@@ -3,7 +3,8 @@ package com.acc.local.service.modules.image;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.exception.image.ImageException;
 import com.acc.local.dto.image.*;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -15,32 +16,31 @@ import java.util.List;
 @Component
 public class ImageMapperUtil {
 
-    public List<GlanceImageSummary> toImageListResponse(JsonNode json) {
+    public List<GlanceImageSummary> toImageListResponse(GlanceImagesResponse glanceResponse) {
         try {
-            if (json == null) throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            if (glanceResponse == null || glanceResponse.getImages() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
             List<GlanceImageSummary> list = new ArrayList<>();
 
-            JsonNode imagesNode = json.get("images");
-            if (imagesNode != null && imagesNode.isArray()) {
-                for (JsonNode img : imagesNode) {
-                    list.add(
-                            GlanceImageSummary.builder()
-                                    .id(text(img, "id"))
-                                    .name(text(img, "name"))
-                                    .architecture(text(img, "architecture"))
-                                    .projectName(null)
-                                    .description(null)
-                                    .diskFormat(text(img, "disk_format"))
-                                    .status(text(img, "status"))
-                                    .visibility(text(img, "visibility"))
-                                    .size(longOrNull(img, "size"))
-                                    .hidden(boolOrNull(img, "os_hidden"))
-                                    .minDisk(intOrNull(img, "min_disk"))
-                                    .minRam(intOrNull(img, "min_ram"))
-                                    .createdAt(text(img, "created_at"))
-                                    .build()
-                    );
-                }
+            for (GlanceImagesResponse.Image img : glanceResponse.getImages()) {
+                list.add(
+                        GlanceImageSummary.builder()
+                                .id(img.getId())
+                                .name(img.getName())
+                                .architecture(null) // Not in GlanceImagesResponse.Image
+                                .projectName(null)
+                                .description(null)
+                                .diskFormat(img.getDiskFormat())
+                                .status(img.getStatus())
+                                .visibility(img.getVisibility())
+                                .size(img.getSize())
+                                .hidden(null) // Not in GlanceImagesResponse.Image
+                                .minDisk(null) // Not in GlanceImagesResponse.Image
+                                .minRam(null) // Not in GlanceImagesResponse.Image
+                                .createdAt(img.getCreatedAt())
+                                .build()
+                );
             }
             return list;
         } catch (Exception e) {
@@ -65,78 +65,48 @@ public class ImageMapperUtil {
     }
 
 
-    public ImageDetailResponse toImageDetailResponse(JsonNode json) {
+    public ImageDetailResponse toImageDetailResponse(GlanceImageResponse glanceImage) {
         try {
-            if (json == null) throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            if (glanceImage == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
 
             return ImageDetailResponse.builder()
-                    .id(text(json, "id"))
-                    .name(text(json, "name"))
-                    .architecture(text(json, "architecture"))
+                    .id(glanceImage.getId())
+                    .name(glanceImage.getName())
+                    .architecture(null) // Can add if needed: glanceImage.getArchitecture()
                     .projectName(null)
                     .description(null)
-                    .diskFormat(text(json, "disk_format"))
-                    .status(text(json, "status"))
-                    .visibility(text(json, "visibility"))
-                    .size(longOrNull(json, "size"))
-                    .hidden(boolOrNull(json, "os_hidden"))
-                    .minDisk(intOrNull(json, "min_disk"))
-                    .minRam(intOrNull(json, "min_ram"))
-                    .createdAt(text(json, "created_at"))
-                    .updatedAt(text(json, "updated_at"))
-                    .tags(listOrNull(json.get("tags")))
+                    .diskFormat(glanceImage.getDiskFormat())
+                    .status(glanceImage.getStatus())
+                    .visibility(glanceImage.getVisibility())
+                    .size(glanceImage.getSize())
+                    .hidden(glanceImage.getOsHidden())
+                    .minDisk(glanceImage.getMinDisk())
+                    .minRam(glanceImage.getMinRam())
+                    .createdAt(glanceImage.getCreatedAt())
+                    .updatedAt(glanceImage.getUpdatedAt())
+                    .tags(glanceImage.getTags())
                     .build();
         } catch (Exception e) {
-            System.out.println("파서");
             throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
         }
     }
 
-    public ImageUploadAckResponse toUploadAck(JsonNode node) {
+    public ImageUploadAckResponse toUploadAck(GlanceImageResponse glanceImage) {
         try {
-            if (node == null || node.get("id") == null) throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            if (glanceImage == null || glanceImage.getId() == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
 
             return ImageUploadAckResponse.builder()
-                    .imageId(node.get("id").asText())
-                    .name(node.get("name").asText())
-                    .status(node.get("status") != null ? node.get("status").asText() : null)
+                    .imageId(glanceImage.getId())
+                    .name(glanceImage.getName())
+                    .status(glanceImage.getStatus())
                     .message("Image metadata created")
                     .build();
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
         }
-    }
-
-    private String text(JsonNode node, String field) {
-        if (node == null) return null;
-        JsonNode v = node.get(field);
-        return (v == null || v.isNull()) ? null : v.asText();
-    }
-
-    private Long longOrNull(JsonNode node, String field) {
-        if (node == null) return null;
-        JsonNode v = node.get(field);
-        return (v == null || v.isNull()) ? null : v.asLong();
-    }
-
-    private Integer intOrNull(JsonNode node, String field) {
-        if (node == null) return null;
-        JsonNode v = node.get(field);
-        return (v == null || v.isNull()) ? null : v.asInt();
-    }
-
-    private List<String> listOrNull(JsonNode node) {
-        if (node == null || !node.isArray()) return null;
-
-        List<String> list = new ArrayList<>();
-        for (JsonNode n : node) {
-            if (n != null && !n.isNull()) list.add(n.asText());
-        }
-        return list;
-    }
-    private Boolean boolOrNull(JsonNode node, String field) {
-        if (node == null) return null;
-        JsonNode v = node.get(field);
-        return (v == null || v.isNull()) ? null : v.asBoolean();
     }
 }

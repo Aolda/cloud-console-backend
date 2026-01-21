@@ -36,6 +36,10 @@ import com.acc.local.external.modules.keystone.KeystoneUserAPIModule;
 import com.acc.local.external.modules.keystone.KeystoneRoleAPIModule;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.acc.local.external.dto.keystone.response.KeystoneProjectsResponse;
+import com.acc.local.external.dto.keystone.response.KeystoneUsersResponse;
+import com.acc.local.external.dto.keystone.response.KeystoneRolesResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,7 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	private final KeystoneProjectAPIModule keystoneProjectAPIModule;
 	private final KeystoneUserAPIModule keystoneUserAPIModule;
 	private final KeystoneRoleAPIModule keystoneRoleAPIModule;
+	private final ObjectMapper objectMapper;
 
 	@Override
 	public KeystoneToken getUnscopedToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {

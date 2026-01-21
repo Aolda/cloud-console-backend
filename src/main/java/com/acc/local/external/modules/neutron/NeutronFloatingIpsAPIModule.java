@@ -5,6 +5,7 @@ import com.acc.local.external.dto.neutron.floatingips.UpdateFloatingIpRequest;
 import com.acc.local.external.dto.neutron.portforwardings.CreatePortForwardingRequest;
 import com.acc.local.external.dto.neutron.portforwardings.UpdatePortForwardingRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.neutron.response.NeutronFloatingIpsResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,9 @@ public class NeutronFloatingIpsAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listFloatingIps(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronFloatingIpsResponse> listFloatingIps(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/floatingips";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronFloatingIpsResponse.class);
     }
 
     public ResponseEntity<JsonNode> createFloatingIp(String token, CreateFloatingIpRequest request) {
@@ -29,9 +30,9 @@ public class NeutronFloatingIpsAPIModule extends NeutronAPIUtil {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> showFloatingIp(String token, String floatingIpId) {
+    public ResponseEntity<NeutronFloatingIpsResponse> showFloatingIp(String token, String floatingIpId) {
         String uri = "/v2.0/floatingips/" + floatingIpId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronFloatingIpsResponse.class);
     }
 
     public ResponseEntity<JsonNode> updateFloatingIp(String token, String floatingIpId, UpdateFloatingIpRequest request) {
@@ -39,9 +40,9 @@ public class NeutronFloatingIpsAPIModule extends NeutronAPIUtil {
         return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> deleteFloatingIp(String token, String floatingIpId) {
+    public ResponseEntity<Void> deleteFloatingIp(String token, String floatingIpId) {
         String uri = "/v2.0/floatingips/" + floatingIpId;
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
+        return openstackAPICallModule.callDeleteAPINoBody(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 
     // Port Forwardings

@@ -4,7 +4,8 @@ import com.acc.local.external.dto.neutron.subnets.BulkCreateSubnetRequest;
 import com.acc.local.external.dto.neutron.subnets.CreateSubnetRequest;
 import com.acc.local.external.dto.neutron.subnets.UpdateSubnetRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSubnetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -18,33 +19,33 @@ public class NeutronSubnetsAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listSubnets(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronSubnetsResponse> listSubnets(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/subnets";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronSubnetsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> createSubnet(String token, CreateSubnetRequest request) {
+    public ResponseEntity<NeutronSubnetResponse> createSubnet(String token, CreateSubnetRequest request) {
         String uri = "/v2.0/subnets";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronSubnetResponse.class);
     }
 
-    public ResponseEntity<JsonNode> bulkCreateSubnets(String token, BulkCreateSubnetRequest request) {
+    public ResponseEntity<NeutronSubnetsResponse> bulkCreateSubnets(String token, BulkCreateSubnetRequest request) {
         String uri = "/v2.0/subnets";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronSubnetsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> showSubnet(String token, String subnetId) {
+    public ResponseEntity<NeutronSubnetResponse> showSubnet(String token, String subnetId) {
         String uri = "/v2.0/subnets/" + subnetId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronSubnetResponse.class);
     }
 
-    public ResponseEntity<JsonNode> updateSubnet(String token, String subnetId, UpdateSubnetRequest request) {
+    public ResponseEntity<NeutronSubnetResponse> updateSubnet(String token, String subnetId, UpdateSubnetRequest request) {
         String uri = "/v2.0/subnets/" + subnetId;
-        return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPutAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronSubnetResponse.class);
     }
 
-    public ResponseEntity<JsonNode> deleteSubnet(String token, String subnetId) {
+    public ResponseEntity<Void> deleteSubnet(String token, String subnetId) {
         String uri = "/v2.0/subnets/" + subnetId;
-        return openstackAPICallModule.callDeleteAPI(uri, Collections.singletonMap("X-Auth-Token", token), port);
+        return openstackAPICallModule.callDeleteAPINoBody(uri, Collections.singletonMap("X-Auth-Token", token), port);
     }
 }

@@ -9,6 +9,9 @@ import com.acc.local.external.dto.neutron.securitygroups.CreateSecurityGroupRequ
 import com.acc.local.external.modules.neutron.NeutronSecurityGroupRulesAPIModule;
 import com.acc.local.external.modules.neutron.NeutronSecurityGroupsAPIModule;
 import com.acc.local.external.ports.NeutronSecurityGroupExternalPort;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupRulesResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +35,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
     @Override
     public String callCreateSecurityGroup(String keystoneToken, String projectId, String securityGroupName, String description) {
         try {
-            ResponseEntity<JsonNode> response = securityGroupsAPIModule.createSecurityGroup(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupResponse> response = securityGroupsAPIModule.createSecurityGroup(keystoneToken,
                     CreateSecurityGroupRequest.builder().securityGroup(
                             CreateSecurityGroupRequest.SecurityGroup.builder()
                                     .name(securityGroupName)
@@ -45,8 +48,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_GROUP_CREATION_FAILED);
             }
 
-            JsonNode securityGroupNode = response.getBody().get("security_group");
-            return securityGroupNode.get("id").asText();
+            return response.getBody().getSecurityGroup().getId();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -61,7 +63,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
     public PageResponse<ViewSecurityGroupsResponse> callListSecurityGroups(String keystoneToken, String projectId, String marker, String direction, int limit) {
 
         try {
-            ResponseEntity<JsonNode> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
             getListSecurityGroupsParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -85,16 +87,16 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
     @Override
     public ViewSecurityGroupsResponse callGetSecurityGroupById(String keystoneToken, String securityGroupId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<JsonNode> response = securityGroupsAPIModule.showSecurityGroup(keystoneToken, securityGroupId);
+            ResponseEntity<NeutronSecurityGroupResponse> response = securityGroupsAPIModule.showSecurityGroup(keystoneToken, securityGroupId);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_GROUP_RETRIEVAL_FAILED);
             }
 
-            JsonNode sgNode = response.getBody().get("security_group");
+            var sg = response.getBody().getSecurityGroup();
             return ViewSecurityGroupsResponse.builder()
-                    .securityGroupName(sgNode.get("name").asText())
-                    .description(sgNode.get("description").asText())
+                    .securityGroupName(sg.getName())
+                    .description(sg.getDescription())
                     .rules(getSecurityGroupDetails(keystoneToken, securityGroupId, marker, direction, limit))
                     .build();
         } catch (WebClientResponseException e) {
@@ -113,7 +115,7 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
         try {
             Map<String, String> params = getListSecurityGroupsParams(projectId, null, "next", 0);
             params.put("name", securityGroupName);
-            ResponseEntity<JsonNode> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupsResponse> response = securityGroupsAPIModule.listSecurityGroups(keystoneToken,
                     params);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -152,13 +154,13 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
 
     private PageResponse<ViewSecurityGroupsResponse.Rule> getSecurityGroupDetails(String keystoneToken, String securityGroupId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<JsonNode> response = securityRuleExternalPort.listSecurityGroupRules(keystoneToken,
+            ResponseEntity<NeutronSecurityGroupRulesResponse> response = securityRuleExternalPort.listSecurityGroupRules(keystoneToken,
                     getListSecurityGroupRulesParams(securityGroupId, marker, direction, limit > 0 ? limit + 1 : 0));
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_SECURITY_RULE_RETRIEVAL_FAILED);
             }
 
-            List<ViewSecurityGroupsResponse.Rule> securityRules = parseSecurityRules(response.getBody().get("security_group_rules"));
+            List<ViewSecurityGroupsResponse.Rule> securityRules = parseSecurityRules(response.getBody().getSecurityGroupRules());
             return getSecurityRulesPageResponse(marker, limit, securityRules);
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
@@ -186,17 +188,16 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
                 .build();
     }
 
-    private List<ViewSecurityGroupsResponse.Rule> parseSecurityRules(JsonNode securityGroupRules) {
+    private List<ViewSecurityGroupsResponse.Rule> parseSecurityRules(List<NeutronSecurityGroupsResponse.SecurityGroupRule> securityGroupRules) {
         List<ViewSecurityGroupsResponse.Rule> rules = new ArrayList<>();
-
-        for (JsonNode ruleNode : securityGroupRules) {
+        for (NeutronSecurityGroupsResponse.SecurityGroupRule ruleNode : securityGroupRules) {
             ViewSecurityGroupsResponse.Rule rule = ViewSecurityGroupsResponse.Rule.builder()
-                    .ruleId(ruleNode.get("id").asText())
-                    .direction(ruleNode.get("direction").asText())
-                    .protocol(ruleNode.get("protocol").isNull() ? ProtocolType.ANY : ProtocolType.findByProtocolName(ruleNode.get("protocol").asText()))
+                    .ruleId(ruleNode.getId())
+                    .direction(ruleNode.getDirection())
+                    .protocol(ruleNode.getProtocol() == null ? ProtocolType.ANY : ProtocolType.findByProtocolName(ruleNode.getProtocol()))
                     .portRange(getPortRange(ruleNode))
-                    .prefix(ruleNode.get("remote_ip_prefix").isNull() ? null : ruleNode.get("remote_ip_prefix").asText())
-                    .remoteGroupId(ruleNode.get("remote_group_id").isNull() ? null : ruleNode.get("remote_group_id").asText())
+                    .prefix(ruleNode.getRemoteIpPrefix())
+                    .remoteGroupId(ruleNode.getRemoteGroupId())
                     .build();
             rules.add(rule);
         }
@@ -218,12 +219,12 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
         return params;
     }
 
-    private String getPortRange(JsonNode ruleNode) {
-        if (ruleNode.get("port_range_min").isNull() || ruleNode.get("port_range_max").isNull()) {
+    private String getPortRange(NeutronSecurityGroupsResponse.SecurityGroupRule ruleNode) {
+        if (ruleNode.getPortRangeMin() == null || ruleNode.getPortRangeMax() == null) {
             return "any";
         }
-        int portMin = ruleNode.get("port_range_min").asInt();
-        int portMax = ruleNode.get("port_range_max").asInt();
+        int portMin = ruleNode.getPortRangeMin();
+        int portMax = ruleNode.getPortRangeMax();
         return portMin == portMax ? String.valueOf(portMin) : portMin + ":" + portMax;
     }
 
@@ -244,15 +245,14 @@ public class NeutronSecurityGroupExternalAdapter implements NeutronSecurityGroup
                 .build();
     }
 
-    private List<ViewSecurityGroupsResponse> parseSecurityGroups(ResponseEntity<JsonNode> response) {
+    private List<ViewSecurityGroupsResponse> parseSecurityGroups(ResponseEntity<NeutronSecurityGroupsResponse> response) {
         List<ViewSecurityGroupsResponse> securityGroups = new java.util.ArrayList<>();
-
-        for (JsonNode sgNode : response.getBody().get("security_groups")) {
+        for (NeutronSecurityGroupsResponse.SecurityGroup sgNode : response.getBody().getSecurityGroups()) {
             ViewSecurityGroupsResponse sg = ViewSecurityGroupsResponse.builder()
-                    .securityGroupId(sgNode.get("id").asText())
-                    .securityGroupName(sgNode.get("name").asText())
-                    .description(sgNode.get("description").asText())
-                    .createdAt(sgNode.get("created_at").asText())
+                    .securityGroupId(sgNode.getId())
+                    .securityGroupName(sgNode.getName())
+                    .description(sgNode.getDescription())
+                    .createdAt(sgNode.getCreatedAt())
                     .build();
 
             securityGroups.add(sg);

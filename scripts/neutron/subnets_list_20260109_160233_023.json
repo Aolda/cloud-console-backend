@@ -1,0 +1,71 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.0/subnets",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {
+  "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "subnets" : [ {
+    "id" : "6f2d2002-7f0c-470e-8ee3-db2ee414ed80",
+    "name" : "default-subnet",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "network_id" : "679254ce-d4e5-41c5-8c4f-607f526ba43e",
+    "ip_version" : 4,
+    "subnetpool_id" : null,
+    "enable_dhcp" : true,
+    "ipv6_ra_mode" : null,
+    "ipv6_address_mode" : null,
+    "gateway_ip" : "192.168.0.1",
+    "cidr" : "192.168.0.0/24",
+    "allocation_pools" : [ {
+      "start" : "192.168.0.2",
+      "end" : "192.168.0.254"
+    } ],
+    "host_routes" : [ ],
+    "dns_nameservers" : [ ],
+    "description" : "",
+    "router:external" : false,
+    "service_types" : [ ],
+    "tags" : [ ],
+    "created_at" : "2025-11-26T15:43:48Z",
+    "updated_at" : "2025-11-26T15:43:48Z",
+    "revision_number" : 0,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "b348850d-8c88-4ed1-975e-ac8f7881a7c7",
+    "name" : "test-subnet",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "network_id" : "26508704-c5b8-4576-a08c-330f81309167",
+    "ip_version" : 4,
+    "subnetpool_id" : null,
+    "enable_dhcp" : true,
+    "ipv6_ra_mode" : null,
+    "ipv6_address_mode" : null,
+    "gateway_ip" : "192.168.0.1",
+    "cidr" : "192.168.0.0/24",
+    "allocation_pools" : [ {
+      "start" : "192.168.0.2",
+      "end" : "192.168.0.254"
+    } ],
+    "host_routes" : [ ],
+    "dns_nameservers" : [ ],
+    "description" : "",
+    "router:external" : false,
+    "service_types" : [ ],
+    "tags" : [ ],
+    "created_at" : "2025-11-06T04:36:56Z",
+    "updated_at" : "2025-11-06T04:36:56Z",
+    "revision_number" : 0,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  } ]
+}
+  }
+}

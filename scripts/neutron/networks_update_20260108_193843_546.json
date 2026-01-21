@@ -1,0 +1,39 @@
+{
+  "request": {
+    "method": "PUT",
+    "uri": "/v2.0/networks/d42b4b98-bffe-494d-9f68-da26294bbe61",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "network" : {
+    "id" : "d42b4b98-bffe-494d-9f68-da26294bbe61",
+    "name" : "network-capture-20260108193842",
+    "tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b",
+    "admin_state_up" : true,
+    "mtu" : 1450,
+    "status" : "ACTIVE",
+    "subnets" : [ ],
+    "shared" : false,
+    "availability_zone_hints" : [ ],
+    "availability_zones" : [ ],
+    "ipv4_address_scope" : null,
+    "ipv6_address_scope" : null,
+    "router:external" : false,
+    "description" : "updated-by-capture",
+    "qos_policy_id" : null,
+    "port_security_enabled" : true,
+    "tags" : [ ],
+    "created_at" : "2026-01-08T10:38:43Z",
+    "updated_at" : "2026-01-08T10:38:43Z",
+    "revision_number" : 2,
+    "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }
+}
+  }
+}

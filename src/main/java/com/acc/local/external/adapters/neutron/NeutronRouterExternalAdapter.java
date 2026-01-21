@@ -12,6 +12,8 @@ import com.acc.local.external.dto.neutron.routers.CreateRouterRequest;
 import com.acc.local.external.dto.neutron.routers.RemoveRouterInterfaceRequest;
 import com.acc.local.external.modules.neutron.NeutronRoutersAPIModule;
 import com.acc.local.external.ports.NeutronRouterExternalPort;
+import com.acc.local.external.dto.neutron.response.NeutronRoutersResponse;
+import com.acc.local.external.dto.neutron.response.NeutronRouterResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,7 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
     @Override
     public PageResponse<ViewRoutersResponse> callListRouters(String keystoneToken, String projectId, String marker, String direction, int limit) {
         try {
-            ResponseEntity<JsonNode> response = routersAPIModule.listRouters(keystoneToken,
+            ResponseEntity<NeutronRoutersResponse> response = routersAPIModule.listRouters(keystoneToken,
                     getListRoutersParams(projectId, marker, direction, limit > 0 ? limit + 1 : 0));
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -76,7 +78,7 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
     @Override
     public String callCreateRouter(String keystoneToken, String routerName, String networkId) {
         try {
-            ResponseEntity<JsonNode> response = routersAPIModule.createRouter(keystoneToken,
+            ResponseEntity<NeutronRouterResponse> response = routersAPIModule.createRouter(keystoneToken,
                     CreateRouterRequest.builder().router(
                             CreateRouterRequest.Router.builder()
                                     .name(routerName)
@@ -95,7 +97,7 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_CREATION_FAILED);
             }
 
-            return response.getBody().get("router").get("id").asText();
+            return response.getBody().getRouter().getId();
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
             switch (e.getStatusCode().value()) {
@@ -185,7 +187,7 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
     @Override
     public Map<String, String> getRouterNameAndId(String keystoneToken, String routerId) {
         try {
-            ResponseEntity<JsonNode> response = routersAPIModule.showRouter(
+            ResponseEntity<NeutronRouterResponse> response = routersAPIModule.showRouter(
                     keystoneToken,
                     routerId
             );
@@ -194,10 +196,10 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
                 throw new NeutronException(NeutronErrorCode.NEUTRON_ROUTER_RETRIEVAL_FAILED);
             }
 
-            JsonNode router = response.getBody().get("router");
+            var router = response.getBody().getRouter();
             return Map.of(
                     "id", routerId,
-                    "name", router.get("name").asText()
+                    "name", router.getName()
             );
         } catch (WebClientResponseException e) {
             log.error(e.getMessage(), e.getResponseBodyAsString(), e);
@@ -211,18 +213,21 @@ public class NeutronRouterExternalAdapter implements NeutronRouterExternalPort {
 
     }
 
-    private List<ViewRoutersResponse> parseRouters(ResponseEntity<JsonNode> response) {
+    private List<ViewRoutersResponse> parseRouters(ResponseEntity<NeutronRoutersResponse> response) {
         List<ViewRoutersResponse> routers = new ArrayList<>();
-        for (JsonNode routerNode : response.getBody().get("routers")) {
-            boolean isGateway = routerNode.hasNonNull("external_gateway_info");
+        for (NeutronRoutersResponse.Router routerNode : response.getBody().getRouters()) {
+            boolean isGateway = routerNode.getExternalGatewayInfo() != null;
 
             routers.add(ViewRoutersResponse.builder()
-                    .routerId(routerNode.get("id").asText())
-                    .routerName(routerNode.get("name").asText())
-                    .status(routerNode.get("status").asText())
+                    .routerId(routerNode.getId())
+                    .routerName(routerNode.getName())
+                    .status(routerNode.getStatus())
                     .isExternal(isGateway)
-                    .externalIp(isGateway ? routerNode.get("external_gateway_info").get("external_fixed_ips").get(0).get("ip_address").asText() : null)
-                    .createdAt(routerNode.get("created_at").asText())
+                    .externalIp(isGateway && routerNode.getExternalGatewayInfo().getExternalFixedIps() != null
+                            && !routerNode.getExternalGatewayInfo().getExternalFixedIps().isEmpty()
+                            ? routerNode.getExternalGatewayInfo().getExternalFixedIps().get(0).getIpAddress()
+                            : null)
+                    .createdAt(routerNode.getCreatedAt())
                     .build());
         }
 

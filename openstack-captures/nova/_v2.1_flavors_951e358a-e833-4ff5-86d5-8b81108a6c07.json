@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "flavor" : {
+    "id" : "951e358a-e833-4ff5-86d5-8b81108a6c07",
+    "name" : "m1.medium",
+    "ram" : 8192,
+    "disk" : 0,
+    "swap" : "",
+    "OS-FLV-EXT-DATA:ephemeral" : 0,
+    "OS-FLV-DISABLED:disabled" : false,
+    "vcpus" : 4,
+    "os-flavor-access:is_public" : true,
+    "rxtx_factor" : 1.0,
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/flavors/951e358a-e833-4ff5-86d5-8b81108a6c07"
+    } ]
+  }
+}
+  }
+}

@@ -7,6 +7,7 @@ import com.acc.local.dto.instance.InstanceCreateRequest;
 import com.acc.local.dto.instance.InstanceResponse;
 import com.acc.local.domain.enums.InstanceStatus;
 import com.acc.local.external.dto.nova.server.CreateServerRequest;
+import com.acc.local.external.dto.nova.response.NovaServersResponse;
 import com.acc.local.external.modules.nova.NovaServerAPIModule;
 import com.acc.local.external.ports.NovaServerExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,7 +32,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
 
     @Override
     public PageResponse<InstanceResponse> callListInstances(String keystoneToken, String projectId, String marker, String direction, int limit) {
-        ResponseEntity<JsonNode> response;
+        ResponseEntity<NovaServersResponse> response;
 
         try {
             response = novaServerAPIModule.listServersDetail(keystoneToken, getListServersParams(projectId, marker, direction, limit == 0 ? 0 : limit + 1));
@@ -43,6 +44,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
             log.error("Nova API non-success status: {}, body: {}", response.getStatusCode(), response.getBody());
             throw new NovaException(NovaErrorCode.NOVA_SERVER_RETRIEVAL_FAILED);
         }
+
         List<InstanceResponse> servers = parseServers(response);
         return getServersPageResponse(marker, limit, servers);
     }
@@ -62,6 +64,7 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
             log.error("Nova API non-success status: {}, body: {}", response.getStatusCode(), response.getBody());
             throw new NovaException(NovaErrorCode.NOVA_SERVER_CREATION_FAILED);
         }
+
     }
 
     private Map<String, String> getListServersParams(String projectId, String marker, String direction, int limit) {
@@ -80,37 +83,66 @@ public class NovaServerExternalAdapter implements NovaServerExternalPort {
         return params;
     }
 
-    private List<InstanceResponse> parseServers(ResponseEntity<JsonNode> response) {
-        List<InstanceResponse> servers = new ArrayList<>();
-        JsonNode serversNode = response.getBody().path("servers");
-        for (JsonNode serverNode : serversNode) {
-            JsonNode imageNode = serverNode.path("image");
-            List<String> internalIps = new ArrayList<>();
-            List<String> externalIps = new ArrayList<>();
+    private List<InstanceResponse> parseServers(ResponseEntity<NovaServersResponse> response) {
+            List<InstanceResponse> servers = new ArrayList<>();
+            for (NovaServersResponse.Server server : response.getBody().getServers()) {
+                List<String> internalIps = new ArrayList<>();
+                List<String> externalIps = new ArrayList<>();
 
-            serverNode.path("addresses").fields().forEachRemaining(entry ->
-                    StreamSupport.stream(entry.getValue().spliterator(), false)
-                            .forEach(addr -> {
-                                String ipType = addr.path("OS-EXT-IPS:type").asText();
-                                if ("fixed".equals(ipType)) {
-                                    internalIps.add(addr.path("addr").asText());
-                                } else if ("floating".equals(ipType)) {
-                                    externalIps.add(addr.path("addr").asText());
+                // addresses Map을 순회하며 IP 주소 추출
+                if (server.getAddresses() != null) {
+                    server.getAddresses().values().forEach(addressList ->
+                            addressList.forEach(addr -> {
+                                if ("fixed".equals(addr.getType())) {
+                                    internalIps.add(addr.getAddr());
+                                } else if ("floating".equals(addr.getType())) {
+                                    externalIps.add(addr.getAddr());
                                 }
                             })
-            );
+                    );
+                }
 
-            servers.add(InstanceResponse.builder()
-                    .instanceId(serverNode.path("id").asText())
-                    .instanceName(serverNode.path("name").asText())
-                    .status(InstanceStatus.findByStatusName(serverNode.path("status").asText()))
-                    .type(serverNode.at("/flavor/original_name").asText())
-                    .image(imageNode.isObject() ? imageNode.path("id").asText() : imageNode.asText())
-                    .internalIps(internalIps)
-                    .externalIps(externalIps)
-                    .build());
+                // image는 Object 타입이므로 처리
+                String imageId = extractImageId(server.getImage());
+
+                servers.add(InstanceResponse.builder()
+                        .instanceId(server.getId())
+                        .instanceName(server.getName())
+                        .status(InstanceStatus.findByStatusName(server.getStatus()))
+                        .type(extractFlavorType(server.getFlavor()))
+                        .image(imageId)
+                        .internalIps(internalIps)
+                        .externalIps(externalIps)
+                        .build());
+            }
+            return servers;
+    }
+
+    private String extractImageId(Object image) {
+        if (image == null) {
+            return null;
         }
-        return servers;
+        if (image instanceof String) {
+            return (String) image;
+        }
+        if (image instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> imageMap = (Map<String, Object>) image;
+            Object id = imageMap.get("id");
+            return id != null ? id.toString() : null;
+        }
+        return null;
+    }
+
+    private String extractFlavorType(NovaServersResponse.Flavor flavor) {
+        if (flavor == null) {
+            return null;
+        }
+        // original_name이 있으면 사용, 없으면 name으로 fallback
+        String originalName = flavor.getOriginalName();
+        return (originalName != null && !originalName.isEmpty())
+                ? originalName
+                : flavor.getName();
     }
 
     private PageResponse<InstanceResponse> getServersPageResponse(String marker, int limit, List<InstanceResponse> servers) {

@@ -3,6 +3,8 @@ package com.acc.local.external.modules.neutron;
 import com.acc.local.external.dto.neutron.securitygroups.CreateSecurityGroupRequest;
 import com.acc.local.external.dto.neutron.securitygroups.UpdateSecurityGroupRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupResponse;
+import com.acc.local.external.dto.neutron.response.NeutronSecurityGroupsResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +19,19 @@ public class NeutronSecurityGroupsAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listSecurityGroups(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronSecurityGroupsResponse> listSecurityGroups(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/security-groups";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronSecurityGroupsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> createSecurityGroup(String token, CreateSecurityGroupRequest request) {
+    public ResponseEntity<NeutronSecurityGroupResponse> createSecurityGroup(String token, CreateSecurityGroupRequest request) {
         String uri = "/v2.0/security-groups";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronSecurityGroupResponse.class);
     }
 
-    public ResponseEntity<JsonNode> showSecurityGroup(String token, String securityGroupId) {
+    public ResponseEntity<NeutronSecurityGroupResponse> showSecurityGroup(String token, String securityGroupId) {
         String uri = "/v2.0/security-groups/" + securityGroupId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronSecurityGroupResponse.class);
     }
 
     public ResponseEntity<JsonNode> updateSecurityGroup(String token, String securityGroupId, UpdateSecurityGroupRequest request) {

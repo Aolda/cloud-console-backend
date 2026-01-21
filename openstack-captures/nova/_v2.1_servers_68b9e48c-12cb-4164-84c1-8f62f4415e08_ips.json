@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/68b9e48c-12cb-4164-84c1-8f62f4415e08/ips",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "addresses" : { }
+}
+  }
+}

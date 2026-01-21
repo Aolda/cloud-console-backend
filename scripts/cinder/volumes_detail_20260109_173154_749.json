@@ -1,0 +1,120 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes/detail",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "volumes" : [ {
+    "id" : "32b5e310-9766-4c7d-b528-b3c5a3fab155",
+    "status" : "in-use",
+    "size" : 20,
+    "availability_zone" : "nova",
+    "created_at" : "2025-11-26T15:45:47.000000",
+    "updated_at" : "2025-11-26T15:48:45.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8776/v3/volumes/32b5e310-9766-4c7d-b528-b3c5a3fab155"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8776/volumes/32b5e310-9766-4c7d-b528-b3c5a3fab155"
+    } ],
+    "user_id" : "de15e36af072460da2e39a74be3595b6",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "32b5e310-9766-4c7d-b528-b3c5a3fab155",
+      "attachment_id" : "227a61b3-afb4-4ae6-8e18-3385b0c2c939",
+      "volume_id" : "32b5e310-9766-4c7d-b528-b3c5a3fab155",
+      "server_id" : "1f72c950-169e-4a52-98bc-b05b4e74b70e",
+      "host_name" : null,
+      "device" : "/dev/vda",
+      "attached_at" : "2025-11-26T15:48:44.000000"
+    } ],
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "owner_specified.openstack.md5" : "",
+      "owner_specified.openstack.sha256" : "",
+      "owner_specified.openstack.object" : "images/ubuntu-24-04-lts",
+      "os_admin_user" : "ubuntu",
+      "os_version" : "24.04",
+      "os_distro" : "ubuntu",
+      "image_id" : "ca11a35b-f858-438b-8705-1773752fea1a",
+      "image_name" : "smoke-import-ubuntu-2404-updated",
+      "checksum" : "77a77cff0d62968d5166322ea2b78008",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "0",
+      "min_ram" : "0",
+      "size" : "618925568"
+    },
+    "os-vol-tenant-attr:tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  }, {
+    "id" : "25e6e98b-1d48-4f9e-a84d-cd75858631ea",
+    "status" : "in-use",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2025-11-07T09:53:44.000000",
+    "updated_at" : "2025-11-07T09:55:36.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8776/v3/volumes/25e6e98b-1d48-4f9e-a84d-cd75858631ea"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8776/volumes/25e6e98b-1d48-4f9e-a84d-cd75858631ea"
+    } ],
+    "user_id" : "de15e36af072460da2e39a74be3595b6",
+    "bootable" : "true",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ {
+      "id" : "25e6e98b-1d48-4f9e-a84d-cd75858631ea",
+      "attachment_id" : "3b717d0a-7dfb-45ba-8248-6070c7f1d383",
+      "volume_id" : "25e6e98b-1d48-4f9e-a84d-cd75858631ea",
+      "server_id" : "e833bc89-4c75-4bdd-9a7c-0b461393f2b1",
+      "host_name" : null,
+      "device" : "/dev/vda",
+      "attached_at" : "2025-11-07T09:55:36.000000"
+    } ],
+    "volume_image_metadata" : {
+      "signature_verified" : "False",
+      "os_glance_importing_to_stores" : "",
+      "os_glance_failed_import" : "",
+      "image_id" : "63bf0789-169f-4b56-b7fd-b7643c575f8e",
+      "image_name" : "smoke-import-ubuntu-2404",
+      "checksum" : "e2f0561da667e43e2019466fe916f937",
+      "container_format" : "bare",
+      "disk_format" : "qcow2",
+      "min_disk" : "10",
+      "min_ram" : "0",
+      "size" : "625462272"
+    },
+    "os-vol-tenant-attr:tenant_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+  } ]
+}
+  }
+}

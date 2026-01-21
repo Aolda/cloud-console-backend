@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "DELETE",
+    "uri": "/v2.0/networks/bc2fb3ab-4d63-49c7-86ae-60cf0f5045fb",
+    "port": 9696,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 204,
+    "body": null
+  }
+}

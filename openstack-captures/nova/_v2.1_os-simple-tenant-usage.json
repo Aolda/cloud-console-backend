@@ -1,0 +1,58 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/os-simple-tenant-usage",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token-Scope" : "project",
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "tenant_usages" : [ {
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 1.2500000000000002E-7,
+    "total_memory_mb_usage" : 2.5600000000000004E-4,
+    "total_hours" : 4.166666666666667E-8,
+    "start" : "2026-01-21T03:53:13.595893",
+    "stop" : "2026-01-21T03:53:13.595918"
+  }, {
+    "tenant_id" : "4366519bbaf54b4b97da6321cebb0fde",
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 2.2222222222222224E-7,
+    "total_memory_mb_usage" : 9.102222222222223E-4,
+    "total_hours" : 2.777777777777778E-8,
+    "start" : "2026-01-21T03:53:13.595893",
+    "stop" : "2026-01-21T03:53:13.595918"
+  }, {
+    "tenant_id" : "8c7fb960738d4f3c942ebe567f5154ac",
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 3.4722222222222227E-8,
+    "total_memory_mb_usage" : 7.111111111111112E-5,
+    "total_hours" : 1.388888888888889E-8,
+    "start" : "2026-01-21T03:53:13.595893",
+    "stop" : "2026-01-21T03:53:13.595918"
+  }, {
+    "tenant_id" : "c7557104907d4d5ba3a054418d9a0150",
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 2.0833333333333335E-8,
+    "total_memory_mb_usage" : 2.8444444444444447E-5,
+    "total_hours" : 2.0833333333333335E-8,
+    "start" : "2026-01-21T03:53:13.595893",
+    "stop" : "2026-01-21T03:53:13.595918"
+  }, {
+    "tenant_id" : "ee2c511910a3480b8ee395ec1bb0ff1b",
+    "total_local_gb_usage" : 0.0,
+    "total_vcpus_usage" : 6.944444444444445E-9,
+    "total_memory_mb_usage" : 1.4222222222222224E-5,
+    "total_hours" : 6.944444444444445E-9,
+    "start" : "2026-01-21T03:53:13.595893",
+    "stop" : "2026-01-21T03:53:13.595918"
+  } ]
+}
+  }
+}

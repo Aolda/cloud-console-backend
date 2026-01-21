@@ -1,0 +1,40 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {
+  "project_id" : "95282c49df5d47f68bb79bf4ad63a69b"
+}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "servers" : [ {
+    "id" : "1f72c950-169e-4a52-98bc-b05b4e74b70e",
+    "name" : "my-instance",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/95282c49df5d47f68bb79bf4ad63a69b/servers/1f72c950-169e-4a52-98bc-b05b4e74b70e"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/95282c49df5d47f68bb79bf4ad63a69b/servers/1f72c950-169e-4a52-98bc-b05b4e74b70e"
+    } ]
+  }, {
+    "id" : "e833bc89-4c75-4bdd-9a7c-0b461393f2b1",
+    "name" : "test",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.32.0.248:8774/v2.1/95282c49df5d47f68bb79bf4ad63a69b/servers/e833bc89-4c75-4bdd-9a7c-0b461393f2b1"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.32.0.248:8774/95282c49df5d47f68bb79bf4ad63a69b/servers/e833bc89-4c75-4bdd-9a7c-0b461393f2b1"
+    } ]
+  } ]
+}
+  }
+}

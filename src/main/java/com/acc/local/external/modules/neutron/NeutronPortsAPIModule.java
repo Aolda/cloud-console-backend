@@ -5,6 +5,8 @@ import com.acc.local.external.dto.neutron.ports.CreatePortBindingRequest;
 import com.acc.local.external.dto.neutron.ports.CreatePortRequest;
 import com.acc.local.external.dto.neutron.ports.UpdatePortRequest;
 import com.acc.local.external.modules.OpenstackAPICallModule;
+import com.acc.local.external.dto.neutron.response.NeutronPortsResponse;
+import com.acc.local.external.dto.neutron.response.NeutronPortResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,19 +22,19 @@ public class NeutronPortsAPIModule extends NeutronAPIUtil {
 
     private final OpenstackAPICallModule openstackAPICallModule;
 
-    public ResponseEntity<JsonNode> listPorts(String token, Map<String, String> queryParams) {
+    public ResponseEntity<NeutronPortsResponse> listPorts(String token, Map<String, String> queryParams) {
         String uri = "/v2.0/ports";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronPortsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> listPorts(String token, MultiValueMap<String, String> queryParams) {
+    public ResponseEntity<NeutronPortsResponse> listPorts(String token, MultiValueMap<String, String> queryParams) {
         String uri = "/v2.0/ports";
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), queryParams, port, NeutronPortsResponse.class);
     }
 
-    public ResponseEntity<JsonNode> createPort(String token, CreatePortRequest request) {
+    public ResponseEntity<NeutronPortResponse> createPort(String token, CreatePortRequest request) {
         String uri = "/v2.0/ports";
-        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
+        return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port, NeutronPortResponse.class);
     }
 
     public ResponseEntity<JsonNode> bulkCreatePorts(String token, BulkCreatePortRequest request) {
@@ -40,9 +42,9 @@ public class NeutronPortsAPIModule extends NeutronAPIUtil {
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
 
-    public ResponseEntity<JsonNode> showPort(String token, String portId) {
+    public ResponseEntity<NeutronPortResponse> showPort(String token, String portId) {
         String uri = "/v2.0/ports/" + portId;
-        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port);
+        return openstackAPICallModule.callGetAPI(uri, Collections.singletonMap("X-Auth-Token", token), Collections.emptyMap(), port, NeutronPortResponse.class);
     }
 
     public ResponseEntity<JsonNode> updatePort(String token, String portId, UpdatePortRequest request) {

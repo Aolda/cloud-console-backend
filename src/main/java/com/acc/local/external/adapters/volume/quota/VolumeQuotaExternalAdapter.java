@@ -9,9 +9,11 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.external.dto.cinder.quota.UpdateQuotaRequest;
+import com.acc.local.external.dto.cinder.response.CinderQuotaResponse;
 import com.acc.local.external.modules.cinder.CinderQuotasModule;
 import com.acc.local.external.ports.VolumeQuotaExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class VolumeQuotaExternalAdapter implements VolumeQuotaExternalPort {
 
 	private final CinderQuotasModule cinderQuotasModule;
+	private final ObjectMapper objectMapper;
 
 	@Override
 	public ResponseEntity<JsonNode> callGetQuota(String token, String projectId) {
