@@ -1,6 +1,7 @@
 package com.acc.local.controller.docs;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.local.dto.image.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,22 +30,70 @@ public interface ImageDocs {
     // GET /images (fetch list or detail)
     // ------------------------------------------------------------------------
     @Operation(
-            summary = "이미지 목록/상세 조회",
+            summary = "이미지 목록 조회",
             description = """
-                imageId 존재 시 상세 조회,
-                없으면 필터 + 페이지네이션 기반 목록 조회.
+                ## 페이지네이션 규칙
+                - **marker**: 이전 응답의 nextMarker 값을 사용 (단독 사용 불가)
+                - **direction**: next (다음 페이지) 또는 prev (이전 페이지), 기본값 next (단독 사용 불가)
+                - **limit**: 한 페이지당 항목 수, 기본값 10
 
-                ❗ pagination 규칙
-                - marker 단독 사용 금지
-                - direction 단독 사용 금지
-                - imageId 와 pagination 파라미터 동시 금지
+                ## 필터링 규칙
+
+                ### 1. hidden (Boolean)
+                - **null 또는 false**: os_hidden=false 필터 적용 (숨겨지지 않은 이미지만 조회)
+                - **true**: os_hidden 필터 없음 (모든 이미지 조회)
+                - **기본값**: false (숨김 이미지 제외)
+
+                ### 2. isActive (Boolean)
+                - **null 또는 true**: status=active 필터 적용 (활성 상태 이미지만 조회)
+                - **false**: status 필터 없음 (queued, saving, killed, deleted 포함)
+                - **기본값**: true (활성 이미지만 조회)
+
+                ### 3. visibility (String)
+                - **null**: 필터 없음 (public, private 모두 조회)
+                - **"public"**: 공개 이미지만 조회
+                - **"private"**: 비공개 이미지만 조회
+                - **기본값**: null (제한 없음)
+
+                ### 4. name (String)
+                - **null**: 필터 없음
+                - **값 제공 시**: 정확히 일치하는 이름의 이미지만 조회 (exact match)
+                - **기본값**: null
+
+                ### 5. architecture (String)
+                - **null**: 필터 없음
+                - **값 제공 시**: 해당 아키텍처의 이미지만 조회 (예: "x86_64")
+                - **기본값**: null
+
+                ## 사용 예시
+
+                ### 예시 1: 기본 목록 조회 (활성 + 숨김 제외)
+                ```
+                GET /api/v1/images?projectId=xxx
+                → hidden=false, isActive=true 자동 적용
+                ```
+
+                ### 예시 2: 모든 이미지 조회 (숨김 포함, 비활성 포함)
+                ```
+                GET /api/v1/images?projectId=xxx&hidden=true&isActive=false
+                ```
+
+                ### 예시 3: 공개 이미지만 조회
+                ```
+                GET /api/v1/images?projectId=xxx&visibility=public
+                ```
+
+                ### 예시 4: 페이지네이션 적용
+                ```
+                GET /api/v1/images?projectId=xxx&limit=20&direction=next&marker=abc123
+                ```
                 """
     )
     @ApiResponses({
             // ----- 성공 응답 -----
             @ApiResponse(
                     responseCode = "200",
-                    description = "단건 조회 또는 목록 조회 성공",
+                    description = "목록 조회 성공",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Object.class),
@@ -78,8 +127,70 @@ public interface ImageDocs {
                                               "nextMarker": "5f83ac1f-0d40-4e74-8088-c9eb5cfdb190"
                                             }
                                             """
-                                    ),
-                                    // -------- 상세 예시 --------
+                                    )
+                            }
+                    )
+            ),
+
+            // ----- 에러 응답 -----
+            @ApiResponse(responseCode = "400", description = "잘못된 요청",
+                    content = @Content(
+                            schema = @Schema(implementation = ImageErrorCode.class),
+                            examples = {
+                                    @ExampleObject(name="INVALID_PAGINATION_PARAM", value="{\"code\":\"ACC-IMAGE-PAGINATION-PARAM-INVALID\",\"message\":\"잘못된 페이지네이션 파라미터 조합입니다.\"}"),
+                                    @ExampleObject(name="INVALID_PAGINATION_WITH_IMAGE_ID", value="{\"code\":\"ACC-IMAGE-PAGINATION-WITH-IMAGE-ID\",\"message\":\"단건 조회 시 페이지네이션 파라미터를 사용할 수 없습니다.\"}"),
+                            }
+                    )
+            ),
+
+            @ApiResponse(responseCode = "403", description = "권한 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = ImageErrorCode.class),
+                            examples = {
+                                    @ExampleObject(name="IMAGE_NOT_ACCESSIBLE", value="{\"code\":\"ACC-IMAGE-NO-PERMISSION\",\"message\":\"해당 이미지에 접근할 권한이 없습니다.\"}")
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode="502", description="Glance 오류",
+                    content=@Content(
+                            schema=@Schema(implementation = ImageErrorCode.class),
+                            examples={
+                                    @ExampleObject(name="GLANCE_UNAVAILABLE", value="{\"code\":\"ACC-GLANCE-UNAVAILABLE\",\"message\":\"Glance 서비스와 통신할 수 없습니다.\"}"),
+                                    @ExampleObject(name="GLANCE_BAD_RESPONSE", value="{\"code\":\"ACC-GLANCE-BAD-RESPONSE\",\"message\":\"Glance로부터 비정상 응답이 수신되었습니다.\"}")
+                            }
+                    )
+            )
+    })
+    @GetMapping
+    ResponseEntity<PageResponse<GlanceImageSummary>> getImages(
+            @ModelAttribute
+            PageRequest pageRequest,
+            @ParameterObject
+            @ModelAttribute
+            ImageFilterRequest filterRequest,
+            @Parameter(hidden = true)
+            Authentication authentication,
+            @RequestParam
+            @Parameter(description = "프로젝트 ID", required = true)
+            String projectId
+    );
+
+    @Operation(
+            summary = "이미지 상세 조회",
+            description = """
+                ### 예시
+                GET /api/v1/images?projectId=xxx&imageId=xxx
+                """
+    )
+    @ApiResponses({
+            // ----- 성공 응답 -----
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "단건 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Object.class),
+                            examples = {
                                     @ExampleObject(
                                             name = "DetailResponse Example",
                                             summary = "[단건 조회 예시]",
@@ -116,17 +227,6 @@ public interface ImageDocs {
                     )
             ),
 
-            // ----- 에러 응답 -----
-            @ApiResponse(responseCode = "400", description = "잘못된 요청",
-                    content = @Content(
-                            schema = @Schema(implementation = ImageErrorCode.class),
-                            examples = {
-                                    @ExampleObject(name="INVALID_PAGINATION_PARAM", value="{\"code\":\"ACC-IMAGE-PAGINATION-PARAM-INVALID\",\"message\":\"잘못된 페이지네이션 파라미터 조합입니다.\"}"),
-                                    @ExampleObject(name="INVALID_PAGINATION_WITH_IMAGE_ID", value="{\"code\":\"ACC-IMAGE-PAGINATION-WITH-IMAGE-ID\",\"message\":\"단건 조회 시 페이지네이션 파라미터를 사용할 수 없습니다.\"}"),
-                            }
-                    )
-            ),
-
             @ApiResponse(responseCode = "403", description = "권한 없음",
                     content = @Content(
                             schema = @Schema(implementation = ImageErrorCode.class),
@@ -151,17 +251,16 @@ public interface ImageDocs {
                     )
             )
     })
-    @GetMapping
-    ResponseEntity<?> getImages(
-            @Parameter(hidden = true) Authentication authentication,
-            @RequestParam(value = "imageId", required = false) String imageId,
-            @ParameterObject @ModelAttribute PageRequest pageRequest,
-            @ParameterObject @ModelAttribute ImageFilterRequest filterRequest,
+    @GetMapping("/{imageId}")
+    ResponseEntity<ImageDetailResponse> getImageDetail(
+            @Parameter(hidden = true)
+            Authentication authentication,
             @RequestParam
             @Parameter(description = "프로젝트 ID", required = true)
-            String projectId
+            String projectId,
+            @Parameter(description = "조회할 이미지 ID")
+            @PathVariable String imageId
     );
-
 
     // ------------------------------------------------------------------------
     // POST /images/import
@@ -315,15 +414,7 @@ public interface ImageDocs {
     // ------------------------------------------------------------------------
     @Operation(
             summary = "이미지 삭제",
-            description = "Glance 이미지 삭제 요청.\n권한 부족/없는 이미지/Glance 장애 등에 따라 다양한 오류가 발생할 수 있음.",
-            parameters = {
-                    @Parameter(
-                            name = "Authorization",
-                            description = "Bearer {access_token}",
-                            required = true,
-                            in = ParameterIn.HEADER
-                    )
-            }
+            description = "Glance 이미지 삭제 요청.\n권한 부족/없는 이미지/Glance 장애 등에 따라 다양한 오류가 발생할 수 있음."
     )
     @ApiResponses({
 
