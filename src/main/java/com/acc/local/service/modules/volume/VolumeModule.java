@@ -20,7 +20,8 @@ public class VolumeModule {
                 token,
                 projectId,
                 page.getMarker(),
-                (page.getLimit() != null) ? page.getLimit() : 10
+                (page.getLimit() != null) ? page.getLimit() : 10,
+                page.getDirection().name().equals("prev") ? "prev" : "next"
         );
     }
 
