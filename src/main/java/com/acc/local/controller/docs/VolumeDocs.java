@@ -22,22 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "access-token")
 public interface VolumeDocs {
 
-//    @Operation(
-//            summary = "볼륨 조회",
-//            description = "특정 프로젝트에 속한 볼륨 목록을 volumeId 유무에 따라, 페이지네이션 방식 혹은 단건으로 조회합니다.\n\n"
-//                + "**페이지네이션 (마커 기반)**\n"
-//                + "- marker: 이전 조회의 경계 ID (첫 조회 시 null)\n"
-//                + "- direction: next(기본, 다음 페이지) | prev(이전 페이지)\n"
-//                + "- limit: 페이지 크기 (기본 10, 전체 조회는 0)\n\n"
-//                + "**동작 방식**\n"
-//                + "- next: id > marker 기준 오름차순 조회\n"
-//                + "- prev: id < marker 기준으로 조회 후 역순 정렬하여 반환\n\n"
-//                + "**예시 쿼리**\n"
-//                + "- 첫 페이지: GET /api/v1/volumes?projectId=xxx&limit=10\n"
-//                + "- 다음 페이지: GET /api/v1/volumes?projectId=xxx&marker=lastId&direction=next&limit=10\n"
-//                + "- 이전 페이지: GET /api/v1/volumes?projectId=xxx&marker=firstId&direction=prev&limit=10\n"
-//                    + "- 단건 조회: GET /api/v1/volumes?projectId=xxx&volumeId=xxx\n"
-//    )
     @Operation(
             summary = "볼륨 목록 조회",
             description = "특정 프로젝트에 속한 볼륨 목록을 페이지네이션 방식으로 조회합니다.\n\n"
@@ -376,7 +360,15 @@ public interface VolumeDocs {
 
     @Operation(
             summary = "볼륨 삭제",
-            description = "지정된 볼륨 ID에 해당하는 볼륨을 삭제합니다."
+            description = "지정된 볼륨을 비동기로 삭제합니다.\n\n"
+                    + "**삭제 가능 상태**\n"
+                    + "- available, error, error_restoring, error_extending, error_managing\n\n"
+                    + "**삭제 거부 조건**\n"
+                    + "- 볼륨이 인스턴스에 연결됨(attached)\n"
+                    + "- 마이그레이션 진행 중(migrating)\n"
+                    + "- 스냅샷이 존재함\n"
+                    + "- 그룹에 속함\n"
+                    + "- transfer 대기 중(awaiting-transfer)"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -453,7 +445,7 @@ public interface VolumeDocs {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "충돌 - 볼륨이 사용 중이거나 삭제 불가능한 상태임",
+                    description = "충돌 - 삭제 불가능한 상태 (연결됨, 스냅샷 존재, 마이그레이션 중 등)",
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
@@ -503,7 +495,13 @@ public interface VolumeDocs {
 
     @Operation(
             summary = "볼륨 생성",
-            description = "새 볼륨을 생성합니다."
+            description = "새 볼륨을 비동기로 생성합니다.\n\n"
+                    + "**필수 정보**\n"
+                    + "- size: 볼륨 크기 (GiB 단위, 1 이상)\n\n"
+                    + "**선택 정보**\n"
+                    + "- name: 볼륨 이름 (1~128자, 영문/중문 시작, 영문/숫자/특수문자 가능)\n"
+                    + "- volumeType: 볼륨 타입 (기본값: DEFAULT)\n"
+                    + "- description: 볼륨 설명"
     )
     @ApiResponses(value = {
             @ApiResponse(
