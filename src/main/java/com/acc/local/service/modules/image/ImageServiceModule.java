@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -29,27 +30,29 @@ public class ImageServiceModule {
 
     public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {
 
-        ResponseEntity<GlanceImagesResponse> res;
-
         try {
-            res = glanceExternalPort.fetchImageList(token, projectId, filters);
+            ResponseEntity<GlanceImagesResponse> res = glanceExternalPort.fetchImageList(token, projectId, filters);
+
+            // 200 OK
+            if (res.getBody() == null) {
+                throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
+            }
+            List<GlanceImageSummary> list = mapper.toImageListResponse(res.getBody());
+            return mapper.sortGlanceImageSummary(list);
+
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+
         } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
         }
-
-        int status = res.getStatusCode().value();
-
-        return switch (status) {
-            case 200 -> {
-                List<GlanceImageSummary> list = mapper.toImageListResponse(res.getBody());
-                yield mapper.sortGlanceImageSummary(list);
-            }
-            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
-            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
-            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
-        };
     }
 
 
@@ -99,81 +102,84 @@ public class ImageServiceModule {
 
     public ImageDetailResponse getImageDetail(String token, String imageId) {
 
-        ResponseEntity<GlanceImageResponse> res;
-
         try {
-            res = glanceExternalPort.fetchImageDetail(token, imageId);
+            ResponseEntity<GlanceImageResponse> res = glanceExternalPort.fetchImageDetail(token, imageId);
+
+            // 200 OK
+            if (res.getBody() == null) {
+                throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
+            }
+            return mapper.toImageDetailResponse(res.getBody());
+
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+
+            switch (status) {
+                case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+
         } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
         }
-
-        int status = res.getStatusCode().value();
-
-        return switch (status) {
-            case 200 -> mapper.toImageDetailResponse(res.getBody());
-            case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
-            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
-            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
-            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
-        };
     }
 
 
     public ImageUploadAckResponse importImageByUrl(String token, ImageUrlImportRequest req) {
 
         // 1) Metadata 생성 -----------------------------------------
-        ResponseEntity<JsonNode> createRes;
+        String imageId;
         try {
-            createRes = glanceExternalPort.createImageMetadata(token, req.metadata());
+            ResponseEntity<JsonNode> createRes = glanceExternalPort.createImageMetadata(token, req.metadata());
+
+            // 200, 201 OK
+            JsonNode body = createRes.getBody();
+            if (body == null || body.get("id") == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
+            imageId = body.get("id").asText();
+
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+
+            switch (status) {
+                case 400 -> throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_METADATA_CREATE_FORBIDDEN, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+
         } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
-        }
-
-        int metaStatus = createRes.getStatusCode().value();
-        String imageId;
-
-        switch (metaStatus) {
-            case 200, 201 -> {
-                JsonNode body = createRes.getBody();
-                if (body == null || body.get("id") == null)
-                    throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
-                imageId = body.get("id").asText();
-            }
-            case 400 -> throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
-            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_METADATA_CREATE_FORBIDDEN);
-            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
-            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
         }
 
         // 2) URL Import + 실패 시 rollback --------------------------
-        ResponseEntity<Void> importRes;
         try {
-            importRes = glanceExternalPort.importImageUrl(token, imageId, req.fileUrl());
+            glanceExternalPort.importImageUrl(token, imageId, req.fileUrl());
+            // 200, 202, 204 OK - 성공
+        } catch (WebClientResponseException e) {
+            safeDelete(token, imageId);
+            int status = e.getStatusCode().value();
+
+            switch (status) {
+                case 400 -> throw new ImageException(ImageErrorCode.INVALID_IMPORT_URL, e);
+                case 403, 409 -> throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+
         } catch (RestClientException | WebClientException e) {
             safeDelete(token, imageId);
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             safeDelete(token, imageId);
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
-        }
-
-        int importStatus = importRes.getStatusCode().value();
-
-        switch (importStatus) {
-
-            case 200, 202, 204 -> { /* success */ }
-            case 400 -> {
-                //메타 데이터 삭제
-                safeDelete(token, imageId);
-                throw new ImageException(ImageErrorCode.INVALID_IMPORT_URL);
-            }
-            case 403, 409 -> throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE);
-            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
-            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
         }
 
         // 3) 최종 성공 ---------------------------------------------
@@ -182,6 +188,7 @@ public class ImageServiceModule {
                 .message("Image import request accepted")
                 .build();
     }
+
 
     private void safeDelete(String token, String imageId) {
         try { glanceExternalPort.deleteImage(token, imageId); } catch (Exception ignore) {}
@@ -207,25 +214,26 @@ public class ImageServiceModule {
     }
 
     public void deleteImage(String token, String imageId) {
-        ResponseEntity<Void> res;
 
         try {
-            res = glanceExternalPort.deleteImage(token, imageId);
+            glanceExternalPort.deleteImage(token, imageId);
+            // 200, 204 OK - 성공
+
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+
+            switch (status) {
+                case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_DELETE_FORBIDDEN, e);
+                case 409 -> throw new ImageException(ImageErrorCode.IMAGE_STATUS_CONFLICT, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+
         } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
-        }
-
-        int status = res.getStatusCode().value();
-
-        switch (status) {
-            case 204, 200 -> { return; }   // 성공
-            case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
-            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_DELETE_FORBIDDEN);
-            case 409 -> throw new ImageException(ImageErrorCode.IMAGE_STATUS_CONFLICT);
-            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
-            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
         }
     }
 
