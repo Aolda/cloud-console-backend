@@ -135,6 +135,7 @@ public interface ImageDocs {
             // ----- 에러 응답 -----
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = ImageErrorCode.class),
                             examples = {
                                     @ExampleObject(name="INVALID_PAGINATION_PARAM", value="{\"code\":\"ACC-IMAGE-PAGINATION-PARAM-INVALID\",\"message\":\"잘못된 페이지네이션 파라미터 조합입니다.\"}"),
@@ -145,6 +146,7 @@ public interface ImageDocs {
 
             @ApiResponse(responseCode = "403", description = "권한 없음",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = ImageErrorCode.class),
                             examples = {
                                     @ExampleObject(name="IMAGE_NOT_ACCESSIBLE", value="{\"code\":\"ACC-IMAGE-NO-PERMISSION\",\"message\":\"해당 이미지에 접근할 권한이 없습니다.\"}")
@@ -153,6 +155,7 @@ public interface ImageDocs {
             ),
             @ApiResponse(responseCode="502", description="Glance 오류",
                     content=@Content(
+                            mediaType = "application/json",
                             schema=@Schema(implementation = ImageErrorCode.class),
                             examples={
                                     @ExampleObject(name="GLANCE_UNAVAILABLE", value="{\"code\":\"ACC-GLANCE-UNAVAILABLE\",\"message\":\"Glance 서비스와 통신할 수 없습니다.\"}"),
@@ -229,6 +232,7 @@ public interface ImageDocs {
 
             @ApiResponse(responseCode = "403", description = "권한 없음",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = ImageErrorCode.class),
                             examples = {
                                     @ExampleObject(name="IMAGE_NOT_ACCESSIBLE", value="{\"code\":\"ACC-IMAGE-NO-PERMISSION\",\"message\":\"해당 이미지에 접근할 권한이 없습니다.\"}")
@@ -237,12 +241,14 @@ public interface ImageDocs {
             ),
             @ApiResponse(responseCode="404", description="이미지 없음",
                     content=@Content(
+                            mediaType = "application/json",
                             schema=@Schema(implementation = ImageErrorCode.class),
                             examples=@ExampleObject(name="IMAGE_NOT_FOUND", value="{\"code\":\"ACC-IMAGE-NOT-FOUND\",\"message\":\"요청한 이미지를 찾을 수 없습니다.\"}")
                     )
             ),
             @ApiResponse(responseCode="502", description="Glance 오류",
                     content=@Content(
+                            mediaType = "application/json",
                             schema=@Schema(implementation = ImageErrorCode.class),
                             examples={
                                     @ExampleObject(name="GLANCE_UNAVAILABLE", value="{\"code\":\"ACC-GLANCE-UNAVAILABLE\",\"message\":\"Glance 서비스와 통신할 수 없습니다.\"}"),
@@ -265,14 +271,30 @@ public interface ImageDocs {
     // ------------------------------------------------------------------------
     // POST /images/import
     // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // POST /images/metadata (Deprecated)
+    // ------------------------------------------------------------------------
+
     @Operation(
             summary = "이미지 URL Import",
-            description = """
-        Glance 이미지에 대한 URL 기반 Import 요청.
-        1) 메타데이터 생성
-        2) URL import 실행
-        3) 실패 시 rollback(delete)
-        """
+            description = "URL을 통해 새 이미지를 생성합니다.\n\n"
+                    + "**권한**\n"
+                    + "- Openstack 토큰 내부 \"role\"에 의존합니다\n\n"
+                    + "- 오픈스택 정책으로 관리 가능합니다\n"
+                    + "**필수 정보**\n"
+                    + "- metadata.name: 이미지 이름\n"
+                    + "- metadata.diskFormat: 디스크 포맷 (qcow2, raw 등)\n"
+                    + "- metadata.containerFormat: 컨테이너 포맷 (bare 등)\n"
+                    + "- fileUrl: 이미지 파일 URL\n\n"
+                    + "**선택 정보**\n"
+                    + "- metadata.architecture: 아키텍처 (x86_64 등)\n"
+                    + "- metadata.minDisk: 최소 디스크 크기 (GiB)\n"
+                    + "- metadata.minRam: 최소 메모리 크기 (MiB)\n\n"
+                    + "**처리 과정**\n"
+                    + "1. 메타데이터 생성\n"
+                    + "2. URL import 실행\n"
+                    + "3. 실패 시 자동 롤백(삭제)"
     )
     @ApiResponses({
 
@@ -354,11 +376,6 @@ public interface ImageDocs {
             @Parameter(description = "프로젝트 ID", required = true)
             String projectId
     );
-
-
-    // ------------------------------------------------------------------------
-    // POST /images/metadata (Deprecated)
-    // ------------------------------------------------------------------------
     @Operation(
             summary = "[Deprecated] 이미지 메타데이터 생성 API",
             description = """
