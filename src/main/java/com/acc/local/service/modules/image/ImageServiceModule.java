@@ -6,6 +6,8 @@ import com.acc.global.exception.image.ImageException;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.properties.QuickStartProperties;
 import com.acc.local.dto.image.*;
+import com.acc.local.external.dto.glance.response.GlanceImageResponse;
+import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.reactive.function.client.WebClientException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -28,22 +29,27 @@ public class ImageServiceModule {
 
     public List<GlanceImageSummary> fetchSortedList(String token, String projectId, ImageFilterRequest filters) {
 
+        ResponseEntity<GlanceImagesResponse> res;
+
         try {
-            ResponseEntity<JsonNode> res = glanceExternalPort.fetchImageList(token, projectId, filters);
-            List<GlanceImageSummary> list = mapper.toImageListResponse(res.getBody());
-            return mapper.sortGlanceImageSummary(list);
-        } catch (WebClientResponseException e) {
-            int status = e.getStatusCode().value();
-            throw switch (status) {
-                case 403 -> new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
-                case 500, 502, 503 -> new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
-                default -> new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
-            };
-        } catch (RestClientException e) {
+            res = glanceExternalPort.fetchImageList(token, projectId, filters);
+        } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
         }
+
+        int status = res.getStatusCode().value();
+
+        return switch (status) {
+            case 200 -> {
+                List<GlanceImageSummary> list = mapper.toImageListResponse(res.getBody());
+                yield mapper.sortGlanceImageSummary(list);
+            }
+            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
+            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
+            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
+        };
     }
 
 
@@ -78,8 +84,8 @@ public class ImageServiceModule {
         boolean first = (marker == null);
         boolean last = (endIdx >= all.size());
 
-        String nextMarker = last ? null : contents.get(contents.size() - 1).id();
-        String prevMarker = first ? null : contents.get(0).id();
+        String nextMarker = (last || contents.isEmpty()) ? null : contents.get(contents.size() - 1).id();
+        String prevMarker = (first || contents.isEmpty()) ? null : contents.get(0).id();
 
         return PageResponse.<GlanceImageSummary>builder()
                 .contents(contents)
@@ -93,22 +99,25 @@ public class ImageServiceModule {
 
     public ImageDetailResponse getImageDetail(String token, String imageId) {
 
+        ResponseEntity<GlanceImageResponse> res;
+
         try {
-            ResponseEntity<JsonNode> res = glanceExternalPort.fetchImageDetail(token, imageId);
-            return mapper.toImageDetailResponse(res.getBody());
-        } catch (WebClientResponseException e) {
-            int status = e.getStatusCode().value();
-            throw switch (status) {
-                case 404 -> new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
-                case 403 -> new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
-                case 500, 502, 503 -> new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
-                default -> new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
-            };
-        } catch (RestClientException e) {
+            res = glanceExternalPort.fetchImageDetail(token, imageId);
+        } catch (RestClientException | WebClientException e) {
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
         } catch (Exception e) {
             throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
         }
+
+        int status = res.getStatusCode().value();
+
+        return switch (status) {
+            case 200 -> mapper.toImageDetailResponse(res.getBody());
+            case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND);
+            case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE);
+            case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE);
+            default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE);
+        };
     }
 
 
@@ -181,7 +190,16 @@ public class ImageServiceModule {
     public ImageUploadAckResponse createImageMetadata(String token, ImageMetadataRequest req) {
         try {
             ResponseEntity<JsonNode> res = glanceExternalPort.createImageMetadata(token, req);
-            return mapper.toUploadAck(res.getBody());
+            JsonNode body = res.getBody();
+            if (body == null || body.get("id") == null) {
+                throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA);
+            }
+            return ImageUploadAckResponse.builder()
+                    .imageId(body.get("id").asText())
+                    .name(body.get("name") != null ? body.get("name").asText() : null)
+                    .status(body.get("status") != null ? body.get("status").asText() : null)
+                    .message("Image metadata created")
+                    .build();
         } catch (Exception e) {
             // 엔드 포인트 호출 없는 메소드. 추후 사용 시 에러 대응 필요
             throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
@@ -226,7 +244,7 @@ public class ImageServiceModule {
     public String fetchQuickStartImageId(String token) {
         String imageId = quickStartProperties.getDefaultImageId();
         // external에서 token error or 403 or image not found는 Exception으로 처리 (예정)
-        JsonNode res;
+        GlanceImageResponse res;
         try {
             res = glanceExternalPort.fetchImageDetail(token, imageId).getBody();
             if (res == null) throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE);
@@ -234,8 +252,8 @@ public class ImageServiceModule {
             throw new ImageException(ImageErrorCode.INVALID_QUICK_START_IMAGE, e);
         }
 
-        String status = res.path("status").asText(null);
-        String os_distro = res.path("os_distro").asText(null);
+        String status = res.getStatus();
+        String os_distro = res.getOsDistro();
 
         // Glance 이미지 상태가 ACTIVE가 아니거나, os_distro가 ubuntu가 아니면 에러 발생
         // env에 이미지 ID 조회 실패!! -> 추후 메일 알림 등 알림 시스템 필요
