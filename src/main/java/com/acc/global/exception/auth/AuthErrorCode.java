@@ -32,6 +32,7 @@ public enum AuthErrorCode implements ErrorCode {
     NOT_FOUND_ACC_TOKEN(404, "ACC-AUTH-NOT-FOUND-TOKEN", "ACC 토큰에 해당 하는 userId를 찾을 수 없습니다."),
     USER_NOT_FOUND(404, "ACC-AUTH-USER-NOT-FOUND", "요청한 사용자를 찾을 수 없습니다."),
     PROJECT_NOT_FOUND(404, "ACC-AUTH-PROJECT-NOT-FOUND", "요청한 프로젝트를 찾을 수 없습니다."),
+    NOT_FOUND_USER_AUTH_INFO(404, "NOT_FOUND_USER_AUTH_INFO", "사용자의 인증정보가 존재하지 않습니다."),
     // NOT_FOUND_USER(404 , "ACC-AUTH-NOT-FOUND-USER" , "ACC 유저 계정을 찾을 수 없습니다."),
 
     // 409 Conflict

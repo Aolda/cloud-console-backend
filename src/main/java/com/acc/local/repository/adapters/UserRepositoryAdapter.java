@@ -4,13 +4,14 @@ import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.repository.jpa.UserDetailJpaRepository;
-import com.acc.local.repository.jpa.UserAuthDetailJpaRepository;
+import com.acc.local.repository.jpa.UserIdentityJpaRepository;
 import com.acc.local.repository.modules.UserQueryDSLModule;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +21,7 @@ import java.util.Optional;
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserDetailJpaRepository userDetailJpaRepository;
-    private final UserAuthDetailJpaRepository userAuthDetailJpaRepository;
+    private final UserIdentityJpaRepository userIdentityJpaRepository;
     private final UserQueryDSLModule userQueryDSLModule;
 
     @Override
@@ -30,7 +31,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public UserIdentityEntity saveUserIdentity(UserIdentityEntity userIdentityEntity) {
-        return userAuthDetailJpaRepository.save(userIdentityEntity);
+        return userIdentityJpaRepository.save(userIdentityEntity);
     }
 
     @Override
@@ -38,9 +39,21 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return userDetailJpaRepository.findById(userId);
     }
 
+    // UserId로만 단일 조회시, 가장 최신의 UserIdentityEntity를 조회하도록 설정.
     @Override
     public Optional<UserIdentityEntity> findUserAuthById(String userId) {
-        return userAuthDetailJpaRepository.findById(userId);
+        return userIdentityJpaRepository.findByIdUserId(userId).stream()
+                .max(Comparator.comparing(UserIdentityEntity::getCreatedAt));
+    }
+
+    @Override
+    public List<UserIdentityEntity> findUserAuthsByUserId(String userId) {
+        return userIdentityJpaRepository.findByIdUserId(userId);
+    }
+
+    @Override
+    public Optional<UserIdentityEntity> findUserAuthByIdAndAuthType(String userId, Integer authType) {
+        return userIdentityJpaRepository.findByIdUserIdAndIdAuthType(userId, authType);
     }
 
     @Override
@@ -50,17 +63,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<UserIdentityEntity> findUserAuthsByIds(List<String> userIds) {
-        return userAuthDetailJpaRepository.findAllById(userIds);
-    }
-
-    @Override
-    public void deleteUserDetailById(String userId) {
-        userDetailJpaRepository.deleteById(userId);
-    }
-
-    @Override
-    public void deleteUserAuthById(String userId) {
-        userAuthDetailJpaRepository.deleteById(userId);
+        return userIdentityJpaRepository.findByIdUserIdIn(userIds);
     }
 
     @Override
