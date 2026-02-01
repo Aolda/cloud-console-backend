@@ -12,6 +12,7 @@ import com.acc.local.dto.auth.AdminCreateUserRequest;
 import com.acc.local.dto.auth.AdminUpdateUserRequest;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.entity.id.UserIdentityId;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.repository.ports.UserRepositoryPort;
@@ -85,10 +86,9 @@ class UserModuleTest {
 
         when(userRepositoryPort.saveUserIdentity(any()))
                 .thenReturn(UserIdentityEntity.builder()
-                        .userId(newUserId)
+                        .id(new UserIdentityId(newUserId, 0)) // GOOGLE
                         .department("컴퓨터공학과")
                         .studentId("2021123")
-                        .authType(0)
                         .userEmail("hong@ajou.ac.kr")
                         .build());
 
@@ -142,10 +142,9 @@ class UserModuleTest {
         when(userRepositoryPort.findUserAuthById(userId))
                 .thenReturn(Optional.of(
                         UserIdentityEntity.builder()
-                                .userId(userId)
+                                .id(new UserIdentityId(userId, 0))
                                 .department("old")
                                 .studentId("old")
-                                .authType(0)
                                 .userEmail("old@ajou.ac.kr")
                                 .build()));
 
@@ -185,10 +184,9 @@ class UserModuleTest {
                 .build();
 
         UserIdentityEntity userIdentity = UserIdentityEntity.builder()
-                .userId("uid-1")
+                .id(new UserIdentityId("uid-1", 0))
                 .department("소프트웨어")
                 .studentId("2021333")
-                .authType(0)
                 .userEmail("user@ajou.ac.kr")
                 .build();
 
@@ -283,10 +281,9 @@ class UserModuleTest {
                 .isDeleted(false)
                 .build();
         UserIdentityEntity identity1 = UserIdentityEntity.builder()
-                .userId("u1")
+                .id(new UserIdentityId("u1", 0))
                 .department("컴퓨터공학과")
                 .studentId("2021001")
-                .authType(0)
                 .userEmail("user1@ajou.ac.kr")
                 .build();
 
@@ -298,10 +295,9 @@ class UserModuleTest {
                 .isDeleted(false)
                 .build();
         UserIdentityEntity identity2 = UserIdentityEntity.builder()
-                .userId("u2")
+                .id(new UserIdentityId("u2", 1))
                 .department("소프트웨어학과")
                 .studentId("2021002")
-                .authType(1)
                 .userEmail("user2@ajou.ac.kr")
                 .build();
 

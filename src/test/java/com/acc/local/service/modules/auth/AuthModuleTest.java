@@ -14,6 +14,7 @@ import com.acc.local.entity.RefreshTokenEntity;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.entity.UserTokenEntity;
+import com.acc.local.entity.id.UserIdentityId;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -649,11 +650,9 @@ class AuthModuleTest {
                 .thenReturn(savedUserDetail);
 
         UserIdentityEntity savedUserAuthDetail = UserIdentityEntity.builder()
-                .userId(createdUserId)
-                // .user(savedUserDetail)
+                .id(new UserIdentityId(createdUserId, 0)) // GOOGLE
                 .department("컴퓨터공학과")
                 .studentId("2024123456")
-                .authType(0) // GOOGLE
                 .userEmail("hong@example.com")
                 .build();
         when(userRepositoryPort.saveUserIdentity(any(UserIdentityEntity.class)))
