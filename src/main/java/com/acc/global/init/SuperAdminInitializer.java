@@ -1,9 +1,11 @@
 package com.acc.global.init;
 
 import com.acc.global.properties.SuperAdminProperties;
+import com.acc.local.domain.enums.auth.AuthType;
 import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.entity.UserDbExtraEntity;
-import com.acc.local.repository.jpa.UserAuthDetailJpaRepository;
+import com.acc.local.entity.id.UserIdentityId;
+import com.acc.local.repository.jpa.UserIdentityJpaRepository;
 import com.acc.local.repository.jpa.UserDetailJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ public class SuperAdminInitializer implements ApplicationRunner {
 
     private final SuperAdminProperties superAdminProperties;
     private final UserDetailJpaRepository userDetailJpaRepository;
-    private final UserAuthDetailJpaRepository userAuthDetailJpaRepository;
+    private final UserIdentityJpaRepository userIdentityJpaRepository;
 
     @Override
     @Transactional
@@ -37,11 +39,10 @@ public class SuperAdminInitializer implements ApplicationRunner {
     }
 
     private void registerSuperAdminUserDepartInfo(String userId) {
-        userAuthDetailJpaRepository.save(
+        userIdentityJpaRepository.save(
             UserIdentityEntity.builder()
-                .userId(userId)
+                .id(new UserIdentityId(userId, AuthType.ADMIN.getCode()))
                 .department("관리자_기본입력값")
-                .authType(2)
                 .studentId("200012345")
                 .build()
         );

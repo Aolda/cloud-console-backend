@@ -25,6 +25,7 @@ import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.entity.id.UserIdentityId;
 
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
@@ -479,10 +480,9 @@ public class AuthModule {
 
             // 3. UserIdentity Entity 생성 및 저장
             UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
-                    .userId(userId)
+                    .id(new UserIdentityId(userId, request.authType().getCode()))
                     .department(request.department())
                     .studentId(request.studentId())
-                    .authType(request.authType().getCode())
                     .userEmail(request.email())
                     .build();
             userRepositoryPort.saveUserIdentity(userIdentityEntity);
