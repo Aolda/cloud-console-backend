@@ -14,7 +14,6 @@ public interface AuthServicePort {
 
     String authenticateKeystoneAndGenerateJwt(KeystonePasswordLoginRequest request);
     LoginTokens login(KeystonePasswordLoginRequest request);
-    ProjectTokenResponse issueProjectAccessToken(String userId, String projectId);
     LoginTokens refreshToken(String refreshToken);
     SignupResponse signup(SignupRequest request, String verificationToken);
 

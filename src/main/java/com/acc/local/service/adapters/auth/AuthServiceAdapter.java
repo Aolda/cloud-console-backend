@@ -90,17 +90,6 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public ProjectTokenResponse issueProjectAccessToken(String userId, String projectId) {
-        // Module에서 UserToken 받기
-        UserToken userToken = authModule.issueProjectScopedToken(userId, projectId);
-
-        // DTO로 변환하여 반환
-        return ProjectTokenResponse.builder()
-                .accessToken(userToken.getJwtToken())
-                .build();
-    }
-
-    @Override
     public LoginTokens refreshToken(String refreshToken) {
         // 1. Refresh Token 검증 + 원자적 비활성화 + 새 토큰 발급 (동시 요청 방지를 위한 통합 로직)
         RefreshToken rotatedRefreshToken = authModule.validateAndRotateRefreshToken(refreshToken);

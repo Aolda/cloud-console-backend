@@ -276,30 +276,6 @@ public class AuthModule {
         return createRefreshToken(userId);
     }
 
-    /**
-     * 프로젝트 진입 시 projectId가 포함된 토큰 발급
-     * 기존 UserTokenEntity의 jwtToken만 업데이트 (Keystone 호출 없음)
-     */
-    @Transactional
-    public UserToken issueProjectScopedToken(String userId, String projectId) {
-
-        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
-
-        // keystoneUnscopedToken이 유효한지 확인
-        checkUnscopedTokenExpired(existingTokenEntity);
-
-        UserToken existingUserToken = UserToken.from(existingTokenEntity);
-
-        String newJwtToken = jwtUtils.generateToken(userId, projectId);
-
-        // 5. Domain Model 업데이트 (새로운 UserToken 생성)
-        UserToken updatedToken = UserToken.updateJwtWithProjectId(existingUserToken , newJwtToken , jwtUtils.calculateExpirationDateTime());
-
-        UserTokenEntity savedEntity = userTokenRepositoryPort.save(updatedToken.toEntity());
-
-        return UserToken.from(savedEntity);
-    }
-
     private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {
         String accessToken = jwtUtils.generateToken(userId);
 
@@ -401,12 +377,9 @@ public class AuthModule {
         // 1. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
         UserToken existingUserToken = UserToken.from(existingTokenEntity);
+        log.info("[Refresh Token] userId: {}", userId);
 
-        // 2. 가장 최근 발급된 토큰에서 projectId 추출
-        String projectId = extractProjectIdFromLatestToken(userId);
-        log.info("[Refresh Token] userId: {}, projectId: {}", userId, projectId);
-
-        // 3. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        // 2. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
 
@@ -414,13 +387,13 @@ public class AuthModule {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
         }
 
-        // 4. 기존 Keystone Token revoke
+        // 3. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 5. 새로운 JWT Access Token 발급 (projectId 포함)
-        String newAccessToken = jwtUtils.generateToken(userId, projectId);
+        // 4. 새로운 JWT Access Token 발급 (projectId 포함)
+        String newAccessToken = jwtUtils.generateToken(userId);
 
-        // 6. 새로운 UserToken 생성 및 저장
+        // 5. 새로운 UserToken 생성 및 저장
         UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
@@ -440,17 +413,6 @@ public class AuthModule {
             refreshTokenEntity.deactivate();
             refreshTokenRepositoryPort.save(refreshTokenEntity);
         });
-    }
-
-    /**
-     * 가장 최근 발급된 UserToken의 JWT에서 projectId 추출
-     * 만료된 토큰에서도 projectId를 추출할 수 있음
-     */
-    private String extractProjectIdFromLatestToken(String userId) {
-        return userTokenRepositoryPort.findLatestByUserId(userId)
-            .map(UserTokenEntity::getJwtToken)
-            .map(jwtUtils::getProjectIdFromExpiredToken)
-            .orElse(null);
     }
 
     /**
