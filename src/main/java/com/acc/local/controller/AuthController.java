@@ -117,19 +117,6 @@ public class AuthController implements AuthDocs {
         return ResponseEntity.ok(loginResponse);
     }
 
-
-    @Override
-    public ResponseEntity<ProjectTokenResponse> issueProjectToken(
-            @RequestBody @Validated ProjectTokenRequest request,
-            Authentication authentication
-    ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
-        ProjectTokenResponse response = authServicePort.issueProjectAccessToken(userId, request.projectId());
-
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/login/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
             @CookieValue("acc-refresh-token") String refreshToken,

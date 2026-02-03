@@ -41,26 +41,6 @@ public interface AuthDocs {
     );
 
 
-    // ------------------------- PROJECT TOKEN -------------------------
-    @Operation(
-            summary = "프로젝트 스코프 토큰 발급",
-            description = "Access Token(JWT)에서 userId를 추출하여 Keystone 프로젝트 스코프 토큰을 발급합니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "발급 성공", content = @Content()),
-            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
-    })
-    @PostMapping("/tokens/project")
-    ResponseEntity<ProjectTokenResponse> issueProjectToken(
-            @RequestBody(required = true)
-            @Parameter(description = "프로젝트 ID", required = true)
-            ProjectTokenRequest request,
-            @Parameter(hidden = true) Authentication authentication
-    );
-
-
     // ------------------------- REFRESH TOKEN -------------------------
     @Operation(
             summary = "Access Token 및 Refresh Token 재발급",
