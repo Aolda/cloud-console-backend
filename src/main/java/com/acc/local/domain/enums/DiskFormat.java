@@ -2,6 +2,7 @@ package com.acc.local.domain.enums;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+//Glance/v2/schemas/image 와 1:1
 @Schema(description = "디스크 포맷 타입<br>" +
         "<ul>" +
         "<li><b>QCOW2</b>: QEMU Copy-On-Write 2</li>" +

@@ -2,6 +2,7 @@ package com.acc.local.domain.enums;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+//Glance/v2/schemas/image 와 1:1
 @Schema(description = "컨테이너 포맷 타입<br>" +
         "<ul>" +
         "<li><b>BARE</b>: No container, just the raw disk image</li>" +
