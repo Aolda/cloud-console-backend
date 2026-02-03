@@ -1,5 +1,7 @@
 package com.acc.local.dto.image;
 
+import com.acc.local.domain.enums.ContainerFormat;
+import com.acc.local.domain.enums.DiskFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -8,10 +10,10 @@ import lombok.Builder;
 public record ImageMetadataRequest(
         @Schema(description = "이미지 이름", example = "ubuntu-22.04")
         String name,
-        @Schema(description = "디스크 포맷", example = "qcow2")
-        String diskFormat,
-        @Schema(description = "컨테이너 포맷", example = "bare")
-        String containerFormat,
+        @Schema(description = "디스크 포맷")
+        DiskFormat diskFormat,
+        @Schema(description = "컨테이너 포맷")
+        ContainerFormat containerFormat,
         @Schema(description = "아키텍처", example = "x86_64")
         String architecture,
         @Schema(description = "최소 디스크 크기(GiB)", example = "20")

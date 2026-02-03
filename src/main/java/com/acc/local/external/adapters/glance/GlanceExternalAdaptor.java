@@ -65,8 +65,8 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
     public ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req) {
         GlanceCreateImageRequest createReq = GlanceCreateImageRequest.builder()
                 .name(req.name())
-                .diskFormat(req.diskFormat())
-                .containerFormat(req.containerFormat())
+                .diskFormat(req.diskFormat().name().toLowerCase())
+                .containerFormat(req.containerFormat().name().toLowerCase())
                 .architecture(req.architecture())
                 .visibility("private")
                 .minDisk(req.minDisk())
