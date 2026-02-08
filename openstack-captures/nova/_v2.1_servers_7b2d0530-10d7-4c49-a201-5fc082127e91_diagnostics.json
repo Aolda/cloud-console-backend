@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/7b2d0530-10d7-4c49-a201-5fc082127e91/diagnostics",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__"
+},
+    "query": {}
+  },
+  "response": {
+    "status": -1,
+    "body": null
+  }
+}
