@@ -1,0 +1,71 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/30bb25cc-2e0d-4820-ba2e-94b92c8496c8",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "server" : {
+    "id" : "30bb25cc-2e0d-4820-ba2e-94b92c8496c8",
+    "name" : "test-7",
+    "status" : "SHUTOFF",
+    "tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "metadata" : { },
+    "hostId" : "fe8c4d348f9ea1f30d28a284c56e72bc5060f7261ecc45c248dfbc1b",
+    "image" : "",
+    "flavor" : {
+      "id" : "168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec",
+      "links" : [ {
+        "rel" : "bookmark",
+        "href" : "http://172.16.10.100:8774/flavors/168ca3d5-9f74-4a01-8e3f-8ac236c5a2ec"
+      } ]
+    },
+    "created" : "2026-01-05T10:39:50Z",
+    "updated" : "2026-01-06T06:39:00Z",
+    "addresses" : {
+      "private" : [ {
+        "version" : 4,
+        "addr" : "172.31.0.102",
+        "OS-EXT-IPS:type" : "fixed",
+        "OS-EXT-IPS-MAC:mac_addr" : "fa:16:3e:0d:c8:b4"
+      } ]
+    },
+    "accessIPv4" : "",
+    "accessIPv6" : "",
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8774/v2.1/servers/30bb25cc-2e0d-4820-ba2e-94b92c8496c8"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8774/servers/30bb25cc-2e0d-4820-ba2e-94b92c8496c8"
+    } ],
+    "OS-DCF:diskConfig" : "MANUAL",
+    "OS-EXT-AZ:availability_zone" : "nova",
+    "config_drive" : "",
+    "key_name" : null,
+    "OS-SRV-USG:launched_at" : "2026-01-05T10:41:02.000000",
+    "OS-SRV-USG:terminated_at" : null,
+    "security_groups" : [ {
+      "name" : "default"
+    } ],
+    "OS-EXT-SRV-ATTR:host" : "aolda-compute",
+    "OS-EXT-SRV-ATTR:instance_name" : "instance-00000017",
+    "OS-EXT-SRV-ATTR:hypervisor_hostname" : "aolda-compute",
+    "OS-EXT-STS:task_state" : null,
+    "OS-EXT-STS:vm_state" : "stopped",
+    "OS-EXT-STS:power_state" : 4,
+    "os-extended-volumes:volumes_attached" : [ {
+      "id" : "0cf6b0a7-fd42-40a3-94e4-6306ddaf4101"
+    } ]
+  }
+}
+  }
+}
