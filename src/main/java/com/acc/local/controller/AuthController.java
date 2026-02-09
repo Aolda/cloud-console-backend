@@ -9,6 +9,8 @@ import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.properties.OAuth2Properties;
 import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.dto.auth.*;
+import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.auth.AuthServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -119,9 +121,13 @@ public class AuthController implements AuthDocs {
 
     @PostMapping("/login/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
-            @CookieValue("acc-refresh-token") String refreshToken,
+            @CookieValue(value = "acc-refresh-token", required = false) String refreshToken,
             HttpServletResponse response
     ) {
+        if (refreshToken == null) {
+            throw new AuthServiceException(AuthErrorCode.MISSING_REFRESH_TOKEN);
+        }
+
         // 1. Service에서 LoginTokens DTO 받기
         LoginTokens tokens = authServicePort.refreshToken(refreshToken);
 

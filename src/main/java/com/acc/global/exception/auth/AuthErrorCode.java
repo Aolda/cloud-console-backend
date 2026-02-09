@@ -12,6 +12,7 @@ public enum AuthErrorCode implements ErrorCode {
     // 400 Bad Request
     INVALID_REQUEST_PARAMETER(400, "ACC-AUTH-INVALID-REQUEST-PARAM", "필수 요청 파라미터가 누락되었거나 유효하지 않습니다."),
     INVALID_PROJECT_STATUS(400, "ACC-AUTH-INVALID-PROJECT-STATUS", "잘못된 프로젝트 상태 값입니다."),
+    MISSING_REFRESH_TOKEN(400, "ACC-AUTH-MISSING-REFRESH-TOKEN", "리프레시 토큰 쿠키가 존재하지 않습니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(401, "ACC-AUTH-UNAUTHORIZED", "인증에 실패했습니다."),

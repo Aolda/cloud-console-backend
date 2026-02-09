@@ -49,13 +49,14 @@ public interface AuthDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "토큰 재발급 성공", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "Refresh Token 쿠키 누락 - acc-refresh-token 쿠키가 존재하지 않음", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Refresh Token 만료/무효", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/login/refresh")
     ResponseEntity<LoginResponse> refreshToken(
-            @CookieValue("acc-refresh-token")
-            @Parameter(description = "Refresh Token Cookie", required = true)
+            @CookieValue(value = "acc-refresh-token", required = false)
+            @Parameter(description = "Refresh Token Cookie", required = false)
             String refreshToken,
             HttpServletResponse response
     );
