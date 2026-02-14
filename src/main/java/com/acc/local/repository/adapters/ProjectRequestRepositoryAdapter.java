@@ -2,6 +2,7 @@ package com.acc.local.repository.adapters;
 
 import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.entity.ProjectRequestEntity;
 import com.acc.local.repository.jpa.ProjectRequestJpaRepository;
 import com.acc.local.repository.ports.ProjectRequestRepositoryPort;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -44,10 +46,8 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 	}
 
 	@Override
-	public List<ProjectRequestEntity> findByRequestId(String requestId, int offset, int size) {
-		Pageable pageable = createPageable(offset, size);
-		Page<ProjectRequestEntity> pageResult = projectRequestJpaRepository.findByProjectRequestId(requestId, pageable);
-		return pageResult.getContent();
+	public Optional<ProjectRequestEntity> findByRequestId(String requestId) {
+		return projectRequestJpaRepository.findByProjectRequestId(requestId);
 	}
 
 	@Override
@@ -58,6 +58,11 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 	@Override
 	public void updateStatus(String projectId, ProjectRequestStatus status, String rejectReason) {
 		projectRequestJpaRepository.updateStatusById(projectId, status, rejectReason);
+	}
+
+	@Override
+	public List<ProjectRequestEntity> findAllByIds(List<String> projectRequestIds) {
+		return projectRequestJpaRepository.findAllById(projectRequestIds);
 	}
 
 

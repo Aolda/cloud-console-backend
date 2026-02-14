@@ -7,7 +7,6 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.AdminProjectDocs;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.dto.project.CreateProjectRequestResponse;
 import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.CreateProjectResponse;
 import com.acc.local.dto.project.DecideProjectRequestRequest;
@@ -81,7 +80,7 @@ public class AdminProjectController implements AdminProjectDocs {
 		String userId = jwtInfo.getUserId();
 
 		PageResponse<ProjectRequestResponse> response = adminProjectServicePort.getProjectRequests(keyword, pageable, userId);
-		return ResponseEntity.status(201).body(response);
+		return ResponseEntity.status(200).body(response);
 	}
 
 	@Override
@@ -92,7 +91,7 @@ public class AdminProjectController implements AdminProjectDocs {
 		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 		String userId = jwtInfo.getUserId();
 
-		adminProjectServicePort.applyProjectRequestDecision(
+		adminProjectServicePort.applyProjectRequestDecisions(
 			request.projectRequestIds(),
 			request.status(),
 			request.reason(),

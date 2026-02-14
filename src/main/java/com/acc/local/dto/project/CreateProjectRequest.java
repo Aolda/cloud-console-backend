@@ -16,4 +16,13 @@ public record CreateProjectRequest(
 
         @Schema(description = "프로젝트 담당자 ID (Keystone 사용자 ID = ACC DB UserDetail.userId). 생성 시 해당 사용자에게 PROJECT_ADMIN 역할이 부여되며, 기본 네트워크가 오너 스코프 토큰으로 생성됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
         String projectOwnerId
-) { }
+) {
+    public ProjectCreateDto toProjectCreateDto() {
+        return ProjectCreateDto.builder()
+                .projectName(projectName)
+                .projectDescription(projectDescription)
+                .quota(quota)
+                .projectOwnerId(projectOwnerId)
+                .build();
+    }
+}
