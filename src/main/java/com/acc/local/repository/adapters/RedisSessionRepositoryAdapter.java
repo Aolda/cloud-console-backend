@@ -10,8 +10,8 @@ import com.acc.local.domain.model.session.UserInfo;
 import com.acc.local.repository.ports.SessionRepositoryPort;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,11 +26,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Primary
-@RequiredArgsConstructor
 public class RedisSessionRepositoryAdapter implements SessionRepositoryPort {
 
     private final RedisTemplate<String, String> sessionRedisTemplate;
     private final ObjectMapper objectMapper;
+
+    public RedisSessionRepositoryAdapter(
+            RedisTemplate<String, String> sessionRedisTemplate,
+            @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
+        this.sessionRedisTemplate = sessionRedisTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 세션을 Redis Hash로 저장한다. null 필드는 저장하지 않습니다.
