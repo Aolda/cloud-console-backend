@@ -4,6 +4,7 @@ import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
+import com.acc.global.exception.auth.KeystoneException;
 import com.acc.local.dto.auth.*;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
@@ -174,9 +175,17 @@ public class AuthModule {
 
     public String issueProjectScopeToken(String projectId, String userId) {
         String unscopedToken = getUnscopedTokenByUserId(userId);
-        KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
 
-        return scopedToken.token();
+        try {
+            KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
+
+            return scopedToken.token();
+        } catch (KeystoneException e) {
+            if (e.getErrorCode().equals(AuthErrorCode.UNAUTHORIZED)) {
+                throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND);
+            }
+            throw e;
+        }
     }
 
     public String getUnscopedTokenByUserId(String userId) {
@@ -189,7 +198,7 @@ public class AuthModule {
     private List<UserTokenEntity> getAvailUserTokenEntities(String userId) {
         List<UserTokenEntity> userTokens = userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId);
         if (userTokens.isEmpty()) {
-            throw new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN);
+            throw new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN); // TODO: 에러 핸들링 적합여부 확인필요
         }
 
         return userTokens;

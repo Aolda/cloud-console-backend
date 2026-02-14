@@ -53,6 +53,5 @@ public class ImageServiceAdapter implements ImageServicePort {
     public void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType) {
         String token = authModule.issueProjectScopeToken(projectId, userId);
         imageServiceModule.uploadFileStream(token, imageId, input, contentType);
-        authModule.invalidateServiceTokensByUserId(userId);
     }
 }
