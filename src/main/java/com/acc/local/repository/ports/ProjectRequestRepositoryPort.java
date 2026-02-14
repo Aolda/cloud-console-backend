@@ -2,7 +2,10 @@ package com.acc.local.repository.ports;
 
 import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.entity.ProjectRequestEntity;
+
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,9 +17,11 @@ public interface ProjectRequestRepositoryPort {
 
 	List<ProjectRequestEntity> findByRequesterId(String requesterId, int offset, int size);
 
-	List<ProjectRequestEntity> findByRequestId(String requestId, int offset, int size);
+	Optional<ProjectRequestEntity> findByRequestId(String requestId);
 
 	ProjectRequestEntity save(ProjectRequestEntity projectRequest);
 
 	void updateStatus(String projectId, ProjectRequestStatus status, String rejectReason);
+
+	List<ProjectRequestEntity> findAllByIds(List<String> projectRequestIds);
 }

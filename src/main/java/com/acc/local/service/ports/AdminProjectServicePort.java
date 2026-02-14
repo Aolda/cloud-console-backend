@@ -7,10 +7,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectRequestRequest;
-import com.acc.local.dto.project.CreateProjectRequestResponse;
 import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.GetProjectResponse;
 import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.dto.project.UpdateProjectRequest;
@@ -20,7 +17,7 @@ public interface AdminProjectServicePort {
 
 	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requestUserId);
 
-	void applyProjectRequestDecision(List<String> projectRequestIds, ProjectRequestStatus decision, String rejectReason, String decideUserId);
+	List<String> applyProjectRequestDecisions(List<String> projectRequestIds, ProjectRequestStatus decision, String rejectReason, String decideUserId);
 
 	CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String userId);
 

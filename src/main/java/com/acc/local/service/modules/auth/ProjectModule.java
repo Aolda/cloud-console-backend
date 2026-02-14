@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.acc.local.dto.project.*;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +24,7 @@ import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
-import com.acc.local.dto.project.InvitableUser;
-import com.acc.local.dto.project.ProjectListDto;
-import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectRequestRequest;
-import com.acc.local.dto.project.CreateProjectRequestResponse;
-import com.acc.local.dto.project.ProjectListServiceDto;
-import com.acc.local.dto.project.ProjectParticipantDto;
-import com.acc.local.dto.project.ProjectRequestDto;
-import com.acc.local.dto.project.ProjectRequestListServiceDto;
-import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
-import com.acc.local.dto.project.UpdateProjectRequest;
 import com.acc.local.dto.project.quota.ProjectStorageQuotaDto;
 import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.entity.ProjectEntity;
@@ -112,6 +102,20 @@ public class ProjectModule {
 		);
 	}
 
+	public ProjectRequestDto getProjectRequest(String projectRequestId) {
+		ProjectRequestEntity projectRequest = projectRequestRepositoryPort.findByRequestId(projectRequestId)
+				.orElseThrow(() -> new IllegalArgumentException("올바르지 않은 프로젝트 요청ID 입니다."));
+
+		return ProjectRequestDto.from(projectRequest);
+	}
+
+	public List<ProjectRequestDto> getProjectRequestList(List<String> projectRequestIds) {
+		List<ProjectRequestEntity> projectRequests = projectRequestRepositoryPort.findAllByIds(projectRequestIds);
+		return projectRequests.stream()
+				.map(ProjectRequestDto::from)
+				.toList();
+	}
+
 	public List<ProjectRequestDto> getAllProjectRequestList(String keyword, String requestUserId) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
 
@@ -139,6 +143,10 @@ public class ProjectModule {
 		}
 
 		projectRequestRepositoryPort.updateStatus(projectRequestId, decision, rejectReason);
+	}
+
+	public void revertStatus(String projectRequestId) {
+		projectRequestRepositoryPort.updateStatus(projectRequestId, ProjectRequestStatus.REJECTED, null);
 	}
 
 	// ============ Project ============
@@ -232,7 +240,7 @@ public class ProjectModule {
 		return databaseProjectOrNull.get();
 	}
 
-	public KeystoneProject createProject(String adminToken, CreateProjectRequest request, String commandUserId) {
+	public KeystoneProject createProject(String adminToken, ProjectCreateDto request, String commandUserId) {
 		CreateKeystoneProjectRequest project = CreateKeystoneProjectRequest.builder()
 			.projectName(request.projectName())
 			.projectDescription(request.projectDescription())
@@ -563,5 +571,4 @@ public class ProjectModule {
 
 		return participatedUserIds.size() == userIds.size();
 	}
-
 }
