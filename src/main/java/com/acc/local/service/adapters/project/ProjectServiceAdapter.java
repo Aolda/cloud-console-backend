@@ -3,6 +3,8 @@ package com.acc.local.service.adapters.project;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.acc.local.service.modules.auth.event.ProjectRequestEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.acc.global.common.PageRequest;
@@ -41,6 +43,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	private final ProjectModule projectModule;
 	private final AuthModule authModule;
 	private final UserModule userModule;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public List<ProjectResponse> getProjects(String keyword, String requestUserId) {
@@ -116,7 +119,10 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	@Override
 	@Transactional
 	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requesterId) {
-		return projectModule.createProjectRequest(request, requesterId);
+		CreateProjectRequestResponse response = projectModule.createProjectRequest(request, requesterId);
+		// Project Request Event 발행
+		eventPublisher.publishEvent(new ProjectRequestEvent(response.projectRequestId()));
+		return response;
 	}
 
 	@Override
