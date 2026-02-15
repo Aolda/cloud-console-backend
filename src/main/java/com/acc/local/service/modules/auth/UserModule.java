@@ -14,6 +14,7 @@ import com.acc.local.dto.auth.AdminCreateUserRequest;
 import com.acc.local.dto.auth.AdminUpdateUserRequest;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.entity.id.UserIdentityId;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
 import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
@@ -64,10 +65,9 @@ public class UserModule {
 
         // 3. UserIdentity Entity 생성 및 저장
         UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
-                .userId(userIdentityId)
+                .id(new UserIdentityId(userIdentityId, request.authType().getCode()))
                 .department(request.department())
                 .studentId(request.studentId())
-                .authType(request.authType().getCode())
                 .userEmail(request.email())
                 .build();
         userRepositoryPort.saveUserIdentity(userIdentityEntity);
@@ -111,10 +111,9 @@ public class UserModule {
                     .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND, "사용자 인증 정보를 찾을 수 없습니다."));
 
             UserIdentityEntity updatedAuthEntity = UserIdentityEntity.builder()
-                    .userId(userAuthEntity.getUserId())
+                    .id(new UserIdentityId(userAuthEntity.getUserId(), userAuthEntity.getAuthType()))
                     .department(request.department() != null ? request.department() : userAuthEntity.getDepartment())
                     .studentId(request.studentId() != null ? request.studentId() : userAuthEntity.getStudentId())
-                    .authType(userAuthEntity.getAuthType())
                     .userEmail(request.email() != null ? request.email() : userAuthEntity.getUserEmail())
                     .build();
 

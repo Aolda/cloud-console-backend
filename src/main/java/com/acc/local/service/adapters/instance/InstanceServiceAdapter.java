@@ -78,7 +78,6 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
         String token = authModule.issueProjectScopeToken(projectId, userId);
         ProjectComputeQuotaDto projectComputeQuota = projectModule.getProjectComputeQuotaDetail(projectId, token);
-        authModule.invalidateServiceTokensByUserId(userId);
 
         return InstanceQuotaResponse.from(projectComputeQuota);
     }

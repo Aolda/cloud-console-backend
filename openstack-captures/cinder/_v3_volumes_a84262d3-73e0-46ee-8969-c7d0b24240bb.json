@@ -1,0 +1,50 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v3/volumes/a84262d3-73e0-46ee-8969-c7d0b24240bb",
+    "port": 8776,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "volume" : {
+    "id" : "a84262d3-73e0-46ee-8969-c7d0b24240bb",
+    "status" : "error",
+    "size" : 10,
+    "availability_zone" : "nova",
+    "created_at" : "2026-01-03T09:18:52.000000",
+    "updated_at" : "2026-01-03T11:25:44.000000",
+    "name" : "",
+    "description" : "",
+    "volume_type" : "__DEFAULT__",
+    "snapshot_id" : null,
+    "source_volid" : null,
+    "metadata" : { },
+    "links" : [ {
+      "rel" : "self",
+      "href" : "http://172.16.10.100:8776/v3/volumes/a84262d3-73e0-46ee-8969-c7d0b24240bb"
+    }, {
+      "rel" : "bookmark",
+      "href" : "http://172.16.10.100:8776/volumes/a84262d3-73e0-46ee-8969-c7d0b24240bb"
+    } ],
+    "user_id" : "37efb58ee4954e899bd29395c7e9aa80",
+    "bootable" : "false",
+    "encrypted" : false,
+    "replication_status" : null,
+    "consistencygroup_id" : null,
+    "multiattach" : false,
+    "attachments" : [ ],
+    "migration_status" : null,
+    "os-vol-host-attr:host" : "aolda-storage@rbd-1#rbd-1",
+    "os-vol-tenant-attr:tenant_id" : "1968d3759a2b4d7d9640ddd74fbde11f",
+    "os-vol-mig-status-attr:migstat" : null,
+    "os-vol-mig-status-attr:name_id" : null
+  }
+}
+  }
+}

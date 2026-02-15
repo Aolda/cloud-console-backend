@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "uri": "/v2.1/servers/7b2d0530-10d7-4c49-a201-5fc082127e91/ips",
+    "port": 8774,
+    "headers": {
+  "X-Auth-Token" : "__MASKED__",
+  "X-Auth-Token-Scope" : "project"
+},
+    "query": {}
+  },
+  "response": {
+    "status": 200,
+    "body": {
+  "addresses" : {
+    "private" : [ {
+      "version" : 4,
+      "addr" : "172.31.0.64"
+    } ]
+  }
+}
+  }
+}

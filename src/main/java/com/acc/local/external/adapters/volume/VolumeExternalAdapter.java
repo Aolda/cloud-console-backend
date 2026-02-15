@@ -11,7 +11,6 @@ import com.acc.local.external.dto.cinder.response.CinderVolumeResponse;
 import com.acc.local.external.modules.cinder.CinderVolumesModule;
 import com.acc.local.external.ports.VolumeExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -19,11 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
@@ -31,10 +30,23 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
     private final CinderVolumesModule cinderVolumesModule;
 
     @Override
-    public PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit) {
+    public PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit, String direction) {
+        boolean isPrev = "prev".equals(direction);
+        boolean isFetchAll = (limit == 0);
 
         Map<String, String> queryParams = new HashMap<>();
         int requestLimit = (limit > 0) ? limit + 1 : 0;
+
+        // created_at 기준 정렬 (명시 필수)
+        queryParams.put("sort_key", "created_at");
+
+        if (isPrev) {
+            // prev: asc로 조회 후 reverse
+            queryParams.put("sort_dir", "asc");
+        } else {
+            // next: desc (최신순)
+            queryParams.put("sort_dir", "desc");
+        }
 
         if (requestLimit > 0) {
             queryParams.put("limit", String.valueOf(requestLimit));
@@ -42,6 +54,7 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
         if (marker != null && !marker.isEmpty()) {
             queryParams.put("marker", marker);
         }
+
         try {
             ResponseEntity<CinderVolumesResponse> response = cinderVolumesModule.listVolumesDetail(token, projectId, queryParams);
 
@@ -49,11 +62,16 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
                 throw new VolumeException(VolumeErrorCode.CINDER_API_FAILURE);
             }
 
-            List<VolumeResponse> contents = response.getBody().getVolumes().stream()
+            List<VolumeResponse> results = response.getBody().getVolumes().stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
-            return getVolumesPageResponse(marker, limit, contents);
+            // prev일 때 결과를 역순으로 정렬
+            if (isPrev) {
+                Collections.reverse(results);
+            }
+
+            return getVolumesPageResponse(marker, limit, results, isPrev, isFetchAll);
 
         } catch (WebClientResponseException e) {
             HttpStatusCode status = e.getStatusCode();
@@ -99,7 +117,7 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
             HttpStatusCode status = e.getStatusCode();
             if (status == HttpStatus.NOT_FOUND) {
                 throw new VolumeException(VolumeErrorCode.VOLUME_NOT_FOUND, e);
-            } else if (status == HttpStatus.CONFLICT) {
+            } else if (status == HttpStatus.CONFLICT || status == HttpStatus.BAD_REQUEST) {
                 throw new VolumeException(VolumeErrorCode.VOLUME_IN_USE, e);
             } else if (status == HttpStatus.FORBIDDEN) {
                 throw new VolumeException(VolumeErrorCode.FORBIDDEN_ACCESS, e);
@@ -148,16 +166,39 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
         }
     }
 
-    private PageResponse<VolumeResponse> getVolumesPageResponse(String marker, int limit, List<VolumeResponse> contents) {
+    private PageResponse<VolumeResponse> getVolumesPageResponse(String marker, int limit, List<VolumeResponse> contents, boolean isPrev, boolean isFetchAll) {
+        if (isFetchAll) {
+            return PageResponse.<VolumeResponse>builder()
+                    .contents(contents)
+                    .first(true)
+                    .last(true)
+                    .size(contents.size())
+                    .nextMarker(null)
+                    .prevMarker(null)
+                    .build();
+        }
+
         boolean hasNext = (limit > 0) && (contents.size() > limit);
         if (hasNext) {
             contents.remove(limit);
         }
 
         boolean isFirst = (marker == null || marker.isEmpty());
-        String nextMarker = (hasNext && !contents.isEmpty())
-                ? contents.get(contents.size() - 1).getVolumeId()
-                : null;
+        String nextMarker;
+        String prevMarker;
+
+        if (contents.isEmpty()) {
+            nextMarker = null;
+            prevMarker = null;
+        } else if (isPrev) {
+            // prev 방향
+            prevMarker = hasNext ? contents.get(0).getVolumeId() : null;
+            nextMarker = contents.get(contents.size() - 1).getVolumeId();
+        } else {
+            // next 방향 (기본)
+            nextMarker = hasNext ? contents.get(contents.size() - 1).getVolumeId() : null;
+            prevMarker = isFirst ? null : contents.get(0).getVolumeId();
+        }
 
         return PageResponse.<VolumeResponse>builder()
                 .contents(contents)
@@ -165,7 +206,7 @@ public class VolumeExternalAdapter implements VolumeExternalPort {
                 .first(isFirst)
                 .last(!hasNext)
                 .nextMarker(nextMarker)
-                .prevMarker(marker)
+                .prevMarker(prevMarker)
                 .build();
     }
 

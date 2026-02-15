@@ -12,6 +12,7 @@ public enum AuthErrorCode implements ErrorCode {
     // 400 Bad Request
     INVALID_REQUEST_PARAMETER(400, "ACC-AUTH-INVALID-REQUEST-PARAM", "필수 요청 파라미터가 누락되었거나 유효하지 않습니다."),
     INVALID_PROJECT_STATUS(400, "ACC-AUTH-INVALID-PROJECT-STATUS", "잘못된 프로젝트 상태 값입니다."),
+    MISSING_REFRESH_TOKEN(400, "ACC-AUTH-MISSING-REFRESH-TOKEN", "리프레시 토큰 쿠키가 존재하지 않습니다."),
 
     // 401 Unauthorized
     UNAUTHORIZED(401, "ACC-AUTH-UNAUTHORIZED", "인증에 실패했습니다."),
@@ -32,6 +33,7 @@ public enum AuthErrorCode implements ErrorCode {
     NOT_FOUND_ACC_TOKEN(404, "ACC-AUTH-NOT-FOUND-TOKEN", "ACC 토큰에 해당 하는 userId를 찾을 수 없습니다."),
     USER_NOT_FOUND(404, "ACC-AUTH-USER-NOT-FOUND", "요청한 사용자를 찾을 수 없습니다."),
     PROJECT_NOT_FOUND(404, "ACC-AUTH-PROJECT-NOT-FOUND", "요청한 프로젝트를 찾을 수 없습니다."),
+    NOT_FOUND_USER_AUTH_INFO(404, "NOT_FOUND_USER_AUTH_INFO", "사용자의 인증정보가 존재하지 않습니다."),
     // NOT_FOUND_USER(404 , "ACC-AUTH-NOT-FOUND-USER" , "ACC 유저 계정을 찾을 수 없습니다."),
 
     // 409 Conflict

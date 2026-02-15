@@ -34,6 +34,7 @@ build:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
+
   artifacts:
     when: always
     paths:
@@ -96,8 +97,60 @@ kaniko_build_image:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
-# 매니페스트의 이미지 태그 갱신 (GitOps 커밋)
-update_manifest_image:
+
+# [주석 처리] 기존 K8s 매니페스트 이미지 태그 갱신 (GitOps 커밋)
+# update_manifest_image:
+#   stage: manifest
+#   image:
+#     name: alpine:3.19
+#     entrypoint: [""]
+#   tags: [acc]
+#   needs: ["kaniko_build_image"]
+#   before_script:
+#     - apk add --no-cache git ca-certificates openssh-client yq
+#   script: |
+#     set -euo pipefail
+#     set -x
+#     # 필수 변수 확인
+#     if [ -z "${DOCKERHUB_REPO:-}" ]; then
+#       echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
+#     if [ -z "${MANIFEST_FILE:-}" ]; then
+#       echo "[error] Missing CI variable: MANIFEST_FILE (e.g. acc/backend/acc-backend-deploy.yaml)" >&2; exit 1; fi
+#     if [ -z "${CONTAINER_NAME:-}" ]; then
+#       echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
+#     if [ -z "${GITOPS_REPO_URL:-}" ]; then
+#       echo "[error] Missing CI variable: GITOPS_REPO_URL (e.g. https://gitlab.com/group/gitops-repo.git)" >&2; exit 1; fi
+#     if [ -z "${GITOPS_REPO_BRANCH:-}" ]; then
+#       echo "[error] Missing CI variable: GITOPS_REPO_BRANCH (e.g. main)" >&2; exit 1; fi
+#     if [ -z "${GITOPS_TOKEN:-}" ]; then
+#       echo "[error] Missing CI variable: GITOPS_TOKEN (write access token)" >&2; exit 1; fi
+#
+#     # 새 이미지 태그 구성
+#     FULL_IMAGE="docker.io/$DOCKERHUB_REPO:$CI_COMMIT_SHORT_SHA"
+#     export FULL_IMAGE
+#
+#     # GitOps 레포 클론(HTTPS + Authorization 헤더로 인증)
+#     GITOPS_USERNAME="${GITOPS_USERNAME:-${GIT_PUSH_USERNAME:-gitlab-ci-token}}"
+#     AUTH_B64=$(printf "%s:%s" "$GITOPS_USERNAME" "$GITOPS_TOKEN" | base64 | tr -d '\n')
+#     rm -rf gitops && mkdir -p gitops
+#     git -c http.extraHeader="Authorization: Basic $AUTH_B64" clone --depth 1 --branch "$GITOPS_REPO_BRANCH" "$GITOPS_REPO_URL" gitops
+#
+#     # GitOps 레포 내 매니페스트 수정 (단일 파일)
+#     cd gitops
+#     yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$MANIFEST_FILE"
+#
+#     # 변경 사항 커밋 및 푸시 ([skip ci]로 루프 방지)
+#     git config user.email "ci-bot@${CI_SERVER_HOST}"
+#     git config user.name "gitlab-ci"
+#     git add "$MANIFEST_FILE"
+#     git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
+#     # 푸시(Authorization 헤더 사용)
+#     git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin "$GITOPS_REPO_BRANCH"
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# docker-compose.yml 이미지 태그 갱신 (prod-deploy-manifest)
+update_compose_image:
   stage: manifest
   image:
     name: alpine:3.19
@@ -105,44 +158,46 @@ update_manifest_image:
   tags: [acc]
   needs: ["kaniko_build_image"]
   before_script:
-    - apk add --no-cache git ca-certificates openssh-client yq
+    - apk add --no-cache git ca-certificates sed
   script: |
     set -euo pipefail
     set -x
+
     # 필수 변수 확인
     if [ -z "${DOCKERHUB_REPO:-}" ]; then
       echo "[error] Missing CI variable: DOCKERHUB_REPO (e.g. aolda/acc_backend)" >&2; exit 1; fi
-    if [ -z "${MANIFEST_FILE:-}" ]; then
-      echo "[error] Missing CI variable: MANIFEST_FILE (e.g. acc/backend/acc-backend-deploy.yaml)" >&2; exit 1; fi
-    if [ -z "${CONTAINER_NAME:-}" ]; then
-      echo "[error] Missing CI variable: CONTAINER_NAME (e.g. acc-backend)" >&2; exit 1; fi
-    if [ -z "${GITOPS_REPO_URL:-}" ]; then
-      echo "[error] Missing CI variable: GITOPS_REPO_URL (e.g. https://gitlab.com/group/gitops-repo.git)" >&2; exit 1; fi
-    if [ -z "${GITOPS_REPO_BRANCH:-}" ]; then
-      echo "[error] Missing CI variable: GITOPS_REPO_BRANCH (e.g. main)" >&2; exit 1; fi
     if [ -z "${GITOPS_TOKEN:-}" ]; then
       echo "[error] Missing CI variable: GITOPS_TOKEN (write access token)" >&2; exit 1; fi
 
     # 새 이미지 태그 구성
     FULL_IMAGE="docker.io/$DOCKERHUB_REPO:$CI_COMMIT_SHORT_SHA"
-    export FULL_IMAGE
 
-    # GitOps 레포 클론(HTTPS + Authorization 헤더로 인증)
+    # prod-deploy-manifest 레포 클론
+    if [ -z "${DEPLOY_REPO:-}" ]; then
+      echo "[error] Missing CI variable: DEPLOY_REPO (e.g. https://git.ajou.ac.kr/aolda/aolda-prod-deploy-manifest.git)" >&2; exit 1; fi
     GITOPS_USERNAME="${GITOPS_USERNAME:-${GIT_PUSH_USERNAME:-gitlab-ci-token}}"
     AUTH_B64=$(printf "%s:%s" "$GITOPS_USERNAME" "$GITOPS_TOKEN" | base64 | tr -d '\n')
-    rm -rf gitops && mkdir -p gitops
-    git -c http.extraHeader="Authorization: Basic $AUTH_B64" clone --depth 1 --branch "$GITOPS_REPO_BRANCH" "$GITOPS_REPO_URL" gitops
+    rm -rf deploy-manifest && mkdir -p deploy-manifest
+    git -c http.extraHeader="Authorization: Basic $AUTH_B64" clone --depth 1 "$DEPLOY_REPO" deploy-manifest
 
-    # GitOps 레포 내 매니페스트 수정 (단일 파일)
-    cd gitops
-    yq -i '(.spec.template.spec.containers[] | select(.name == env(CONTAINER_NAME)).image) = env(FULL_IMAGE)' "$MANIFEST_FILE"
+    cd deploy-manifest
+
+    # acc-backend/docker-compose.yml 의 image 태그 변경
+    COMPOSE_FILE="acc-backend/docker-compose.yml"
+    if [ ! -f "$COMPOSE_FILE" ]; then
+      echo "[error] $COMPOSE_FILE not found in deploy-manifest repo" >&2; exit 1; fi
+
+    sed -i "s|image: docker.io/$DOCKERHUB_REPO:.*|image: $FULL_IMAGE|" "$COMPOSE_FILE"
+
+    echo "Updated image to: $FULL_IMAGE"
+    grep "image:" "$COMPOSE_FILE"
 
     # 변경 사항 커밋 및 푸시 ([skip ci]로 루프 방지)
     git config user.email "ci-bot@${CI_SERVER_HOST}"
     git config user.name "gitlab-ci"
-    git add "$MANIFEST_FILE"
-    git commit -m "chore: bump image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
-    # 푸시(Authorization 헤더 사용)
-    git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin "$GITOPS_REPO_BRANCH"
+    git add "$COMPOSE_FILE"
+    git commit -m "chore: bump acc-backend image to $FULL_IMAGE [skip ci]" || echo "No changes to commit"
+    git -c http.extraHeader="Authorization: Basic $AUTH_B64" push origin HEAD
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+

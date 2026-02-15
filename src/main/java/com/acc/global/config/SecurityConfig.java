@@ -93,6 +93,8 @@ public class SecurityConfig {
                 "https://script.googleusercontent.com",
                 "https://console.aoldacloud.com",
                 "https://acc.jalju.com",
+                "https://dev.aoldacloud.com",
+                "https://dev.aoldacloud.com:5173",
                 "https://console.jalju.com",
                 "https://console.jalju.com:5173",
                 "https://aolda.cloud",

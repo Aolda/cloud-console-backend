@@ -1,5 +1,7 @@
 package com.acc.local.external.adapters.glance;
 
+import com.acc.global.exception.image.ImageErrorCode;
+import com.acc.global.exception.image.ImageException;
 import com.acc.local.dto.image.ImageFilterRequest;
 import com.acc.local.dto.image.ImageMetadataRequest;
 import com.acc.local.external.dto.glance.image.GlanceCreateImageRequest;
@@ -11,10 +13,12 @@ import com.acc.local.external.dto.glance.response.GlanceImagesResponse;
 import com.acc.local.external.ports.GlanceExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.InputStream;
 
@@ -22,32 +26,66 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class GlanceExternalAdaptor implements GlanceExternalPort {
     private final GlanceImageAPIModule glanceImageAPIModule;
-    private final ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<GlanceImagesResponse> fetchImageList(String token, String projectId, ImageFilterRequest filters) {
         GlanceFetchImagesRequestParam param = requestParamMapper(filters);
-        return glanceImageAPIModule.fetchImageList(token, param);
+        try {
+            return glanceImageAPIModule.fetchImageList(token, param);
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+        } catch (RestClientException | WebClientException e) {
+            throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+        }
     }
 
     @Override
     public ResponseEntity<GlanceImageResponse> fetchImageDetail(String token, String imageId) {
-        return glanceImageAPIModule.fetchImage(token, imageId);
+        try {
+            return glanceImageAPIModule.fetchImage(token, imageId);
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_ACCESSIBLE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+        } catch (RestClientException | WebClientException e) {
+            throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+        }
     }
 
     @Override
     public ResponseEntity<JsonNode> createImageMetadata(String token, ImageMetadataRequest req) {
         GlanceCreateImageRequest createReq = GlanceCreateImageRequest.builder()
                 .name(req.name())
-                .diskFormat(req.diskFormat())
-                .containerFormat(req.containerFormat())
+                .diskFormat(req.diskFormat().name().toLowerCase())
+                .containerFormat(req.containerFormat().name().toLowerCase())
                 .architecture(req.architecture())
                 .visibility("private")
                 .minDisk(req.minDisk())
                 .minRam(req.minRam())
                 .build();
 
-        return glanceImageAPIModule.createImage(token, createReq);
+        try {
+            return glanceImageAPIModule.createImage(token, createReq);
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 400 -> throw new ImageException(ImageErrorCode.INVALID_IMAGE_METADATA, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_METADATA_CREATE_FORBIDDEN, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+        } catch (RestClientException | WebClientException e) {
+            throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+        }
     }
 
     @Override
@@ -61,7 +99,19 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
                 .allStoresMustSucceed(false)
                 .build();
 
-        return glanceImageAPIModule.importImage(token, imageId, importReq);
+        try {
+            return glanceImageAPIModule.importImage(token, imageId, importReq);
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 400 -> throw new ImageException(ImageErrorCode.INVALID_IMPORT_URL, e);
+                case 403, 409 -> throw new ImageException(ImageErrorCode.IMAGE_IMPORT_FAILURE, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+        } catch (RestClientException | WebClientException e) {
+            throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+        }
     }
 
     @Override
@@ -78,12 +128,29 @@ public class GlanceExternalAdaptor implements GlanceExternalPort {
             }
         };
 
-        glanceImageAPIModule.uploadImageFileStream(token, imageId, resource, contentType);
+        try {
+            glanceImageAPIModule.uploadImageFileStream(token, imageId, resource, contentType);
+        } catch (Exception e) {
+            throw new ImageException(ImageErrorCode.IMAGE_UPLOAD_FAILURE, e);
+        }
     }
 
     @Override
     public ResponseEntity<Void> deleteImage(String token, String imageId) {
-        return glanceImageAPIModule.deleteImage(token, imageId);
+        try {
+            return glanceImageAPIModule.deleteImage(token, imageId);
+        } catch (WebClientResponseException e) {
+            int status = e.getStatusCode().value();
+            switch (status) {
+                case 404 -> throw new ImageException(ImageErrorCode.IMAGE_NOT_FOUND, e);
+                case 403 -> throw new ImageException(ImageErrorCode.IMAGE_DELETE_FORBIDDEN, e);
+                case 409 -> throw new ImageException(ImageErrorCode.IMAGE_STATUS_CONFLICT, e);
+                case 500, 502, 503 -> throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+                default -> throw new ImageException(ImageErrorCode.GLANCE_BAD_RESPONSE, e);
+            }
+        } catch (RestClientException | WebClientException e) {
+            throw new ImageException(ImageErrorCode.GLANCE_UNAVAILABLE, e);
+        }
     }
 
     private GlanceFetchImagesRequestParam requestParamMapper(ImageFilterRequest filterRequest) {

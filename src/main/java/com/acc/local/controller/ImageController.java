@@ -8,6 +8,7 @@ import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.ImageDocs;
 import com.acc.local.dto.image.*;
 import com.acc.local.service.ports.ImageServicePort;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,48 +25,40 @@ public class ImageController implements ImageDocs {
     private final ImageServicePort imageServicePort;
 
     @GetMapping
-    public ResponseEntity<?> getImages(
-            Authentication authentication,
-            @RequestParam(value = "imageId", required = false) String imageId,
+    public ResponseEntity<PageResponse<GlanceImageSummary>> getImages(
             @ModelAttribute PageRequest pageRequest,
             @ModelAttribute ImageFilterRequest filterRequest,
+            Authentication authentication,
             @RequestParam String projectId
     ) {
         JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
         String userId = jwtInfo.getUserId();
 
-        boolean hasPaginationParams = pageRequest.getMarker() != null;
-
-        if (imageId != null && hasPaginationParams) {
-            throw new ImageException(ImageErrorCode.INVALID_PAGINATION_WITH_IMAGE_ID);
+        // marker 단독 금지
+        if (pageRequest.getMarker() != null && pageRequest.getLimit() == null) {
+            throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
+        }
+        // direction 단독 금지
+        if (pageRequest.getDirection() != null && pageRequest.getLimit() == null) {
+            throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
         }
 
-        if (imageId == null) {
-
-            // marker 단독 금지
-            if (pageRequest.getMarker() != null && pageRequest.getLimit() == null) {
-                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
-            }
-
-            // direction 단독 금지
-            if (pageRequest.getDirection() != null && pageRequest.getLimit() == null) {
-                throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
-            }
-        }
-
-        if (imageId != null) {
-            ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
-            return ResponseEntity.ok(detail);
-        }
-
-        PageResponse<GlanceImageSummary> page =
-                imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
-
+        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
         return ResponseEntity.ok(page);
     }
 
+    @GetMapping("/{imageId}")
+    public ResponseEntity<ImageDetailResponse> getImageDetail(
+            Authentication authentication,
+            @RequestParam String projectId,
+            @PathVariable String imageId
+    ) {
+        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        String userId = jwtInfo.getUserId();
 
-
+        ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
+        return ResponseEntity.ok(detail);
+    }
 
     @PostMapping("/import")
     public ResponseEntity<ImageUploadAckResponse> importImageByUrl(

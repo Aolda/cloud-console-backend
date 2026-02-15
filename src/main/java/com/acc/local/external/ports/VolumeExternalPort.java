@@ -6,7 +6,7 @@ import com.acc.local.dto.volume.VolumeResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface VolumeExternalPort {
-    PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit);
+    PageResponse<VolumeResponse> callListVolumes(String token, String projectId, String marker, int limit, String direction);
 
     VolumeResponse callGetVolumeDetails(String token, String projectId, String volumeId);
 

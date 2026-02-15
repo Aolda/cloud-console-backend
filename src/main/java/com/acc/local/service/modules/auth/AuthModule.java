@@ -4,6 +4,7 @@ import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.JwtAuthenticationException;
+import com.acc.global.exception.auth.KeystoneException;
 import com.acc.local.dto.auth.*;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
@@ -25,6 +26,7 @@ import com.acc.local.external.modules.keystone.KeystoneAPIUtils;
 import com.acc.local.repository.ports.RefreshTokenRepositoryPort;
 import com.acc.local.repository.ports.UserTokenRepositoryPort;
 import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.entity.id.UserIdentityId;
 
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
@@ -173,9 +175,17 @@ public class AuthModule {
 
     public String issueProjectScopeToken(String projectId, String userId) {
         String unscopedToken = getUnscopedTokenByUserId(userId);
-        KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
 
-        return scopedToken.token();
+        try {
+            KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
+
+            return scopedToken.token();
+        } catch (KeystoneException e) {
+            if (e.getErrorCode().equals(AuthErrorCode.UNAUTHORIZED)) {
+                throw new AuthServiceException(AuthErrorCode.PROJECT_NOT_FOUND);
+            }
+            throw e;
+        }
     }
 
     public String getUnscopedTokenByUserId(String userId) {
@@ -188,7 +198,7 @@ public class AuthModule {
     private List<UserTokenEntity> getAvailUserTokenEntities(String userId) {
         List<UserTokenEntity> userTokens = userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId);
         if (userTokens.isEmpty()) {
-            throw new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN);
+            throw new JwtAuthenticationException(AuthErrorCode.NOT_FOUND_ACC_TOKEN); // TODO: 에러 핸들링 적합여부 확인필요
         }
 
         return userTokens;
@@ -273,30 +283,6 @@ public class AuthModule {
     @Transactional
     public RefreshToken generateRefreshToken(KeystonePasswordLoginRequest passwordLoginRequest , String userId) {
         return createRefreshToken(userId);
-    }
-
-    /**
-     * 프로젝트 진입 시 projectId가 포함된 토큰 발급
-     * 기존 UserTokenEntity의 jwtToken만 업데이트 (Keystone 호출 없음)
-     */
-    @Transactional
-    public UserToken issueProjectScopedToken(String userId, String projectId) {
-
-        UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
-
-        // keystoneUnscopedToken이 유효한지 확인
-        checkUnscopedTokenExpired(existingTokenEntity);
-
-        UserToken existingUserToken = UserToken.from(existingTokenEntity);
-
-        String newJwtToken = jwtUtils.generateToken(userId, projectId);
-
-        // 5. Domain Model 업데이트 (새로운 UserToken 생성)
-        UserToken updatedToken = UserToken.updateJwtWithProjectId(existingUserToken , newJwtToken , jwtUtils.calculateExpirationDateTime());
-
-        UserTokenEntity savedEntity = userTokenRepositoryPort.save(updatedToken.toEntity());
-
-        return UserToken.from(savedEntity);
     }
 
     private UserToken createUserToken(String userId, KeystoneToken keystoneToken) {
@@ -400,12 +386,9 @@ public class AuthModule {
         // 1. 기존 UserToken 조회
         UserTokenEntity existingTokenEntity = getAvailUserTokenEntities(userId).getFirst();
         UserToken existingUserToken = UserToken.from(existingTokenEntity);
+        log.info("[Refresh Token] userId: {}", userId);
 
-        // 2. 가장 최근 발급된 토큰에서 projectId 추출
-        String projectId = extractProjectIdFromLatestToken(userId);
-        log.info("[Refresh Token] userId: {}, projectId: {}", userId, projectId);
-
-        // 3. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
+        // 2. 기존 Keystone Token으로 새로운 Keystone Unscoped Token 발급
         String oldKeystoneToken = existingTokenEntity.getKeystoneUnscopedToken();
         KeystoneToken newKeystoneToken = keystoneAPIExternalPort.getUnscopedTokenByToken(oldKeystoneToken);
 
@@ -413,13 +396,13 @@ public class AuthModule {
             throw new JwtAuthenticationException(AuthErrorCode.KEYSTONE_TOKEN_GENERATION_FAILED);
         }
 
-        // 4. 기존 Keystone Token revoke
+        // 3. 기존 Keystone Token revoke
         keystoneAPIExternalPort.revokeToken(oldKeystoneToken);
 
-        // 5. 새로운 JWT Access Token 발급 (projectId 포함)
-        String newAccessToken = jwtUtils.generateToken(userId, projectId);
+        // 4. 새로운 JWT Access Token 발급 (projectId 포함)
+        String newAccessToken = jwtUtils.generateToken(userId);
 
-        // 6. 새로운 UserToken 생성 및 저장
+        // 5. 새로운 UserToken 생성 및 저장
         UserToken newUserToken = UserToken.updateKeystoneByRefreshToken(existingUserToken, newAccessToken, newKeystoneToken, userId, jwtUtils.calculateExpirationDateTime());
         userTokenRepositoryPort.save(newUserToken.toEntity());
 
@@ -439,17 +422,6 @@ public class AuthModule {
             refreshTokenEntity.deactivate();
             refreshTokenRepositoryPort.save(refreshTokenEntity);
         });
-    }
-
-    /**
-     * 가장 최근 발급된 UserToken의 JWT에서 projectId 추출
-     * 만료된 토큰에서도 projectId를 추출할 수 있음
-     */
-    private String extractProjectIdFromLatestToken(String userId) {
-        return userTokenRepositoryPort.findLatestByUserId(userId)
-            .map(UserTokenEntity::getJwtToken)
-            .map(jwtUtils::getProjectIdFromExpiredToken)
-            .orElse(null);
     }
 
     /**
@@ -479,10 +451,9 @@ public class AuthModule {
 
             // 3. UserIdentity Entity 생성 및 저장
             UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
-                    .userId(userId)
+                    .id(new UserIdentityId(userId, request.authType().getCode()))
                     .department(request.department())
                     .studentId(request.studentId())
-                    .authType(request.authType().getCode())
                     .userEmail(request.email())
                     .build();
             userRepositoryPort.saveUserIdentity(userIdentityEntity);
