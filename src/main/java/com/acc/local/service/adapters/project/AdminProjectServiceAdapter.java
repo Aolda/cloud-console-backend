@@ -137,6 +137,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		for (ProjectRequestDto projectRequestDto: projectRequestList) {
 			String projectRequestId = projectRequestDto.projectRequestId();
 			if (!projectRequestDto.status().equals(ProjectRequestStatus.PENDING)) {
+				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail("이미 승인/반려여부가 결정된 프로젝트 요청입니다."));
 				continue;
 			}
 
