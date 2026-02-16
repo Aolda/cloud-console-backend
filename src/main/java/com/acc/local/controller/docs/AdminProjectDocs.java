@@ -2,6 +2,7 @@ package com.acc.local.controller.docs;
 
 import java.util.List;
 
+import com.acc.local.dto.project.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,12 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.DecideProjectRequestRequest;
 import com.acc.local.dto.auth.ProjectRoleResponse;
-import com.acc.local.dto.project.ProjectRequestResponse;
-import com.acc.local.dto.project.ProjectResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -109,9 +105,7 @@ public interface AdminProjectDocs {
 	// 5. [관리자] 신규 프로젝트 생성요청 승인/거절
     @Operation(
             summary = "[관리자] 신규 프로젝트 생성요청 승인/거절",
-            description = "프로젝트 생성요청의 상태만 승인(APPROVED)/거절(REJECTED)로 변경합니다.\n\n"
-                    + "- 이 API는 리소스를 실제로 만들지 않습니다(프로젝트 생성/쿼터/역할/네트워크 미수행).\n"
-                    + "- 실제 프로젝트 프로비저닝은 별도의 'POST /api/v1/admin/projects'에서 수행합니다."
+            description = "프로젝트 생성요청의 상태를 승인(APPROVED)/거절(REJECTED)로 변경하고, '승인'인 경우 요청정보를 바탕으로 실제 프로젝트를 생성합니다."
     )
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "요청 처리 성공", content = @Content()),
@@ -121,7 +115,7 @@ public interface AdminProjectDocs {
 		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
     @PostMapping("/request")
-    ResponseEntity<Void> decideProjectRequest(
+    ResponseEntity<DecideProjectRequestResponse> decideProjectRequest(
         @Parameter(hidden = true) Authentication authentication,
         @RequestBody(required = true) DecideProjectRequestRequest request
     );

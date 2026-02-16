@@ -9,6 +9,7 @@ import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.*;
 
+import com.acc.local.dto.project.decision.DecisionApplyInfo;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 
 import com.acc.local.dto.project.quota.ProjectQuotaRequest;
@@ -26,9 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -123,7 +122,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 	@Override
 	@Transactional
-	public List<String> applyProjectRequestDecisions(
+	public DecideProjectRequestResponse applyProjectRequestDecisions(
 		List<String> projectRequestIds,
 		ProjectRequestStatus decision,
 		String rejectReason,
@@ -131,27 +130,43 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	) {
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(decidedUserId);
 
-		List<String> succeedProjectRequestIds = new ArrayList<>();
+		Map<String, DecisionApplyInfo> projectRequestAppliedResults = new HashMap<>();
+		int appliedCount = 0;
+
 		List<ProjectRequestDto> projectRequestList = projectModule.getProjectRequestList(projectRequestIds);
 		for (ProjectRequestDto projectRequestDto: projectRequestList) {
 			String projectRequestId = projectRequestDto.projectRequestId();
+			if (!projectRequestDto.status().equals(ProjectRequestStatus.PENDING)) {
+				continue;
+			}
+
 			try {
+				String createdProjectId = null;
 				if (decision == ProjectRequestStatus.APPROVED) {
-					createProjectFromProjectCreateDto(projectRequestDto.toProjectCreateDto(decidedUserId), decidedUserId, adminToken);
+					CreateProjectResponse projectCreateResponse = createProjectFromProjectCreateDto(projectRequestDto.toProjectCreateDto(decidedUserId), decidedUserId, adminToken);
+					createdProjectId = projectCreateResponse.projectId();
 				}
 
 				projectModule.updateStatus(projectRequestId, decision, rejectReason);
 				log.info(String.format("Project result: %s (%s) / Decided by %s", decision, projectRequestId, decidedUserId));
+				appliedCount++;
 
-				succeedProjectRequestIds.add(projectRequestId);
+				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.success(createdProjectId));
 			} catch(Exception e) {
+				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail(e.getMessage()));
 				log.error("Project Approve - Failed ({})", projectRequestId);
 				revertProjectDecision(projectRequestId, decidedUserId);
 				e.printStackTrace();
 			}
 		}
 		authModule.invalidateSystemAdminToken(adminToken);
-		return succeedProjectRequestIds;
+
+		return DecideProjectRequestResponse.builder()
+				.requested(projectRequestIds.size())
+				.acknowledged(projectRequestList.size())
+				.applied(appliedCount)
+				.data(projectRequestAppliedResults)
+				.build();
 	}
 
     private void revertProjectDecision(String projectRequestId, String approvedUserId) {
