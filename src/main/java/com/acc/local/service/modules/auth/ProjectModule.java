@@ -66,6 +66,8 @@ public class ProjectModule {
 
 	// ============ Project Request ============
 	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requestUserId) {
+		checkIdenticalProjectRequestExist(request, requestUserId);
+
 		ProjectRequestEntity newRequest = ProjectRequestEntity.builder()
 			.projectRequestId(UUID.randomUUID().toString())
 			.requestUserId(requestUserId)
@@ -77,6 +79,16 @@ public class ProjectModule {
 
 		ProjectRequestEntity savedEntity = projectRequestRepositoryPort.save(newRequest);
 		return CreateProjectRequestResponse.from(savedEntity);
+	}
+
+	private void checkIdenticalProjectRequestExist(CreateProjectRequestRequest request, String requestUserId) {
+		long identicalProjectRequestsNameCount = getAllProjectRequestList(request.projectName(), requestUserId).stream()
+				.filter(v -> v.projectName().equals(request.projectName()))
+				.count();
+
+		if (identicalProjectRequestsNameCount > 0) {
+			throw new ProjectServiceException(ProjectErrorCode.PROJECT_REQUEST_ALREADY_EXIST);
+		}
 	}
 
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest) {
