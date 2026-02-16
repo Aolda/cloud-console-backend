@@ -2,7 +2,10 @@ package com.acc.local.controller.docs;
 
 import java.util.List;
 
+import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.local.dto.project.*;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -105,14 +108,56 @@ public interface AdminProjectDocs {
 	// 5. [관리자] 신규 프로젝트 생성요청 승인/거절
     @Operation(
             summary = "[관리자] 신규 프로젝트 생성요청 승인/거절",
-            description = "프로젝트 생성요청의 상태를 승인(APPROVED)/거절(REJECTED)로 변경하고, '승인'인 경우 요청정보를 바탕으로 실제 프로젝트를 생성합니다."
+            description = "프로젝트 생성요청의 상태를 승인(APPROVED)/거절(REJECTED)로 변경하고, '승인'인 경우 요청정보를 바탕으로 실제 프로젝트를 생성합니다. \n\n" +
+					"- \"requested\": 결정적용을 요청한 프로젝트요청 수\n" +
+					"- \"acknowledged\": 실제로 존재하는 프로젝트요청임이 확인된 프로젝트요청 수\n" +
+					"- \"applied\": 실제로 요청한 결정이 적용된 프로젝트요청 수\n" +
+					"- \"data\": 각 요청건 별 상세처리정보"
     )
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "요청 처리 성공", content = @Content()),
-		@ApiResponse(responseCode = "400", description = "잘못된 요청 - 처리 상태값 오류 등", content = @Content()),
-		@ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 토큰", content = @Content()),
-		@ApiResponse(responseCode = "403", description = "권한 없음 - API 접근 권한이 없음", content = @Content()),
-		@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
+	@ApiResponses({
+			// ----- 성공 응답 -----
+			@ApiResponse(
+					responseCode = "200",
+					description = "프로젝트 요청 결정 적용 성공",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = DecideProjectRequestResponse.class),
+							examples = {
+									@ExampleObject(
+											name = "Success Response Example",
+											summary = "[결정 적용 성공 예시]",
+											value = """
+												{
+												  "requested": 5,
+												  "acknowledged": 3,
+												  "applied": 1,
+												  "data": {
+													"20895bda-0662-4da9-9b27-655934adc452": {
+													  "isApplied": false,
+													  "projectId": null,
+													  "reason": "이미 승인/반려여부가 결정된 프로젝트 요청입니다."
+													},
+													"9a1f3d25-ed00-4f5b-a56c-8bf37c286b50": {
+													  "isApplied": true,
+													  "projectId": "d53b5904d091456a9ec67ec696079955",
+													  "reason": null
+													},
+													"e820939b-4966-4799-b3c4-4d2a1130d85e": {
+													  "isApplied": false,
+													  "projectId": null,
+													  "reason": "이미 승인/반려여부가 결정된 프로젝트 요청입니다."
+													}
+												  }
+												}
+                                        	"""
+									)
+							}
+					)
+			),
+			@ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content()),
+			@ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 토큰", content = @Content()),
+			@ApiResponse(responseCode = "403", description = "권한 없음 - API 접근 권한이 없음", content = @Content()),
+			@ApiResponse(responseCode = "500", description = "서버 오류 - 내부 서버 오류", content = @Content())
 	})
     @PostMapping("/request")
     ResponseEntity<DecideProjectRequestResponse> decideProjectRequest(
