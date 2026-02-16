@@ -24,4 +24,6 @@ public interface ProjectRequestRepositoryPort {
 	void updateStatus(String projectId, ProjectRequestStatus status, String rejectReason);
 
 	List<ProjectRequestEntity> findAllByIds(List<String> projectRequestIds);
+
+	List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(String searchKeyword, String requestUserId, int offset, int size);
 }

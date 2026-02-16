@@ -102,6 +102,29 @@ public class ProjectModule {
 		);
 	}
 
+	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest, String requestUserId) {
+		String searchKeyword = (keyword == null) ? "" : keyword;
+
+		String marker = "";
+		int offset = 0;
+		int size = 10;
+		if (pageRequest != null) {
+			pageRequest.getMarker();
+			offset = getOffsetFromMarker(marker);
+			size = pageRequest.getLimit();
+		}
+
+		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeywordAndRequestUserId(
+			searchKeyword, requestUserId,
+			offset, size
+		);
+
+		return ProjectRequestListServiceDto.from(
+			savedProjectRequestList.stream().map(ProjectRequestDto::from).toList(),
+			pageRequest, false, null
+		);
+	}
+
 	public ProjectRequestDto getProjectRequest(String projectRequestId) {
 		ProjectRequestEntity projectRequest = projectRequestRepositoryPort.findByRequestId(projectRequestId)
 				.orElseThrow(() -> new IllegalArgumentException("올바르지 않은 프로젝트 요청ID 입니다."));
