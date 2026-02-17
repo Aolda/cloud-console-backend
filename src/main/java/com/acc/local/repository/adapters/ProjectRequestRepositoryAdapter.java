@@ -39,6 +39,11 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 	}
 
 	@Override
+	public List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(String searchKeyword, String requestUserId, int offset, int size) {
+		return projectRequestJpaRepository.findByRequestUserIdAndProjectNameContaining(requestUserId, searchKeyword, createPageable(offset, size)).getContent();
+	}
+
+	@Override
 	public List<ProjectRequestEntity> findByRequesterId(String requesterId, int offset, int size) {
 		Pageable pageable = createPageable(offset, size);
 		Page<ProjectRequestEntity> pageResult = projectRequestJpaRepository.findByRequestUserId(requesterId, pageable);

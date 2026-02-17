@@ -1,5 +1,6 @@
 package com.acc.local.repository.jpa;
 
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,8 @@ public interface ProjectRequestJpaRepository extends JpaRepository<ProjectReques
 	List<ProjectRequestEntity> findByProjectNameContaining(String keyword);
 
 	Page<ProjectRequestEntity> findByProjectNameContaining(String keyword, Pageable pageable);
+
+	Page<ProjectRequestEntity> findByRequestUserIdAndProjectNameContaining(String requestUserId, String keyword, Pageable pageable);
 
 	@Transactional
 	@Modifying

@@ -25,6 +25,7 @@ public enum ProjectErrorCode implements ErrorCode {
 
     // 409 Conflict
     CONFLICT(409, "ACC-PROJECT-CONFLICT", "리소스가 충돌되었습니다. 이미 존재하거나 삭제할 수 없는 상태입니다."),
+    PROJECT_REQUEST_ALREADY_EXIST(409, "ACC-PROJECT-REQUEST-CONFLICT", "동일한 이름의 프로젝트요청이 이미 접수되어 있습니다."),
 
     // 500 Internal Server Error
     UNEXPECTED_ERROR(500,"ACC-PROJECT-UNEXPECTED-ERROR" ,"예상치 못한 에러가 발생하였습니다. 잠시 후 다시 시도해주세요." );
