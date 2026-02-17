@@ -1,6 +1,7 @@
 package com.acc.global.config;
 
 import com.acc.global.properties.ApmProperties;
+import com.acc.global.properties.KeycloakProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ public class WebClientConfig {
     @Value("${openstack.url}")
     private String openstackUrl;
     private final ApmProperties apmProperties;
+    private final KeycloakProperties keycloakProperties;
 
     @Bean
     public WebClient openstackWebClient() {
@@ -60,6 +62,13 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(apmProperties.getServerUrl())
                 .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
+
+    @Bean
+    public WebClient keycloakWebClient() {
+        return WebClient.builder()
+                .baseUrl(keycloakProperties.getIssuerUri())
                 .build();
     }
 }
