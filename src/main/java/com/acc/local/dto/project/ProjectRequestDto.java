@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 import com.acc.local.entity.ProjectRequestEntity;
 
 import lombok.Builder;
+import org.jetbrains.annotations.NotNull;
 
 @Builder
 public record ProjectRequestDto(
@@ -33,5 +35,19 @@ public record ProjectRequestDto(
 			.rejectReason(projectRequestEntity.getRejectReason())
 			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.build();
+	}
+
+    public ProjectCreateDto toProjectCreateDto(String approvedUserId) {
+		return ProjectCreateDto.builder()
+				.projectOwnerId(requestUserId)
+				.projectDescription(getProjectDescriptionMessage(projectRequestId, approvedUserId))
+				.projectName(projectName)
+				.quota(ProjectQuotaRequest.from(projectBrief))
+				.build();
+    }
+
+	@NotNull
+	public static String getProjectDescriptionMessage(String projectRequestId, String approvedUserId) {
+		return String.format("[ACC Console] Approved by: %s | RequestId: %s", approvedUserId, projectRequestId);
 	}
 }

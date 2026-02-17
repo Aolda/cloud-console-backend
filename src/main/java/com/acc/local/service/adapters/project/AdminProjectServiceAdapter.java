@@ -2,23 +2,14 @@ package com.acc.local.service.adapters.project;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
-import com.acc.local.dto.project.CreateProjectRequest;
+import com.acc.local.dto.project.*;
 
-import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.ProjectListServiceDto;
-import com.acc.local.dto.project.ProjectParticipantDto;
-import com.acc.local.dto.project.ProjectRequestDto;
-import com.acc.local.dto.project.ProjectRequestListServiceDto;
-import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
-import com.acc.local.dto.project.ProjectRequestResponse;
-import com.acc.local.dto.project.ProjectResponse;
-import com.acc.local.dto.project.RepositoryPagination;
-import com.acc.local.dto.project.UpdateProjectRequest;
-import com.acc.local.dto.project.UpdateProjectResponse;
 
 import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 import com.acc.local.dto.project.quota.QuotaGroup;
@@ -57,32 +48,37 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		log.info(adminToken);
 
 		try {
-			String projectOwnerId = createProjectRequest.projectOwnerId();
-
-			KeystoneProject createdProject = projectModule.createProject(adminToken, createProjectRequest, userId);
-			ProjectGlobalQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, createProjectRequest, userId, createdProject);
-
-			String createdProjectId = createdProject.getId();
-			projectModule.applyProjectAccessOnOpenstack(
-				createdProjectId,
-				List.of(projectOwnerId), ProjectRole.PROJECT_ADMIN,
-				adminToken
-			);
-
-			String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
-			neutronModule.createDefaultNetwork(projectOwnerScopedToken);
-
-			authModule.invalidateSystemAdminToken(adminToken);
-			return CreateProjectResponse.from(createdProject, quota);
+			return createProjectFromProjectCreateDto(createProjectRequest.toProjectCreateDto(), userId, adminToken);
 		} catch(Exception e) {
 			authModule.invalidateSystemAdminToken(adminToken);
 			e.printStackTrace();
 			throw e;
+		} finally {
+			authModule.invalidateSystemAdminToken(adminToken);
 		}
 	}
 
-	private ProjectGlobalQuotaDto applyProjectQuotaOnKeystone(String adminToken, CreateProjectRequest createProjectRequest, String userId, KeystoneProject createdProject) {
-		ProjectQuotaRequest quota = createProjectRequest.quota();
+	private CreateProjectResponse createProjectFromProjectCreateDto(ProjectCreateDto projectCreateDto, String commandUserId, String adminToken) {
+		String projectOwnerId = projectCreateDto.projectOwnerId();
+
+		KeystoneProject createdProject = projectModule.createProject(adminToken, projectCreateDto, commandUserId);
+		ProjectGlobalQuotaDto quota = applyProjectQuotaOnKeystone(adminToken, projectCreateDto, commandUserId, createdProject);
+
+		String createdProjectId = createdProject.getId();
+		projectModule.applyProjectAccessOnOpenstack(
+			createdProjectId,
+			List.of(projectOwnerId), ProjectRole.PROJECT_ADMIN,
+				adminToken
+		);
+
+		String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
+		neutronModule.createDefaultNetwork(projectOwnerScopedToken);
+
+		return CreateProjectResponse.from(createdProject, quota);
+	}
+
+	private ProjectGlobalQuotaDto applyProjectQuotaOnKeystone(String adminToken, ProjectCreateDto projectCreateDto, String userId, KeystoneProject createdProject) {
+		ProjectQuotaRequest quota = projectCreateDto.quota();
 		projectModule.updateProjectStorageQuota(adminToken, createdProject.getId(), quota.storage(), userId);
 		projectModule.updateProjectCPUAndRAMQuota(adminToken, createdProject.getId(), quota.vCpu(), quota.vRam(), userId);
 		return ProjectGlobalQuotaDto.builder()
@@ -127,17 +123,64 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 	@Override
 	@Transactional
-	public void applyProjectRequestDecision(
+	public List<String> applyProjectRequestDecisions(
 		List<String> projectRequestIds,
 		ProjectRequestStatus decision,
 		String rejectReason,
-		String decideUserId
+		String decidedUserId
 	) {
-		for (String projectRequestId: projectRequestIds) {
-			projectModule.updateStatus(projectRequestId, decision, rejectReason);
-			log.info(String.format("Project result: %s (%s) / Decided by %s", decision, projectRequestId, decideUserId));
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(decidedUserId);
+
+		List<String> succeedProjectRequestIds = new ArrayList<>();
+		List<ProjectRequestDto> projectRequestList = projectModule.getProjectRequestList(projectRequestIds);
+		for (ProjectRequestDto projectRequestDto: projectRequestList) {
+			String projectRequestId = projectRequestDto.projectRequestId();
+			try {
+				if (decision == ProjectRequestStatus.APPROVED) {
+					createProjectFromProjectCreateDto(projectRequestDto.toProjectCreateDto(decidedUserId), decidedUserId, adminToken);
+				}
+
+				projectModule.updateStatus(projectRequestId, decision, rejectReason);
+				log.info(String.format("Project result: %s (%s) / Decided by %s", decision, projectRequestId, decidedUserId));
+
+				succeedProjectRequestIds.add(projectRequestId);
+			} catch(Exception e) {
+				log.error("Project Approve - Failed ({})", projectRequestId);
+				revertProjectDecision(projectRequestId, decidedUserId);
+				e.printStackTrace();
+			}
 		}
+		authModule.invalidateSystemAdminToken(adminToken);
+		return succeedProjectRequestIds;
 	}
+
+    private void revertProjectDecision(String projectRequestId, String approvedUserId) {
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(approvedUserId);
+		try {
+			ProjectRequestDto projectRequest = projectModule.getProjectRequest(projectRequestId);
+
+			ProjectListServiceDto searchedProjectList = projectModule.getProjectList(projectRequest.projectName(), null, adminToken);
+			for (ProjectServiceDto projectDto: searchedProjectList.projects()) {
+				if (!projectDto.description().equals(
+						ProjectRequestDto.getProjectDescriptionMessage(projectRequest.projectRequestId(), approvedUserId)
+				)) {
+					continue;
+				}
+
+				String projectId = projectDto.projectId();
+				projectModule.deleteProject(projectId, approvedUserId);
+			}
+
+			if (!projectRequest.status().equals(ProjectRequestStatus.PENDING)) {
+				projectModule.revertStatus(projectRequestId);
+			}
+
+		} catch (Exception e) {
+			throw new AuthServiceException(AuthErrorCode.KEYSTONE_API_FAILURE, "Openstack 프로젝트 정합성 복구에 실패했습니다");
+		} finally {
+			authModule.invalidateSystemAdminToken(adminToken);
+		}
+    }
 
 	@Override
 	public UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId) {
