@@ -1,5 +1,7 @@
 package com.acc.local.entity;
 
+import com.acc.local.domain.enums.outbox.AggregateType;
+import com.acc.local.domain.enums.outbox.EventType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,14 +21,16 @@ public class OutboxEventEntity {
     @Column(name = "event_id", length = 64, nullable = false)
     private String eventId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "aggregate_type", length = 100, nullable = false)
-    private String aggregateType; // 이벤트가 발생한 aggregate 타입 (예: "ProjectRequest")
+    private AggregateType aggregateType;
 
     @Column(name = "aggregate_id", length = 64, nullable = false)
-    private String aggregateId; // aggregate의 고유 ID
+    private String aggregateId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", length = 100, nullable = false)
-    private String eventType; // 이벤트 타입 (예: "ProjectRequestCreated")
+    private EventType eventType;
 
     @Column(name = "payload", columnDefinition = "TEXT")
     private String payload;
