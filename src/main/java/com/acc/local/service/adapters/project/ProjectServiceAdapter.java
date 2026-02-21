@@ -3,7 +3,7 @@ package com.acc.local.service.adapters.project;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.acc.local.service.modules.auth.event.ProjectRequestEvent;
+import com.acc.local.service.modules.outbox.ProjectRequestEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -120,8 +120,23 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	@Transactional
 	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requesterId) {
 		CreateProjectRequestResponse response = projectModule.createProjectRequest(request, requesterId);
-		// Project Request Event 발행
-		eventPublisher.publishEvent(new ProjectRequestEvent(response.projectRequestId()));
+
+		try {
+			UserKeystoneDto userDetail = authModule.getUserDetail(requesterId, requesterId);
+			String userEmail = userDetail.email();
+
+			// Project Request Event 발행
+			eventPublisher.publishEvent(new ProjectRequestEvent(
+					response.projectRequestId(),
+					requesterId,
+					request.projectName(),
+					request.projectType(),
+					request.projectDescription(),
+					userEmail
+			));
+		} catch (Exception e) {
+			log.warn("Failed to publish Project Request Event. Error: {}", e.getMessage());
+		}
 		return response;
 	}
 
