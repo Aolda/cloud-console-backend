@@ -14,8 +14,4 @@ public interface OutboxEventJpaRepository extends JpaRepository<OutboxEventEntit
      */
     List<OutboxEventEntity> findByProcessedFalseOrderByCreatedAtAsc();
 
-    /**
-     * 특정 Aggregate ID에 대한 이벤트 조회
-     */
-    List<OutboxEventEntity> findByAggregateId(String aggregateId);
 }

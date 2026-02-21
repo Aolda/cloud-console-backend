@@ -1,4 +1,4 @@
-package com.acc.local.service.modules.auth.event;
+package com.acc.local.service.modules.outbox;
 
 import com.acc.local.domain.enums.project.ProjectRequestType;
 
