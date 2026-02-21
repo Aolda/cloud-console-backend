@@ -7,12 +7,8 @@ import com.acc.global.common.PageResponse;
 import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.controller.docs.AdminProjectDocs;
 import com.acc.local.domain.enums.project.ProjectRole;
-import com.acc.local.dto.project.CreateProjectRequest;
-import com.acc.local.dto.project.CreateProjectResponse;
-import com.acc.local.dto.project.DecideProjectRequestRequest;
+import com.acc.local.dto.project.*;
 import com.acc.local.dto.auth.ProjectRoleResponse;
-import com.acc.local.dto.project.ProjectRequestResponse;
-import com.acc.local.dto.project.ProjectResponse;
 import com.acc.local.service.ports.AdminProjectServicePort;
 
 import lombok.RequiredArgsConstructor;
@@ -84,20 +80,20 @@ public class AdminProjectController implements AdminProjectDocs {
 	}
 
 	@Override
-	public ResponseEntity<Void> decideProjectRequest(
+	public ResponseEntity<DecideProjectRequestResponse> decideProjectRequest(
 		Authentication authentication,
 		@RequestBody DecideProjectRequestRequest request
 	) {
 		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
 		String userId = jwtInfo.getUserId();
 
-		adminProjectServicePort.applyProjectRequestDecisions(
-			request.projectRequestIds(),
-			request.status(),
-			request.reason(),
-			userId
+		DecideProjectRequestResponse response = adminProjectServicePort.applyProjectRequestDecisions(
+				request.projectRequestIds(),
+				request.status(),
+				request.reason(),
+				userId
 		);
 
-		return ResponseEntity.status(200).build();
+		return ResponseEntity.status(200).body(response);
 	}
 }

@@ -5,7 +5,6 @@ import com.acc.global.security.jwt.JwtInfo;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.controller.docs.AuthDocs;
 import com.acc.local.service.ports.AuthServicePort;
-import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.properties.OAuth2Properties;
 import com.acc.global.security.jwt.JwtUtils;
 import com.acc.local.dto.auth.*;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,28 +27,9 @@ import java.net.URI;
 public class AuthController implements AuthDocs {
 
 
-    private final KeycloakProperties keycloakProperties;
     private final AuthServicePort authServicePort;
     private final OAuth2Properties oAuth2Properties;
     private final JwtUtils jwtUtils;
-
-    // TODO: keycloak 서버 띄워진 후 테스트 필요 (keycloak 토큰 정보의 userId로 사용자 정보 확인 가능)
-    @Deprecated
-    @GetMapping("/login")
-    public ResponseEntity<Void> login() {
-        String keycloakLoginUrl = keycloakProperties.getLoginUrl();
-        return ResponseEntity.status(302)
-                .location(URI.create(keycloakLoginUrl))
-                .build();
-    }
-
-
-    @Deprecated
-    @GetMapping("/login/authorize")
-    public String authorize(@RequestHeader("Authorization") String authorization) {
-        String keycloakToken = JwtUtils.extractTokenFromHeader(authorization);
-        return authServicePort.authenticateAndGenerateJwt(keycloakToken);
-    }
 
 
 

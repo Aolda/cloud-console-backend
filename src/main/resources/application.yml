@@ -2,6 +2,7 @@ server:
   protocol: ${SERVICE_PROTOCOL}
   domain: ${SERVICE_DOMAIN}
   port: ${SERVICE_PORT:8080}
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:none}
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
@@ -53,13 +54,9 @@ super-admin:
   user-name: ${SUPER_ADMIN_USER_NAME}
 
 keycloak:
-  url: ${KEYCLOAK_URL}
-
-keycloak-temp:
-  base-url: ${KEYCLOAK_BASE_URL}
-  realm: ${KEYCLOAK_REALM}
+  issuer-uri: ${KEYCLOAK_ISSUER_URI}
   client-id: ${KEYCLOAK_CLIENT_ID}
-  redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET}
 
 jwt:
   secret: ${JWT_SECRET}

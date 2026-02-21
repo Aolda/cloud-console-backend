@@ -96,7 +96,7 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 	@Override
 	public PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requesterId) {
-		ProjectRequestListServiceDto savedProjectRequestList = projectModule.getProjectRequestList(keyword, pageRequest);
+		ProjectRequestListServiceDto savedProjectRequestList = projectModule.getProjectRequestList(keyword, pageRequest, requesterId);
 		List<ProjectRequestDto> projectRequestsList = savedProjectRequestList.projectRequests();
 		RepositoryPagination projectRequestsPagination = savedProjectRequestList.pagination();
 
