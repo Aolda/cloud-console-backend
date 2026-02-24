@@ -2,7 +2,6 @@ package com.acc.global.config;
 
 import com.acc.global.logging.GlobalAccessLoggingFilter;
 import com.acc.global.logging.RequestCachingFilter;
-import com.acc.global.security.jwt.JwtAuthenticationFilter;
 import com.acc.global.security.oauth.OAuth2CustomUserService;
 import com.acc.global.security.oauth.handler.OAuthFailureHandler;
 import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
@@ -30,7 +29,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final SessionAuthenticationFilter sessionAuthenticationFilter;
     private final RequestCachingFilter requestCachingFilter;
     private final GlobalAccessLoggingFilter globalAccessLoggingFilter;
@@ -81,16 +79,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // Filter Order: RequestCaching → JwtAuth → SessionAuth → AccessLogging
+                // Filter Order: RequestCaching → SessionAuth → AccessLogging
                 //
-                // JwtAuthenticationFilter   : Bearer Token 있으면 JwtInfo(userId) 로 인증
                 // SessionAuthenticationFilter: acc-session-id 쿠키 있으면 SessionPrincipal 로 인증
-                //   → JWT 인증 완료 시 SessionFilter는 자동으로 패스 (공존 전략)
-                //   → Keycloak 로그인 사용자: 세션 쿠키만 있음 → SessionFilter에서 인증
-                //   → 기존 사용자: Bearer Token만 있음 → JwtFilter에서 인증 (변경 없음)
                 .addFilterBefore(requestCachingFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(sessionAuthenticationFilter, JwtAuthenticationFilter.class)
+                .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(globalAccessLoggingFilter, SessionAuthenticationFilter.class);
 
         return http.build();
