@@ -97,6 +97,16 @@ public class SnapshotPolicyModule {
     public SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request, String projectId) {
         validateScheduleParameters(request);
 
+        // 사용자가 설정한 시간 그대로 nextRunAt 계산
+        LocalDateTime nextRunAt = calculateInitialNextRunAt(
+                request.getIntervalType(),
+                request.getDailyTime(),
+                request.getWeeklyDayOfWeek(),
+                request.getWeeklyTime(),
+                request.getMonthlyDayOfMonth(),
+                request.getMonthlyTime()
+        );
+
         SnapshotPolicyEntity entity = SnapshotPolicyEntity.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -104,6 +114,7 @@ public class SnapshotPolicyModule {
                 .projectId(projectId)
                 .intervalType(request.getIntervalType())
                 .expirationDate(request.getExpirationDate())
+                .nextRunAt(nextRunAt)
                 .dailyTime(request.getDailyTime())
                 .weeklyDayOfWeek(request.getWeeklyDayOfWeek())
                 .weeklyTime(request.getWeeklyTime())
@@ -195,6 +206,87 @@ public class SnapshotPolicyModule {
                 }
                 break;
         }
+    }
+
+    /**
+     * 정책 생성 시 초기 nextRunAt 계산
+     * 사용자가 설정한 시간 그대로 다음 실행 시각을 계산한다.
+     */
+    private LocalDateTime calculateInitialNextRunAt(
+            com.acc.local.domain.enums.IntervalType intervalType,
+            LocalTime dailyTime,
+            Integer weeklyDayOfWeek,
+            LocalTime weeklyTime,
+            Integer monthlyDayOfMonth,
+            LocalTime monthlyTime
+    ) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return switch (intervalType) {
+            case DAILY -> calculateNextDailyRun(now, dailyTime);
+            case WEEKLY -> calculateNextWeeklyRun(now, weeklyDayOfWeek, weeklyTime);
+            case MONTHLY -> calculateNextMonthlyRun(now, monthlyDayOfMonth, monthlyTime);
+        };
+    }
+
+    /**
+     * 일간 실행 시각 계산: 사용자가 설정한 시간 그대로
+     */
+    private LocalDateTime calculateNextDailyRun(LocalDateTime now, LocalTime targetTime) {
+        LocalDateTime nextRun = now.toLocalDate().atTime(targetTime);
+
+        // 오늘 목표 시각이 이미 지났으면 내일로
+        if (now.isAfter(nextRun)) {
+            nextRun = nextRun.plusDays(1);
+        }
+
+        return nextRun;
+    }
+
+    /**
+     * 주간 실행 시각 계산: 사용자가 설정한 요일과 시간 그대로
+     */
+    private LocalDateTime calculateNextWeeklyRun(LocalDateTime now, Integer dayOfWeek, LocalTime targetTime) {
+        LocalDate today = now.toLocalDate();
+        java.time.DayOfWeek targetDayOfWeek = java.time.DayOfWeek.of(dayOfWeek);
+
+        // 다음 목표 요일 찾기
+        LocalDate targetDate = today;
+        while (targetDate.getDayOfWeek() != targetDayOfWeek) {
+            targetDate = targetDate.plusDays(1);
+        }
+
+        LocalDateTime nextRun = targetDate.atTime(targetTime);
+
+        // 오늘이 목표 요일이지만 이미 시간이 지났으면 다음 주로
+        if (now.isAfter(nextRun)) {
+            nextRun = nextRun.plusWeeks(1);
+        }
+
+        return nextRun;
+    }
+
+    /**
+     * 월간 실행 시각 계산: 사용자가 설정한 일자와 시간 그대로
+     */
+    private LocalDateTime calculateNextMonthlyRun(LocalDateTime now, Integer dayOfMonth, LocalTime targetTime) {
+        LocalDate today = now.toLocalDate();
+
+        // 이번 달의 목표 일자 계산 (일자가 없으면 말일로)
+        int actualDay = Math.min(dayOfMonth, today.lengthOfMonth());
+        LocalDate targetDate = today.withDayOfMonth(actualDay);
+
+        LocalDateTime nextRun = targetDate.atTime(targetTime);
+
+        // 이미 지났으면 다음 달로
+        if (now.isAfter(nextRun)) {
+            targetDate = targetDate.plusMonths(1);
+            // 다음 달 일자 재계산
+            actualDay = Math.min(dayOfMonth, targetDate.lengthOfMonth());
+            nextRun = targetDate.withDayOfMonth(actualDay).atTime(targetTime);
+        }
+
+        return nextRun;
     }
 
     public SnapshotPolicyResponse convertToResponse(SnapshotPolicyEntity entity) {
