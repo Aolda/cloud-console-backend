@@ -38,7 +38,7 @@ public class VolumeSnapshotSchedulerModule {
     public void processScheduledPolicies(LocalDateTime from, LocalDateTime now) {
         // 배치 작업 전체에서 사용할 시스템 관리자 토큰 발급
         log.info("=== [SNAPSHOT SCHEDULER] Issuing system admin token...");
-        String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope("[ACC server]: snapshot scheduler");
+        String adminToken = authModule.issueSystemAdminToken("[ACC server]: snapshot scheduler");
         log.info("=== [SNAPSHOT SCHEDULER] Token issued. tokenLength={}", adminToken != null ? adminToken.length() : 0);
         log.info("=== [SNAPSHOT SCHEDULER] Batch started. window={} ~ {}", from, now);
 
