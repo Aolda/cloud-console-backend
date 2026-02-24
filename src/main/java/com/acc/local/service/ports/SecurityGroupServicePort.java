@@ -6,11 +6,11 @@ import com.acc.local.dto.network.CreateSecurityGroupRequest;
 import com.acc.local.dto.network.ViewSecurityGroupsResponse;
 
 public interface SecurityGroupServicePort {
-    String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId);
+    String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String sessionId);
 
-    PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(PageRequest page, String projectId, String userId);
+    PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(PageRequest page, String projectId, String sessionId);
 
-    ViewSecurityGroupsResponse getSecurityGroupDetail(PageRequest page, String securityGroupId, String projectId, String userId);
+    ViewSecurityGroupsResponse getSecurityGroupDetail(PageRequest page, String securityGroupId, String projectId, String sessionId);
 
-    void deleteSecurityGroup(String securityGroupId, String projectId, String userId);
+    void deleteSecurityGroup(String securityGroupId, String projectId, String sessionId);
 }

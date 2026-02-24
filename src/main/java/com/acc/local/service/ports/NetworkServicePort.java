@@ -8,9 +8,9 @@ import com.acc.local.dto.network.ViewNetworksResponse;
 public interface NetworkServicePort {
 
 
-    String createNetwork(CreateNetworkRequest request, String userId, String projectId);
+    String createNetwork(CreateNetworkRequest request, String sessionId, String projectId);
 
-    void deleteNetwork(String networkId, String userId, String projectID);
+    void deleteNetwork(String networkId, String sessionId, String projectID);
 
-    PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String userId, String projectId);
+    PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String sessionId, String projectId);
 }

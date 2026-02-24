@@ -6,10 +6,10 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateInterfaceRequest;
 import com.acc.local.dto.network.ViewInterfacesResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.ApmModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.InterfaceServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -25,11 +25,11 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     private final NetworkUtil networkUtil;
     private final NeutronModule neutronModule;
     private final ApmModule apmModule;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public String createInterface(String userId, String projectId, CreateInterfaceRequest request) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public String createInterface(String sessionId, String projectId, CreateInterfaceRequest request) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         /* --- Quota 검증 --- */
 
         /* --- 인터페이스 생성 --- */
@@ -66,8 +66,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void deleteInterface(String userId, String projectId, String interfaceId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void deleteInterface(String sessionId, String projectId, String interfaceId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -92,8 +92,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String userId, String projectId, String interfaceId, String networkId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String sessionId, String projectId, String interfaceId, String networkId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return neutronModule.listInterfaces(token,
                 projectId,
@@ -105,8 +105,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void allocateExternalIp(String userID, String projectId, String interfaceId) {
-        String token = authModule.issueProjectScopeToken(projectId, userID);
+    public void allocateExternalIp(String sessionId, String projectId, String interfaceId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -122,8 +122,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void releaseExternalIp(String userId, String projectId, String interfaceId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void releaseExternalIp(String sessionId, String projectId, String interfaceId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -146,8 +146,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void createSSHForwarding(String userId, String projectId, String interfaceId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void createSSHForwarding(String sessionId, String projectId, String interfaceId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);
@@ -170,8 +170,8 @@ public class InterfaceServiceAdapter implements InterfaceServicePort {
     }
 
     @Override
-    public void deleteSSHForwarding(String userId, String projectId, String interfaceId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void deleteSSHForwarding(String sessionId, String projectId, String interfaceId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(interfaceId)) {
             throw new NetworkException(NetworkErrorCode.NOT_NULL_INTERFACE_ID);

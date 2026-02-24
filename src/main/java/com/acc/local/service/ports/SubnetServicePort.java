@@ -6,8 +6,8 @@ import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewSubnetsResponse;
 
 public interface SubnetServicePort {
-    void createSubnet(CreateSubnetRequest request, String networkId, String projectId, String userId);
-    void deleteSubnet(String subnetId, String projectId, String userId);
-    PageResponse<ViewSubnetsResponse> listSubnets(PageRequest page, String networkId, String projectId, String userId);
-    ViewSubnetsResponse getSubnetDetail(String subnetId, String projectId, String userId);
+    void createSubnet(CreateSubnetRequest request, String networkId, String projectId, String sessionId);
+    void deleteSubnet(String subnetId, String projectId, String sessionId);
+    PageResponse<ViewSubnetsResponse> listSubnets(PageRequest page, String networkId, String projectId, String sessionId);
+    ViewSubnetsResponse getSubnetDetail(String subnetId, String projectId, String sessionId);
 }

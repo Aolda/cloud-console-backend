@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.SubnetDocs;
 import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewSubnetsResponse;
@@ -20,40 +20,40 @@ public class SubnetController implements SubnetDocs {
 
     @Override
     public ResponseEntity<PageResponse<ViewSubnetsResponse>> viewSubnets(Authentication authentication, PageRequest page, String networkId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
         return ResponseEntity.ok(
                 subnetServicePort.listSubnets(
                         page,
                         networkId,
                         projectId,
-                        jwtInfo.getUserId()
+                        principal.getSessionId()
                 )
         );
     }
 
     @Override
     public ResponseEntity<ViewSubnetsResponse> getSubnet(Authentication authentication, String subnetId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
         return ResponseEntity.ok(
                 subnetServicePort.getSubnetDetail(
                         subnetId,
                         projectId,
-                        jwtInfo.getUserId()
+                        principal.getSessionId()
                 )
         );
     }
 
     @Override
     public ResponseEntity<Object> createSubnet(Authentication authentication, CreateSubnetRequest request, String networkId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        subnetServicePort.createSubnet(request, networkId, projectId, jwtInfo.getUserId());
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        subnetServicePort.createSubnet(request, networkId, projectId, principal.getSessionId());
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<Object> deleteSubnet(Authentication authentication, String subnetId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        subnetServicePort.deleteSubnet(subnetId, projectId, jwtInfo.getUserId());
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        subnetServicePort.deleteSubnet(subnetId, projectId, principal.getSessionId());
         return ResponseEntity.noContent().build();
     }
 }
