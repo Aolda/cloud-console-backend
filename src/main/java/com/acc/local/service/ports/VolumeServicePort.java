@@ -7,11 +7,11 @@ import com.acc.local.dto.volume.VolumeResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface VolumeServicePort {
-    PageResponse<VolumeResponse> getVolumes(PageRequest page, String userId, String projectId);
+    PageResponse<VolumeResponse> getVolumes(PageRequest page, String sessionId, String projectId);
 
-    VolumeResponse getVolumeDetails(String userId, String projectId, String volumeId);
+    VolumeResponse getVolumeDetails(String sessionId, String projectId, String volumeId);
 
-    ResponseEntity<Void> deleteVolume(String userId, String projectId, String volumeId);
+    ResponseEntity<Void> deleteVolume(String sessionId, String projectId, String volumeId);
 
-    VolumeResponse createVolume(String userId, String projectId, VolumeRequest request);
+    VolumeResponse createVolume(String sessionId, String projectId, VolumeRequest request);
 }

@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.VolumeDocs;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
@@ -25,37 +25,37 @@ public class VolumeController implements VolumeDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        PageResponse<VolumeResponse> response = volumeServicePort.getVolumes(page, userId, projectId);
+        PageResponse<VolumeResponse> response = volumeServicePort.getVolumes(page, sessionId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<VolumeResponse> getVolumeDetails(String volumeId, Authentication authentication, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        VolumeResponse volumeDto = volumeServicePort.getVolumeDetails(userId, projectId, volumeId);
+        VolumeResponse volumeDto = volumeServicePort.getVolumeDetails(sessionId, projectId, volumeId);
         return ResponseEntity.ok(volumeDto);
     }
 
 
     @Override
     public ResponseEntity<Void> deleteVolume(String volumeId, Authentication authentication, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        return volumeServicePort.deleteVolume(userId, projectId, volumeId);
+        return volumeServicePort.deleteVolume(sessionId, projectId, volumeId);
     }
 
     @Override
     public ResponseEntity<VolumeResponse> createVolume(VolumeRequest request, Authentication authentication, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        VolumeResponse createdVolume = volumeServicePort.createVolume(userId, projectId, request);
+        VolumeResponse createdVolume = volumeServicePort.createVolume(sessionId, projectId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(createdVolume);
     }
 }
