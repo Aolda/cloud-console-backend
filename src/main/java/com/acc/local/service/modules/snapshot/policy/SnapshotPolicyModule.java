@@ -133,6 +133,9 @@ public class SnapshotPolicyModule {
 
         validateScheduleParameters(request);
 
+        // 스케줄 변경 여부 확인
+        boolean scheduleChanged = isScheduleChanged(entity, request);
+
         entity.update(
                 request.getName(),
                 request.getDescription(),
@@ -142,11 +145,57 @@ public class SnapshotPolicyModule {
                 request.getWeeklyDayOfWeek(),
                 request.getWeeklyTime(),
                 request.getMonthlyDayOfMonth(),
-                request.getMonthlyTime()
+                request.getMonthlyTime(),
+                request.getTimezone()
         );
+
+        // 스케줄이 변경되었으면 nextRunAt 재계산
+        if (scheduleChanged) {
+            LocalDateTime nextRunAt = calculateInitialNextRunAt(
+                    request.getIntervalType(),
+                    request.getDailyTime(),
+                    request.getWeeklyDayOfWeek(),
+                    request.getWeeklyTime(),
+                    request.getMonthlyDayOfMonth(),
+                    request.getMonthlyTime()
+            );
+            entity.updateNextRunAt(nextRunAt);
+        }
 
         SnapshotPolicyEntity updated = policyRepository.save(entity);
         return convertToResponse(updated);
+    }
+
+    /**
+     * 스케줄 설정이 변경되었는지 확인
+     */
+    private boolean isScheduleChanged(SnapshotPolicyEntity entity, SnapshotPolicyRequest request) {
+        if (request.getIntervalType() != null && request.getIntervalType() != entity.getIntervalType()) {
+            return true;
+        }
+
+        // DAILY 타입 시간 변경
+        if (request.getDailyTime() != null && !request.getDailyTime().equals(entity.getDailyTime())) {
+            return true;
+        }
+
+        // WEEKLY 타입 요일/시간 변경
+        if (request.getWeeklyDayOfWeek() != null && !request.getWeeklyDayOfWeek().equals(entity.getWeeklyDayOfWeek())) {
+            return true;
+        }
+        if (request.getWeeklyTime() != null && !request.getWeeklyTime().equals(entity.getWeeklyTime())) {
+            return true;
+        }
+
+        // MONTHLY 타입 일자/시간 변경
+        if (request.getMonthlyDayOfMonth() != null && !request.getMonthlyDayOfMonth().equals(entity.getMonthlyDayOfMonth())) {
+            return true;
+        }
+        if (request.getMonthlyTime() != null && !request.getMonthlyTime().equals(entity.getMonthlyTime())) {
+            return true;
+        }
+
+        return false;
     }
 
     public void deletePolicy(Long policyId, String projectId) {

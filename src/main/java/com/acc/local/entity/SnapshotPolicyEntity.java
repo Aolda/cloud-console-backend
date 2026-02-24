@@ -114,7 +114,7 @@ public class SnapshotPolicyEntity {
 
     public void update(String name, String description, IntervalType intervalType,
                        LocalDateTime expirationDate, LocalTime dailyTime, Integer weeklyDayOfWeek,
-                       LocalTime weeklyTime, Integer monthlyDayOfMonth, LocalTime monthlyTime) {
+                       LocalTime weeklyTime, Integer monthlyDayOfMonth, LocalTime monthlyTime, String timezone) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
         if (intervalType != null) this.intervalType = intervalType;
@@ -124,6 +124,7 @@ public class SnapshotPolicyEntity {
         if (weeklyTime != null) this.weeklyTime = weeklyTime;
         if (monthlyDayOfMonth != null) this.monthlyDayOfMonth = monthlyDayOfMonth;
         if (monthlyTime != null) this.monthlyTime = monthlyTime;
+        if (timezone != null) this.timezone = timezone;
     }
 
     public void updateNextRunAt(LocalDateTime nextRunAt) {
