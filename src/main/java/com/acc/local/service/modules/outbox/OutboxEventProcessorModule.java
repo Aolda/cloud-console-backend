@@ -8,56 +8,21 @@ import com.acc.local.repository.ports.OutboxMessageRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-/**
- * Outbox 패턴 이벤트 프로세서
- * 주기적으로 처리되지 않은 이벤트를 조회하여 알림을 전송합니다.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OutboxEventProcessor {
+public class OutboxEventProcessorModule {
 
     private final OutboxMessageRepositoryPort outboxMessageRepositoryPort;
     private final ObjectMapper objectMapper;
     private final NotificationExternalPort notificationPort;
 
-    /**
-     * 10초마다 미처리 이벤트를 확인하고 처리
-     * ShedLock으로 분산 환경에서 중복 실행 방지
-     */
-    @Transactional
-    @Scheduled(fixedDelay = 10000)
-    @SchedulerLock(
-            name = "OutboxEventProcessor_processUnprocessedEvents",
-            lockAtMostFor = "15s",
-            lockAtLeastFor = "5s"
-    )
-    public void processUnprocessedEvents() {
-        List<OutboxEventEntity> unprocessedEvents = outboxMessageRepositoryPort.findByProcessedFalse();
-
-        if (unprocessedEvents.isEmpty()) {
-            return;
-        }
-
-        log.info("Processing {} unprocessed outbox events", unprocessedEvents.size());
-
-        for (OutboxEventEntity event : unprocessedEvents) {
-            try {
-                processEvent(event);
-            } catch (Exception e) {
-                log.error("Failed to process outbox event: eventId={}, aggregateId={}", event.getEventId(), event.getAggregateId(), e);
-            }
-        }
-    }
-
-    private void processEvent(OutboxEventEntity event) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processEvent(OutboxEventEntity event) {
         try {
             switch (event.getAggregateType()) {
                 case PROJECT_REQUEST -> processProjectRequestEvent(event);
@@ -188,3 +153,4 @@ public class OutboxEventProcessor {
         outboxMessageRepositoryPort.save(event);
     }
 }
+
