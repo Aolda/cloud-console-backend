@@ -1,7 +1,7 @@
 package com.acc.local.controller;
 
 import com.acc.global.properties.JwtProperties;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.controller.docs.AuthDocs;
 import com.acc.local.service.ports.AuthServicePort;
@@ -38,8 +38,8 @@ public class AuthController implements AuthDocs {
             @RequestParam String keystoneProjectId,
             Authentication authentication
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String userId = principal.getKeystoneUserId();
         UserPermissionResponse response = authServicePort.getUserPermission(keystoneProjectId, userId);
 
         return ResponseEntity.ok(response);
@@ -51,8 +51,8 @@ public class AuthController implements AuthDocs {
             @PathVariable String keystoneUserId,
             Authentication authentication
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String requesterId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String requesterId = principal.getKeystoneUserId();
         GetUserResponse response = authServicePort.getUserDetail(keystoneUserId, requesterId);
 
         return ResponseEntity.ok(response);
@@ -145,8 +145,8 @@ public class AuthController implements AuthDocs {
 
     @Override
     public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String userId = principal.getKeystoneUserId();
 
         LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId, projectId);
         return ResponseEntity.ok(loginedUserProfileResponse);
@@ -154,8 +154,8 @@ public class AuthController implements AuthDocs {
 
     @Override
     public ResponseEntity<LogoutResponse> logout(Authentication authentication, HttpServletResponse response) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String userId = principal.getKeystoneUserId();
 
         // 서버 토큰 무효화
         authServicePort.logout(userId);
