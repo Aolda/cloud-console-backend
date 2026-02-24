@@ -41,4 +41,9 @@ public class SnapshotTaskRepositoryAdapter implements SnapshotTaskRepositoryPort
     public List<SnapshotTaskEntity> findByPolicyIdAndStatus(Long policyId, TaskStatus status) {
         return jpaRepository.findByPolicyIdAndStatus(policyId, status);
     }
+
+    @Override
+    public boolean existsByPolicyIdAndScheduledAt(Long policyId, LocalDateTime scheduledAt) {
+        return jpaRepository.existsByPolicyIdAndScheduledAt(policyId, scheduledAt);
+    }
 }
