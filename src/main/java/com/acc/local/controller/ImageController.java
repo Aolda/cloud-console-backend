@@ -4,7 +4,7 @@ import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
 import com.acc.global.exception.image.ImageErrorCode;
 import com.acc.global.exception.image.ImageException;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.ImageDocs;
 import com.acc.local.dto.image.*;
 import com.acc.local.service.ports.ImageServicePort;
@@ -31,8 +31,8 @@ public class ImageController implements ImageDocs {
             Authentication authentication,
             @RequestParam String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
         // marker 단독 금지
         if (pageRequest.getMarker() != null && pageRequest.getLimit() == null) {
@@ -43,7 +43,7 @@ public class ImageController implements ImageDocs {
             throw new ImageException(ImageErrorCode.INVALID_PAGINATION_PARAM);
         }
 
-        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(userId, projectId, pageRequest, filterRequest);
+        PageResponse<GlanceImageSummary> page = imageServicePort.getImagesWithPagination(sessionId, projectId, pageRequest, filterRequest);
         return ResponseEntity.ok(page);
     }
 
@@ -53,10 +53,10 @@ public class ImageController implements ImageDocs {
             @RequestParam String projectId,
             @PathVariable String imageId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        ImageDetailResponse detail = imageServicePort.getImageDetail(userId, projectId, imageId);
+        ImageDetailResponse detail = imageServicePort.getImageDetail(sessionId, projectId, imageId);
         return ResponseEntity.ok(detail);
     }
 
@@ -66,11 +66,11 @@ public class ImageController implements ImageDocs {
             @RequestBody ImageUrlImportRequest request,
             @RequestParam String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
         ImageUploadAckResponse res =
-                imageServicePort.importImageByUrl(userId, projectId, request);
+                imageServicePort.importImageByUrl(sessionId, projectId, request);
 
         return ResponseEntity.ok(res);
     }
@@ -83,11 +83,11 @@ public class ImageController implements ImageDocs {
             @RequestBody ImageMetadataRequest request,
             @RequestParam String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
         ImageUploadAckResponse res =
-                imageServicePort.createImageMetadata(userId, projectId, request);
+                imageServicePort.createImageMetadata(sessionId, projectId, request);
 
         return ResponseEntity.ok(res);
     }
@@ -101,13 +101,13 @@ public class ImageController implements ImageDocs {
             HttpServletRequest request,
             @RequestParam String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
         try {
             InputStream bodyStream = request.getInputStream();
             imageServicePort.uploadFileStream(
-                    userId, projectId, imageId, bodyStream, MediaType.APPLICATION_OCTET_STREAM_VALUE
+                    sessionId, projectId, imageId, bodyStream, MediaType.APPLICATION_OCTET_STREAM_VALUE
             );
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -122,10 +122,10 @@ public class ImageController implements ImageDocs {
             @RequestParam("imageId") String imageId,
             @RequestParam String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        imageServicePort.deleteImage(userId, projectId, imageId);
+        imageServicePort.deleteImage(sessionId, projectId, imageId);
 
         return ResponseEntity.ok().build();
     }
