@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class KeycloakTokens {
     private String accessToken;
+    private String refreshToken;
     private String idToken;
     private LocalDateTime expiresAt;
 }

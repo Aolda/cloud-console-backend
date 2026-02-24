@@ -4,4 +4,7 @@ public class KeycloakRoutes {
     public static final String TOKEN = "/protocol/openid-connect/token";
     public static final String INTROSPECT = "/protocol/openid-connect/token/introspect";
     public static final String AUTHORIZATION = "/protocol/openid-connect/auth";
+    public static final String REVOKE = "/protocol/openid-connect/revoke";
+    public static final String LOGOUT = "/protocol/openid-connect/logout";
+    public static final String USERINFO = "/protocol/openid-connect/userinfo";
 }

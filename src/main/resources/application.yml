@@ -57,6 +57,8 @@ keycloak:
   issuer-uri: ${KEYCLOAK_ISSUER_URI}
   client-id: ${KEYCLOAK_CLIENT_ID}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
+  redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+  frontend-redirect-url: ${KEYCLOAK_FRONTEND_REDIRECT_URL}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -84,3 +86,8 @@ quick-start:
 acc:
   dump:
     enabled: true
+
+security:
+  crypto:
+    keystone-password-key: ${KEYSTONE_PASSWORD_ENCRYPTION_KEY}
+    # 키 생성: openssl rand -base64 32

@@ -11,7 +11,7 @@ public interface KeycloakOidcExternalPort {
      * @param state CSRF 방지용 state 파라미터
      * @return Keycloak Authorization Endpoint URL (쿼리 파라미터 포함)
      */
-    String getAuthorizationUrl(String state);
+    String getAuthorizationUrl(String state, String redirectUri);
 
     /**
      * Keycloak 인가코드를 토큰으로 교환 (Authorization Code Flow)
@@ -37,4 +37,11 @@ public interface KeycloakOidcExternalPort {
      * @return active 여부, 만료시각, 사용자 정보 포함 응답
      */
     KeycloakIntrospectResponse introspectToken(String token);
+
+    /**
+     * Keycloak 토큰 폐기 (Token Revocation)
+     * refresh_token 또는 access_token을 Keycloak 서버에서 폐기한다.
+     * @param token 폐기할 토큰
+     */
+    void revokeToken(String token);
 }
