@@ -4,7 +4,7 @@ import com.acc.local.domain.enums.outbox.EventType;
 import com.acc.local.dto.notification.*;
 import com.acc.local.entity.OutboxEventEntity;
 import com.acc.local.external.ports.NotificationExternalPort;
-import com.acc.local.repository.jpa.OutboxEventJpaRepository;
+import com.acc.local.repository.ports.OutboxMessageRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OutboxEventProcessor {
 
-    private final OutboxEventJpaRepository outboxEventJpaRepository;
+    private final OutboxMessageRepositoryPort outboxMessageRepositoryPort;
     private final ObjectMapper objectMapper;
     private final NotificationExternalPort notificationPort;
 
@@ -40,8 +40,7 @@ public class OutboxEventProcessor {
             lockAtLeastFor = "5s"
     )
     public void processUnprocessedEvents() {
-        List<OutboxEventEntity> unprocessedEvents = outboxEventJpaRepository
-                .findByProcessedFalseOrderByCreatedAtAsc();
+        List<OutboxEventEntity> unprocessedEvents = outboxMessageRepositoryPort.findByProcessedFalse();
 
         if (unprocessedEvents.isEmpty()) {
             return;
@@ -66,7 +65,7 @@ public class OutboxEventProcessor {
                 default -> {
                     log.warn("Unknown aggregate type: {}", event.getAggregateType());
                     event.markAsProcessed();
-                    outboxEventJpaRepository.save(event);
+                    outboxMessageRepositoryPort.save(event);
                 }
             }
         } catch (Exception e) {
@@ -86,7 +85,7 @@ public class OutboxEventProcessor {
             default -> {
                 log.warn("Unknown project request event type: {}", event.getEventType());
                 event.markAsProcessed();
-                outboxEventJpaRepository.save(event);
+                outboxMessageRepositoryPort.save(event);
             }
         }
     }
@@ -109,7 +108,7 @@ public class OutboxEventProcessor {
         ));
 
         event.markAsProcessed();
-        outboxEventJpaRepository.save(event);
+        outboxMessageRepositoryPort.save(event);
     }
 
     /**
@@ -131,7 +130,7 @@ public class OutboxEventProcessor {
         ));
 
         event.markAsProcessed();
-        outboxEventJpaRepository.save(event);
+        outboxMessageRepositoryPort.save(event);
     }
 
     /**
@@ -153,7 +152,7 @@ public class OutboxEventProcessor {
         ));
 
         event.markAsProcessed();
-        outboxEventJpaRepository.save(event);
+        outboxMessageRepositoryPort.save(event);
     }
 
     /**
@@ -165,7 +164,7 @@ public class OutboxEventProcessor {
         } else {
             log.warn("Unknown project event type: {}", event.getEventType());
             event.markAsProcessed();
-            outboxEventJpaRepository.save(event);
+            outboxMessageRepositoryPort.save(event);
         }
     }
 
@@ -186,6 +185,6 @@ public class OutboxEventProcessor {
         ));
 
         event.markAsProcessed();
-        outboxEventJpaRepository.save(event);
+        outboxMessageRepositoryPort.save(event);
     }
 }
