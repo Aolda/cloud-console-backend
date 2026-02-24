@@ -7,13 +7,15 @@ import lombok.RequiredArgsConstructor;
  * 인증 타입
  * - GOOGLE: Google 인증 (0)
  * - GITLAB: GitLab 인증 (1)
+ * - KEYCLOAK: Keycloak OIDC 인증 (3)
  */
 @Getter
 @RequiredArgsConstructor
 public enum AuthType {
     GOOGLE(0, "Google 인증"),
     GITLAB(1, "GitLab 인증"),
-    ADMIN(2, "관리자 직접 생성");
+    ADMIN(2, "관리자 직접 생성"),
+    KEYCLOAK(3, "Keycloak OIDC 인증");
 
     private final int code;
     private final String description;

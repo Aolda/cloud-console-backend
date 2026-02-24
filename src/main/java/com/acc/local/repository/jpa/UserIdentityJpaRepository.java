@@ -16,4 +16,7 @@ public interface UserIdentityJpaRepository extends JpaRepository<UserIdentityEnt
     Optional<UserIdentityEntity> findByIdUserIdAndIdAuthType(String userId, Integer authType);
 
     List<UserIdentityEntity> findByIdUserIdIn(List<String> userIds);
+
+    // Account Linking: Keycloak 최초 로그인 시 이메일로 기존 Keystone 사용자 탐색
+    Optional<UserIdentityEntity> findFirstByUserEmail(String userEmail);
 }
