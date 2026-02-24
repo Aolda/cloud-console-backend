@@ -33,7 +33,10 @@ public class SnapshotTaskEntity {
     @Column(name = "volume_id", length = 64, nullable = false)
     private String volumeId;
 
-    @Column(name = "snapshot_id", length = 64, nullable = false)
+    @Column(name = "scheduled_at", nullable = false)
+    private LocalDateTime scheduledAt;
+
+    @Column(name = "snapshot_id", length = 64, nullable = true)
     private String snapshotId;
 
     @Column(name = "policy_name_at_execution", length = 100)
@@ -61,12 +64,14 @@ public class SnapshotTaskEntity {
     }
 
     @Builder
-    public SnapshotTaskEntity(Long policyId, String projectId, String volumeId, String snapshotId,
-                             String policyNameAtExecution, IntervalType intervalTypeAtExecution,
-                             TaskStatus status, LocalDateTime startedAt, LocalDateTime finishedAt) {
+    public SnapshotTaskEntity(Long policyId, String projectId, String volumeId,
+                              LocalDateTime scheduledAt, String snapshotId,
+                              String policyNameAtExecution, IntervalType intervalTypeAtExecution,
+                              TaskStatus status, LocalDateTime startedAt, LocalDateTime finishedAt) {
         this.policyId = policyId;
         this.projectId = projectId;
         this.volumeId = volumeId;
+        this.scheduledAt = scheduledAt;
         this.snapshotId = snapshotId;
         this.policyNameAtExecution = policyNameAtExecution;
         this.intervalTypeAtExecution = intervalTypeAtExecution;
@@ -80,7 +85,8 @@ public class SnapshotTaskEntity {
         this.startedAt = LocalDateTime.now();
     }
 
-    public void complete() {
+    public void complete(String snapshotId) {
+        this.snapshotId = snapshotId;
         this.status = TaskStatus.SUCCESS;
         this.finishedAt = LocalDateTime.now();
     }
