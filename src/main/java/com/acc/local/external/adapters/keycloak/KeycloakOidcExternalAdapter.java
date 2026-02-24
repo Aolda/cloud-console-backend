@@ -22,12 +22,13 @@ public class KeycloakOidcExternalAdapter implements KeycloakOidcExternalPort {
     private final KeycloakProperties keycloakProperties;
 
     @Override
-    public String getAuthorizationUrl(String state) {
+    public String getAuthorizationUrl(String state, String redirectUri) {
         return UriComponentsBuilder.fromHttpUrl(keycloakProperties.getIssuerUri() + KeycloakRoutes.AUTHORIZATION)
                 .queryParam("client_id", keycloakProperties.getClientId())
                 .queryParam("response_type", "code")
                 .queryParam("scope", "openid")
                 .queryParam("state", state)
+                .queryParam("redirect_uri", redirectUri)
                 .toUriString();
     }
 
@@ -74,6 +75,21 @@ public class KeycloakOidcExternalAdapter implements KeycloakOidcExternalPort {
         } catch (WebClientResponseException e) {
             log.error("Keycloak 토큰 검증 실패: {}", e.getResponseBodyAsString(), e);
             throw new KeycloakException(KeycloakErrorCode.KEYCLOAK_TOKEN_INTROSPECT_FAILED, e);
+        }
+    }
+
+    @Override
+    public void revokeToken(String token) {
+        try {
+            KeycloakRevokeRequest request = KeycloakRevokeRequest.builder()
+                    .token(token)
+                    .clientId(keycloakProperties.getClientId())
+                    .clientSecret(keycloakProperties.getClientSecret())
+                    .build();
+            keycloakOidcAPIModule.revokeToken(request.toFormData());
+        } catch (WebClientResponseException e) {
+            log.error("Keycloak 토큰 폐기 실패: {}", e.getResponseBodyAsString(), e);
+            throw new KeycloakException(KeycloakErrorCode.KEYCLOAK_TOKEN_REVOKE_FAILED, e);
         }
     }
 }

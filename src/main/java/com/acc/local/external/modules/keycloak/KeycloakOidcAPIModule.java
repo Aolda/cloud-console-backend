@@ -45,4 +45,14 @@ public class KeycloakOidcAPIModule {
                 .bodyToMono(KeycloakIntrospectResponse.class)
                 .block();
     }
+
+    public void revokeToken(MultiValueMap<String, String> formData) {
+        keycloakWebClient.post()
+                .uri(KeycloakRoutes.REVOKE)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
 }

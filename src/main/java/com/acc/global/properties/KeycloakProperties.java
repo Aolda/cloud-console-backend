@@ -13,4 +13,6 @@ public class KeycloakProperties {
     private String issuerUri;
     private String clientId;
     private String clientSecret;
+    private String redirectUri;
+    private String frontendRedirectUrl;
 }

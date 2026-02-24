@@ -14,7 +14,7 @@ public record CreateKeystoneUserRequest(
     public Map<String, Object> toKeystoneRequest() {
         Map<String, Object> userObject = new HashMap<>();
 
-        // 로그인 시 이메일 앞부분을 아이디로 사용하여 로그인할 수 있도록 처리
+        // Skyline에서 @를 도메인으로 인식하는 문제로 email prefix(@앞부분)만 사용
         userObject.put("name", extractUsernameFromEmail(email()));
         userObject.put("password", password());
         userObject.put("enabled", isEnable());
