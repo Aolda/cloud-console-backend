@@ -1,6 +1,6 @@
 package com.acc.local.controller;
 
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.SecurityRuleDocs;
 import com.acc.local.dto.network.CreateSecurityRuleRequest;
 import com.acc.local.service.ports.SecurityRuleServicePort;
@@ -19,15 +19,15 @@ public class SecurityRuleController implements SecurityRuleDocs {
 
     @Override
     public ResponseEntity<Object> createSecurityRule(Authentication authentication, CreateSecurityRuleRequest request, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String id = securityRuleServicePort.createSecurityRule(projectId, jwtInfo.getUserId(), request);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String id = securityRuleServicePort.createSecurityRule(projectId, principal.getSessionId(), request);
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<Object> deleteSecurityRule(Authentication authentication, String srId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        securityRuleServicePort.deleteSecurityRule(srId, projectId, jwtInfo.getUserId());
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        securityRuleServicePort.deleteSecurityRule(srId, projectId, principal.getSessionId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -7,9 +7,9 @@ import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.NetworkServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -24,11 +24,11 @@ public class NetworkServiceAdapter implements NetworkServicePort {
 
     private final NeutronModule neutronModule;
     private final NetworkUtil networkUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public String createNetwork(CreateNetworkRequest request, String userId, String projectId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public String createNetwork(CreateNetworkRequest request, String sessionId, String projectId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         /* --- Quota 검증 --- */
 
@@ -73,8 +73,8 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     }
 
     @Override
-    public void deleteNetwork(String networkId, String userId, String projectID) {
-        String token = authModule.issueProjectScopeToken(projectID, userId);
+    public void deleteNetwork(String networkId, String sessionId, String projectID) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectID);
 
 
         if (!neutronModule.canDeleteNetwork(token, networkId)) {
@@ -85,8 +85,8 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     }
 
     @Override
-    public PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String userId, String projectId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<ViewNetworksResponse> listNetworks(PageRequest page, String sessionId, String projectId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         /* --- 네트워크 리스트 조회 --- */
         return neutronModule.listNetworks(token,

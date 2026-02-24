@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.RouterDocs;
 import com.acc.local.dto.network.CreateRouterRequest;
 import com.acc.local.dto.network.ViewRoutersResponse;
@@ -22,36 +22,36 @@ public class RouterController implements RouterDocs {
 
     @Override
     public ResponseEntity<PageResponse<ViewRoutersResponse>> viewRouters(Authentication authentication, PageRequest page, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(routerServicePort.listRouters(page, jwtInfo.getUserId(), projectId));
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(routerServicePort.listRouters(page, principal.getSessionId(), projectId));
     }
 
     @Override
     public ResponseEntity<Object> createRouter(Authentication authentication, CreateRouterRequest request, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String id = routerServicePort.createRouter(request, jwtInfo.getUserId(), projectId);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String id = routerServicePort.createRouter(request, principal.getSessionId(), projectId);
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<Object> deleteNetwork(Authentication authentication, String routerId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
 
-        routerServicePort.deleteRouter(routerId, jwtInfo.getUserId(), projectId);
+        routerServicePort.deleteRouter(routerId, principal.getSessionId(), projectId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<Object> connectRouterToSubnet(Authentication authentication, String routerId, String subnetId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        routerServicePort.connectRouterToSubnet(routerId, subnetId, jwtInfo.getUserId(), projectId);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        routerServicePort.connectRouterToSubnet(routerId, subnetId, principal.getSessionId(), projectId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Object> disconnectRouterFromSubnet(Authentication authentication, String routerId, String subnetId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        routerServicePort.disconnectRouterFromSubnet(routerId, subnetId, jwtInfo.getUserId(), projectId);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        routerServicePort.disconnectRouterFromSubnet(routerId, subnetId, principal.getSessionId(), projectId);
         return ResponseEntity.ok().build();
     }
 }
