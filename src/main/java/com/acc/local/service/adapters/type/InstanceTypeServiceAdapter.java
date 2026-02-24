@@ -7,6 +7,7 @@ import com.acc.global.exception.type.InstanceTypeException;
 import com.acc.local.dto.type.InstanceTypeCreateRequest;
 import com.acc.local.dto.type.InstanceTypeResponse;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.modules.type.InstanceTypeModule;
 import com.acc.local.service.modules.type.InstanceTypeUtil;
 import com.acc.local.service.ports.InstanceTypeServicePort;
@@ -20,12 +21,13 @@ import org.springframework.stereotype.Component;
 public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
 
     private final AuthModule authModule;
+    private final SessionModule sessionModule;
     private final InstanceTypeModule instanceTypeModule;
     private final InstanceTypeUtil instanceTypeUtil;
 
     @Override
-    public PageResponse<InstanceTypeResponse> listUserInstanceTypes(String userId, String projectId, String architect, PageRequest page) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<InstanceTypeResponse> listUserInstanceTypes(String sessionId, String projectId, String architect, PageRequest page) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return instanceTypeModule.listInstanceTypesByArchitect(
                 keystoneToken,
@@ -36,7 +38,8 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
     }
 
     @Override
-    public PageResponse<InstanceTypeResponse> listAdminInstanceTypes(String userId, String architect, PageRequest page) {
+    public PageResponse<InstanceTypeResponse> listAdminInstanceTypes(String sessionId, String architect, PageRequest page) {
+        String userId = sessionModule.getKeystoneUserId(sessionId);
         String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 
         PageResponse<InstanceTypeResponse> response = instanceTypeModule.listInstanceTypesByArchitect(
@@ -51,7 +54,8 @@ public class InstanceTypeServiceAdapter implements InstanceTypeServicePort {
     }
 
     @Override
-    public void createInstanceType(String userId, InstanceTypeCreateRequest request) {
+    public void createInstanceType(String sessionId, InstanceTypeCreateRequest request) {
+        String userId = sessionModule.getKeystoneUserId(sessionId);
         String keystoneToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 
         if (!instanceTypeUtil.validateInstanceTypeName(request.getTypeName())) {

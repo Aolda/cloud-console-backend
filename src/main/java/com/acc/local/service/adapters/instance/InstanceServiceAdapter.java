@@ -9,10 +9,10 @@ import com.acc.local.dto.instance.InstanceCreateRequest;
 import com.acc.local.dto.instance.InstanceQuotaResponse;
 import com.acc.local.dto.instance.InstanceResponse;
 import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.instance.InstanceModule;
 import com.acc.local.service.modules.instance.InstanceUtil;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.InstanceServicePort;
 
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ public class InstanceServiceAdapter implements InstanceServicePort {
 
     private final InstanceModule instanceModule;
     private final InstanceUtil instanceUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
     private final ProjectModule projectModule;
 
     @Override
-    public PageResponse<InstanceResponse> getInstances(PageRequest page, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<InstanceResponse> getInstances(PageRequest page, String sessionId, String projectId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return instanceModule.listInstances(
                 keystoneToken,
@@ -42,8 +42,8 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     }
 
     @Override
-    public void createInstance(InstanceCreateRequest request, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public void createInstance(InstanceCreateRequest request, String sessionId, String projectId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         ProjectComputeQuotaDto quota = projectModule.getProjectComputeQuotaDetail(projectId, keystoneToken);
         instanceUtil.validateQuotaForInstanceCreation(quota);
@@ -64,19 +64,19 @@ public class InstanceServiceAdapter implements InstanceServicePort {
     }
 
     @Override
-    public void controlInstance(String instanceId, InstanceActionRequest request, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public void controlInstance(String instanceId, InstanceActionRequest request, String sessionId, String projectId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         instanceUtil.validateInstanceActionRequest(request);
         instanceModule.controlInstance(keystoneToken, projectId, instanceId, request);
     }
 
     @Override
-    public InstanceQuotaResponse getQuota(String userId, String projectId) {
+    public InstanceQuotaResponse getQuota(String sessionId, String projectId) {
         if (projectId == null) {
             throw new InstanceException(InstanceErrorCode.INVALID_ACTION);
         }
 
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         ProjectComputeQuotaDto projectComputeQuota = projectModule.getProjectComputeQuotaDetail(projectId, token);
 
         return InstanceQuotaResponse.from(projectComputeQuota);
