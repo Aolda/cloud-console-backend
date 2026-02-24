@@ -1,6 +1,6 @@
 package com.acc.local.controller;
 
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.QuickStartDocs;
 import com.acc.local.dto.quickstart.QuickStartRequest;
 import com.acc.local.dto.quickstart.QuickStartResponse;
@@ -27,9 +27,9 @@ public class QuickStartController implements QuickStartDocs {
             Authentication authentication,
             QuickStartRequest request,
             String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
 
-        return ResponseEntity.ok(quickStartServicePort.create(jwtInfo.getUserId(), projectId, request));
+        return ResponseEntity.ok(quickStartServicePort.create(principal.getSessionId(), projectId, request));
     }
 
 }
