@@ -4,6 +4,7 @@ import com.acc.local.entity.SnapshotPolicyEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface SnapshotPolicyRepositoryPort {
@@ -14,4 +15,5 @@ public interface SnapshotPolicyRepositoryPort {
     Optional<SnapshotPolicyEntity> findByIdAndProjectId(Long id, String projectId);
     Page<SnapshotPolicyEntity> findByVolumeId(String volumeId, Pageable pageable);
     void deleteById(Long id);
+    Page<SnapshotPolicyEntity> findDuePolicies(LocalDateTime from, LocalDateTime now, Pageable pageable);
 }

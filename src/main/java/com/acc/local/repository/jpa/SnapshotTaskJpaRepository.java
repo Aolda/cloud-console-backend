@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -14,4 +15,6 @@ public interface SnapshotTaskJpaRepository extends JpaRepository<SnapshotTaskEnt
     Page<SnapshotTaskEntity> findByPolicyId(Long policyId, Pageable pageable);
 
     List<SnapshotTaskEntity> findByPolicyIdAndStatus(Long policyId, TaskStatus status);
+
+    boolean existsByPolicyIdAndScheduledAt(Long policyId, LocalDateTime scheduledAt);
 }

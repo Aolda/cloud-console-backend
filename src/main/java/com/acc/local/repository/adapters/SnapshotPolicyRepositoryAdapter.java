@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -51,5 +52,10 @@ public class SnapshotPolicyRepositoryAdapter implements SnapshotPolicyRepository
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<SnapshotPolicyEntity> findDuePolicies(LocalDateTime from, LocalDateTime now, Pageable pageable) {
+        return jpaRepository.findDuePolicies(from, now, pageable);
     }
 }
