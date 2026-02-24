@@ -19,11 +19,14 @@ import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.outbox.ProjectCreatedEvent;
+import com.acc.local.service.modules.outbox.ProjectRequestDecisionEvent;
 import com.acc.local.service.ports.AdminProjectServicePort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +41,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	private final AuthModule authModule;
 	private final ProjectModule projectModule;
 	private final NeutronModule neutronModule;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	@Transactional
@@ -72,6 +76,20 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 		String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
 		neutronModule.createDefaultNetwork(projectOwnerScopedToken);
+
+		// 프로젝트 생성 이벤트 발행
+		try {
+			UserKeystoneDto ownerUser = authModule.getUserDetail(projectOwnerId, commandUserId);
+			eventPublisher.publishEvent(new ProjectCreatedEvent(
+					createdProjectId,
+					createdProject.getName(),
+					projectOwnerId,
+					commandUserId,
+					ownerUser.email()
+			));
+		} catch (Exception e) {
+			log.warn("Failed to publish ProjectCreatedEvent for projectId={}", createdProjectId, e);
+		}
 
 		return CreateProjectResponse.from(createdProject, quota);
 	}
@@ -153,6 +171,15 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 				appliedCount++;
 
 				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.success(createdProjectId));
+
+				// 프로젝트 요청 결정 이벤트 발행
+				publishProjectRequestDecisionEvent(
+					projectRequestDto,
+					decision,
+					rejectReason,
+					decidedUserId,
+					createdProjectId
+				);
 			} catch(Exception e) {
 				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail(e.getMessage()));
 				log.error("Project Approve - Failed ({})", projectRequestId);
@@ -168,6 +195,40 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 				.applied(appliedCount)
 				.data(projectRequestAppliedResults)
 				.build();
+	}
+
+	/**
+	 * 프로젝트 요청 결정 이벤트 발행 (승인/거부)
+	 */
+	private void publishProjectRequestDecisionEvent(
+		ProjectRequestDto projectRequest,
+		ProjectRequestStatus decision,
+		String rejectReason,
+		String decidedUserId,
+		String createdProjectId
+	) {
+		try {
+			// 요청자 정보 조회
+			UserKeystoneDto requesterUser = authModule.getUserDetail(
+				projectRequest.requestUserId(),
+				decidedUserId
+			);
+
+			ProjectRequestDecisionEvent event = new ProjectRequestDecisionEvent(
+				projectRequest.projectRequestId(),
+				projectRequest.requestUserId(),
+				projectRequest.projectName(),
+				projectRequest.description(),
+				decision,
+				rejectReason,
+				createdProjectId,
+				requesterUser.email()
+			);
+
+			eventPublisher.publishEvent(event);
+		} catch (Exception e) {
+			log.warn("Failed to publish ProjectRequestDecisionEvent: projectRequestId={}", projectRequest.projectRequestId(), e);
+		}
 	}
 
     private void revertProjectDecision(String projectRequestId, String approvedUserId) {

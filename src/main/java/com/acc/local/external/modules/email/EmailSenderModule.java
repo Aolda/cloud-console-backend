@@ -3,8 +3,6 @@ package com.acc.local.external.modules.email;
 import com.acc.global.exception.email.EmailErrorCode;
 import com.acc.global.exception.email.EmailException;
 import com.acc.global.properties.EmailProperties;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +17,7 @@ public class EmailSenderModule {
     
     private final JavaMailSender mailSender;
     private final EmailProperties emailProperties;
-    private static final String CB_NAME = "cb-email";
-    private static final String RETRY_NAME = "retry-email-post";
 
-    @Retry(name = RETRY_NAME)
-    @CircuitBreaker(name = CB_NAME)
     public void sendEmail(String to, String subject, String htmlContent) {
 
         try {
@@ -31,6 +25,32 @@ public class EmailSenderModule {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(to);
+            helper.setFrom(emailProperties.getFrom());
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_MESSAGE_CREATION_FAILURE, e);
+        } catch (MailException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_SEND_FAILURE, e);
+        }
+    }
+
+    /**
+     * CC와 함께 이메일 전송
+     */
+    public void sendEmailWithCc(String to, String[] cc, String subject, String htmlContent) {
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            if (cc != null && cc.length > 0) {
+                helper.setCc(cc);
+            }
             helper.setFrom(emailProperties.getFrom());
             helper.setSubject(subject);
             helper.setText(htmlContent, true);

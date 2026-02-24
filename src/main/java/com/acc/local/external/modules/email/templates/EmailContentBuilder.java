@@ -34,4 +34,72 @@ public class EmailContentBuilder {
             throw new EmailException(EmailErrorCode.EMAIL_TEMPLATE_PROCESSING_FAILURE, e);
         }
     }
+
+    public String createProjectRequestCreatedHtmlContext(
+            String requesterName,
+            String requesterEmail,
+            String projectName,
+            String projectRequestId,
+            String projectDescription
+    ) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", requesterName);
+            context.setVariable("email", requesterEmail);
+            context.setVariable("projectName", projectName);
+            context.setVariable("projectRequestId", projectRequestId);
+            context.setVariable("projectDescription", projectDescription);
+            return templateEngine.process("email/project-request-created", context);
+        } catch (TemplateProcessingException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_TEMPLATE_PROCESSING_FAILURE, e);
+        }
+    }
+
+    public String createApprovalHtmlContext(
+            String requesterName,
+            String requesterEmail,
+            String projectName,
+            String createdProjectId
+    ) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", requesterName);
+            context.setVariable("email", requesterEmail);
+            context.setVariable("projectName", projectName);
+            context.setVariable("createdProjectId", createdProjectId);
+            return templateEngine.process("email/project-approval", context);
+        } catch (TemplateProcessingException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_TEMPLATE_PROCESSING_FAILURE, e);
+        }
+    }
+
+    public String createRejectionHtmlContext(
+            String requesterName,
+            String requesterEmail,
+            String projectName,
+            String rejectReason
+    ) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", requesterName);
+            context.setVariable("email", requesterEmail);
+            context.setVariable("projectName", projectName);
+            context.setVariable("rejectReason", rejectReason);
+            return templateEngine.process("email/project-rejection", context);
+        } catch (TemplateProcessingException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_TEMPLATE_PROCESSING_FAILURE, e);
+        }
+    }
+
+    public String createProjectDirectlyCreatedHtmlContext(String projectId, String projectName, String ownerName) {
+        try {
+            Context context = new Context();
+            context.setVariable("projectId", projectId);
+            context.setVariable("projectName", projectName);
+            context.setVariable("ownerName", ownerName);
+            return templateEngine.process("email/project-created", context);
+        } catch (TemplateProcessingException e) {
+            throw new EmailException(EmailErrorCode.EMAIL_TEMPLATE_PROCESSING_FAILURE, e);
+        }
+    }
 }

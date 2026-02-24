@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>[아올다 클라우드] 프로젝트 신청 확인</title>
+    <title>[아올다 클라우드] 프로젝트 신청 거절</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,8 +20,8 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
+            color: #e74c3c;
+            border-bottom: 3px solid #e74c3c;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
@@ -48,6 +48,14 @@
         .value {
             color: #555;
         }
+        .rejection-reason {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            border-radius: 4px;
+            color: #721c24;
+        }
         .footer {
             margin-top: 30px;
             padding-top: 20px;
@@ -60,21 +68,13 @@
 </head>
 <body>
 <div class="container">
-    <h1>🌟 프로젝트 신청이 접수되었습니다 (Google Form)</h1>
+    <h1>❌ 프로젝트 신청이 거절되었습니다</h1>
 
     <h2>👤 신청자 정보</h2>
     <div class="info-section">
         <div class="info-item">
             <span class="label">📛 이름:</span>
             <span class="value" th:text="${name}"></span>
-        </div>
-        <div class="info-item">
-            <span class="label">🏫 학과:</span>
-            <span class="value" th:text="${department}"></span>
-        </div>
-        <div class="info-item">
-            <span class="label">🎓 학번:</span>
-            <span class="value" th:text="${studentId}"></span>
         </div>
         <div class="info-item">
             <span class="label">📧 이메일:</span>
@@ -88,38 +88,18 @@
             <span class="label">📝 프로젝트명:</span>
             <span class="value" th:text="${projectName}"></span>
         </div>
-        <div class="info-item">
-            <span class="label">🆔 프로젝트 ID:</span>
-            <span class="value" th:text="${projectId}"></span>
-        </div>
-        <div class="info-item">
-            <span class="label">📋 프로젝트 목적:</span>
-            <span class="value" th:text="${projectPurpose}"></span>
-        </div>
     </div>
 
-    <h2>🔧 요청 리소스</h2>
-    <div class="info-section">
-        <div class="info-item">
-            <span class="label">💾 CPU:</span>
-            <span class="value" th:text="${cpuCores} + ' cores'"></span>
-        </div>
-        <div class="info-item">
-            <span class="label">🧠 Memory:</span>
-            <span class="value" th:text="${memorySize} + ' GB'"></span>
-        </div>
-        <div class="info-item">
-            <span class="label">📀 Volume:</span>
-            <span class="value" th:text="${volumeSize} + ' GB'"></span>
-        </div>
+    <h2>🚫 거절 사유</h2>
+    <div class="rejection-reason">
+        <span th:text="${rejectReason}"></span>
     </div>
 
-    <p style="margin-top: 30px; padding: 15px; background-color: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 4px;">
-        ℹ️ 신청서가 접수되었으며, 관리자 검토 후 승인/거절 처리됩니다.
+    <p style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+        ℹ️ 궁금하신 사항이 있으시면 관리자에게 문의해주세요.
     </p>
 
     <div class="footer">
-        <p>신청 시각: <span th:text="${timestamp}"></span></p>
         <p>Aolda Cloud</p>
     </div>
 </div>
