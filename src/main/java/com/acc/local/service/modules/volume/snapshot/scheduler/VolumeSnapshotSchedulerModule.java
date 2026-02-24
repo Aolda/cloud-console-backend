@@ -37,23 +37,29 @@ public class VolumeSnapshotSchedulerModule {
      */
     public void processScheduledPolicies(LocalDateTime from, LocalDateTime now) {
         // 배치 작업 전체에서 사용할 시스템 관리자 토큰 발급
+        log.info("=== [SNAPSHOT SCHEDULER] Issuing system admin token...");
         String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope("[ACC server]: snapshot scheduler");
-        log.info("Issued system admin token for snapshot scheduler batch");
+        log.info("=== [SNAPSHOT SCHEDULER] Token issued. tokenLength={}", adminToken != null ? adminToken.length() : 0);
+        log.info("=== [SNAPSHOT SCHEDULER] Batch started. window={} ~ {}", from, now);
 
         try {
             int page = 0;
             Page<SnapshotPolicyEntity> policies;
+            int totalProcessed = 0;
 
             do {
                 policies = policyRepository.findDuePolicies(from, now, PageRequest.of(page++, PAGE_SIZE));
-                log.info("Processing snapshot policies. window={} ~ {}, page={}, total={}",
-                        from, now, page - 1, policies.getTotalElements());
+                log.info("=== [SNAPSHOT SCHEDULER] Found {} policies in page {}, total={}",
+                        policies.getNumberOfElements(), page - 1, policies.getTotalElements());
 
                 for (SnapshotPolicyEntity policy : policies.getContent()) {
                     // 별도 클래스로 분리하여 자연스럽게 프록시 적용
                     policyProcessor.processPolicyWithTransaction(policy, now, adminToken);
+                    totalProcessed++;
                 }
             } while (policies.hasNext());
+
+            log.info("=== [SNAPSHOT SCHEDULER] Batch completed. totalProcessed={}", totalProcessed);
 
         } finally {
             // 배치 작업 완료 후 토큰 즉시 폐기

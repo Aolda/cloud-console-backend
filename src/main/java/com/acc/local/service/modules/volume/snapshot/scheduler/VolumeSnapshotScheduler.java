@@ -29,12 +29,14 @@ public class VolumeSnapshotScheduler {
     /**
      * 매 정각 실행 (cron: 초 분 시 일 월 요일)
      * lockAtMostFor = "50m": 다음 정각 실행 전 반드시 락 해제
+     *
+     * [임시 테스트] 1분마다 실행, 2분 윈도우
      */
-    @Scheduled(cron = "0 0 * * * *")
-    @SchedulerLock(name = "volumeSnapshotScheduler", lockAtMostFor = "50m", lockAtLeastFor = "5m")
+    @Scheduled(cron = "0 * * * * *")
+    @SchedulerLock(name = "volumeSnapshotScheduler", lockAtMostFor = "50s", lockAtLeastFor = "10s")
     public void executeScheduledSnapshots() {
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
-        LocalDateTime from = now.minusHours(1);
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalDateTime from = now.minusMinutes(2);
 
         log.info("Volume snapshot scheduler triggered. window={} ~ {}", from, now);
 

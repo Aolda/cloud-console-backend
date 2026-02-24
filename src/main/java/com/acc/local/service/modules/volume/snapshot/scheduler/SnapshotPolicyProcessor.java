@@ -53,8 +53,8 @@ public class SnapshotPolicyProcessor {
     }
 
     private void processPolicy(SnapshotPolicyEntity policy, LocalDateTime scheduledAt, String adminToken) {
-        log.info("Processing snapshot policy. policyId={}, volumeId={}, projectId={}",
-                policy.getId(), policy.getVolumeId(), policy.getProjectId());
+        log.info("=== [SNAPSHOT SCHEDULER] Processing policy. policyId={}, policyName={}, volumeId={}, projectId={}",
+                policy.getId(), policy.getName(), policy.getVolumeId(), policy.getProjectId());
 
         SnapshotTaskEntity task = taskRepository.save(SnapshotTaskEntity.builder()
                 .policyId(policy.getId())
@@ -73,20 +73,23 @@ public class SnapshotPolicyProcessor {
             request.setSourceVolumeId(policy.getVolumeId());
             request.setName(generateSnapshotName(policy, scheduledAt));
 
+            log.info("=== [SNAPSHOT SCHEDULER] Creating snapshot. policyId={}, snapshotName={}, volumeId={}",
+                    policy.getId(), request.getName(), request.getSourceVolumeId());
+
             VolumeSnapshotResponse response = volumeSnapshotModule.createSnapshot(adminToken, policy.getProjectId(), request);
 
             task.complete(response.getSnapshotId());
             taskRepository.save(task);
 
-            log.info("Snapshot created successfully. policyId={}, snapshotId={}",
-                    policy.getId(), response.getSnapshotId());
+            log.info("=== [SNAPSHOT SCHEDULER] ✓ SUCCESS. policyId={}, snapshotId={}, snapshotName={}",
+                    policy.getId(), response.getSnapshotId(), request.getName());
 
         } catch (Exception e) {
             // 외부 볼륨 장애 처리: task를 FAILED로 기록하고 다음 주기로 진행
             task.fail();
             taskRepository.save(task);
 
-            log.error("Failed to create snapshot. policyId={}, volumeId={}, error={}",
+            log.error("=== [SNAPSHOT SCHEDULER] ✗ FAILED. policyId={}, volumeId={}, error={}",
                     policy.getId(), policy.getVolumeId(), e.getMessage());
         }
 
