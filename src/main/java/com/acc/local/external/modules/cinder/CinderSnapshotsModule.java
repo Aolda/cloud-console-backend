@@ -23,7 +23,7 @@ public class CinderSnapshotsModule extends CinderAPIUtil {
     }
 
     public ResponseEntity<JsonNode> createSnapshot(String token,String projectId, CreateSnapshotRequest request) {
-        String uri = "/v3/"+ projectId+ "/snapshots";
+        String uri = "/v3/snapshots";
         return openstackAPICallModule.callPostAPI(uri, Collections.singletonMap("X-Auth-Token", token), request, port);
     }
     public ResponseEntity<JsonNode> listSnapshots(String token,String projectId, Map<String, String> queryParams) {
