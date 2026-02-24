@@ -6,6 +6,7 @@ import com.acc.global.security.jwt.JwtAuthenticationFilter;
 import com.acc.global.security.oauth.OAuth2CustomUserService;
 import com.acc.global.security.oauth.handler.OAuthFailureHandler;
 import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
+import com.acc.global.security.session.SessionAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final SessionAuthenticationFilter sessionAuthenticationFilter;
     private final RequestCachingFilter requestCachingFilter;
     private final GlobalAccessLoggingFilter globalAccessLoggingFilter;
     //OAuth
@@ -72,15 +74,24 @@ public class SecurityConfig {
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs",
-                                "/actuator/**"
+                                "/actuator/**",
+                                "/api/v1/auth/keycloak/login",
+                                "/api/v1/auth/keycloak/callback"
 
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // Filter Order: RequestCaching -> JwtAuth -> AccessLogging
+                // Filter Order: RequestCaching → JwtAuth → SessionAuth → AccessLogging
+                //
+                // JwtAuthenticationFilter   : Bearer Token 있으면 JwtInfo(userId) 로 인증
+                // SessionAuthenticationFilter: acc-session-id 쿠키 있으면 SessionPrincipal 로 인증
+                //   → JWT 인증 완료 시 SessionFilter는 자동으로 패스 (공존 전략)
+                //   → Keycloak 로그인 사용자: 세션 쿠키만 있음 → SessionFilter에서 인증
+                //   → 기존 사용자: Bearer Token만 있음 → JwtFilter에서 인증 (변경 없음)
                 .addFilterBefore(requestCachingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(globalAccessLoggingFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(sessionAuthenticationFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(globalAccessLoggingFilter, SessionAuthenticationFilter.class);
 
         return http.build();
     }
