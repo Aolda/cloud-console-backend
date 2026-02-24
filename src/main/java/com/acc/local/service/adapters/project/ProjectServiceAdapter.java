@@ -27,6 +27,7 @@ import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.ProjectServicePort;
 
 import jakarta.transaction.Transactional;
@@ -41,11 +42,13 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	private final ProjectModule projectModule;
 	private final AuthModule authModule;
 	private final UserModule userModule;
+	private final SessionModule sessionModule;
 
 	@Override
-	public List<ProjectResponse> getProjects(String keyword, String requestUserId) {
+	public List<ProjectResponse> getProjects(String keyword, String sessionId) {
+		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
-		String unscopedToken = authModule.getUnscopedTokenByUserId(requestUserId);
+		String unscopedToken = sessionModule.getKeystoneUnscopedToken(sessionId);
 		String adminTokenWithProject = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
 
 		try {
@@ -84,15 +87,16 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	}
 
 	@Override
-	public GetProjectResponse getProjectDetail(String projectId, String requestUserId) {
+	public GetProjectResponse getProjectDetail(String projectId, String sessionId) {
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-		String scopedToken = authModule.issueProjectScopeToken(projectId, requestUserId);
+		String scopedToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 		ProjectServiceDto project = projectModule.getProjectDetail(projectId, scopedToken);
 		return GetProjectResponse.from(project);
 	}
 
 	@Override
-	public PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requesterId) {
+	public PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String sessionId) {
+		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		ProjectRequestListServiceDto savedProjectRequestList = projectModule.getProjectRequestList(keyword, pageRequest, requesterId);
 		List<ProjectRequestDto> projectRequestsList = savedProjectRequestList.projectRequests();
 		RepositoryPagination projectRequestsPagination = savedProjectRequestList.pagination();
@@ -115,7 +119,8 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 	@Override
 	@Transactional
-	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requesterId) {
+	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String sessionId) {
+		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		return projectModule.createProjectRequest(request, requesterId);
 	}
 
@@ -132,8 +137,9 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 
 	@Override
 	@Transactional
-	public List<ProjectParticipantDto> inviteProjectParticipants(String projectId, List<String> userIds, ProjectRole projectRole, String requestUserId) {
-		String token = authModule.issueProjectScopeToken(requestUserId, projectId);
+	public List<ProjectParticipantDto> inviteProjectParticipants(String projectId, List<String> userIds, ProjectRole projectRole, String sessionId) {
+		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
+		String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 		try {
 			projectModule.checkUserPrivilege(projectId, requestUserId);
 
@@ -153,8 +159,9 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	}
 
 	@Override
-	public List<ProjectParticipantDto> kickOutParticipants(String projectId, List<String> userIds, String requestUserId) {
-		String token = authModule.issueProjectScopeToken(requestUserId, projectId);
+	public List<ProjectParticipantDto> kickOutParticipants(String projectId, List<String> userIds, String sessionId) {
+		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
+		String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 		try {
 			projectModule.checkUserPrivilege(projectId, requestUserId);
 
@@ -178,7 +185,8 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 	}
 
 	@Override
-	public List<InvitableUser> getInvitableUser(String projectId, String keyword, String requestUserId) {
+	public List<InvitableUser> getInvitableUser(String projectId, String keyword, String sessionId) {
+		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
 		try {
 			String token = authModule.issueSystemAdminToken(requestUserId);
 			List<InvitableUser> invitableUserList = projectModule.getInvitableUserList(projectId, keyword, token);
