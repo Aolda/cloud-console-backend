@@ -9,6 +9,7 @@ import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.RoleModule;
 import com.acc.local.service.modules.auth.UserModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.RoleServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +26,11 @@ public class RoleServiceAdapter implements RoleServicePort {
     private final RoleModule roleModule;
     private final UserRepositoryPort userRepositoryPort;
     private final UserModule userModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public CreateRoleResponse adminCreateRole(CreateRoleRequest request, String requesterId) {
+    public CreateRoleResponse adminCreateRole(CreateRoleRequest request, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
 
         // 권한 체크
         userModule.isAdminUser(requesterId);
@@ -41,7 +44,9 @@ public class RoleServiceAdapter implements RoleServicePort {
     }
 
     @Override
-    public PageResponse<ListRolesResponse> adminListRoles(PageRequest page, String name, String requesterId) {
+    public PageResponse<ListRolesResponse> adminListRoles(PageRequest page, String name, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
+
         // 권한 체크
         userModule.isAdminUser(requesterId);
 

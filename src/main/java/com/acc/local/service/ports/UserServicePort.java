@@ -5,9 +5,9 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.dto.auth.*;
 
 public interface UserServicePort {
-    AdminCreateUserResponse adminCreateUser(AdminCreateUserRequest request, String requesterId);
-    AdminUpdateUserResponse adminUpdateUser(AdminUpdateUserRequest request, String requesterId, String userId);
-    AdminGetUserResponse adminGetUser(String userId, String requesterId);
-    PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String requesterId);
-    void adminDeleteUser(String userId, String requesterId);
+    AdminCreateUserResponse adminCreateUser(AdminCreateUserRequest request, String sessionId);
+    AdminUpdateUserResponse adminUpdateUser(AdminUpdateUserRequest request, String sessionId, String userId);
+    AdminGetUserResponse adminGetUser(String userId, String sessionId);
+    PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String sessionId);
+    void adminDeleteUser(String userId, String sessionId);
 }
