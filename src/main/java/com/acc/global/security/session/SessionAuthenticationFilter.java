@@ -1,8 +1,9 @@
 package com.acc.global.security.session;
 
-import com.acc.global.security.session.SessionConstants;
+import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.SessionData;
 import com.acc.local.repository.ports.SessionRepositoryPort;
+import com.acc.local.service.modules.session.SessionModule;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -30,16 +32,19 @@ import java.util.concurrent.TimeUnit;
  *   - 기존: Authorization: Bearer {jwt} → JwtInfo(userId) → SecurityContext
  *   - 신규: Cookie: acc-session-id={uuid} → SessionPrincipal(sessionId, keycloakUserId, keystoneUserId) → SecurityContext
  *
- * [공존 전략 - Phase 1]
- *   JwtAuthenticationFilter → SessionAuthenticationFilter 순서로 실행된다.
- *   - JWT Bearer Token이 있으면 JwtAuthenticationFilter가 먼저 인증 처리
- *   - 세션 쿠키만 있으면 이 필터가 인증 처리
- *   - 둘 다 없으면 미인증 상태 유지 (기존과 동일)
- *   → 기존 API는 기존 방식 그대로 동작. Keycloak 사용자만 세션 방식 사용.
+ * [인증 단계]
+ *   1. acc-session-id 쿠키 추출
+ *   2. Redis에서 SessionData 조회 (없으면 미인증)
+ *   3. Keycloak accessToken 유효성 검사 (로컬 timestamp 체크 → HTTP 없음)
+ *      - 만료 시: refreshToken으로 Keycloak 갱신 시도 (HTTP 1회, ~accessToken 수명마다)
+ *      - 갱신 실패(refreshToken 만료): Redis 세션 삭제 → 미인증 (재로그인 유도)
+ *   4. SecurityContext에 SessionPrincipal 등록
+ *   5. Sliding Session TTL 연장 (30분)
  *
- * [Sliding Session]
- *   요청이 들어올 때마다 TTL을 연장한다. (30분 sliding window)
- *   활성 사용자의 세션이 중간에 만료되는 것을 방지.
+ * [세션 만료 정책]
+ *   - Redis TTL 소진(30분 무요청): 세션 만료 → 401
+ *   - Keycloak refreshToken 만료: Redis 세션 삭제 → 401 (Keycloak 서버 설정에 따라 제어됨)
+ *   - 활성 사용자의 Redis TTL은 계속 연장되지만, Keycloak refreshToken이 만료되면 강제 종료
  */
 @Slf4j
 @Component
@@ -47,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
 
     private final SessionRepositoryPort sessionRepositoryPort;
+    private final SessionModule sessionModule;
 
     @Override
     protected void doFilterInternal(
@@ -55,7 +61,6 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 이미 JWT 인증이 완료된 경우 세션 인증을 시도하지 않는다
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
@@ -81,6 +86,16 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
 
             SessionData sessionData = sessionDataOpt.get();
 
+            // Keycloak 토큰 유효성 검사 및 갱신
+            // - accessToken 유효: 로컬 timestamp 체크만 수행 (HTTP 없음, 대부분의 요청)
+            // - accessToken 만료: refreshToken으로 Keycloak 갱신 (HTTP 1회, ~수명마다)
+            // - refreshToken까지 만료: Redis 세션 삭제 → 재로그인 유도
+            if (!ensureKeycloakTokenValid(sessionId, sessionData)) {
+                log.info("Keycloak 세션 만료 - Redis 세션 삭제, 재로그인 필요 - sessionId: {}", sessionId);
+                sessionRepositoryPort.deleteById(sessionId);
+                return;
+            }
+
             SessionPrincipal principal = new SessionPrincipal(
                     sessionId,
                     sessionData.getKeycloakUserId(),
@@ -105,10 +120,49 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             log.debug("세션 인증 성공 - keystoneUserId: {}", sessionData.getKeystoneUserId());
 
         } catch (Exception e) {
-            // 세션 조회 실패는 인증 실패로 처리 (미인증 상태 유지)
             SecurityContextHolder.clearContext();
             log.warn("세션 인증 처리 중 오류 발생 - sessionId: {}", sessionId, e);
         }
+    }
+
+    /**
+     * Keycloak accessToken 유효성 확인 및 필요 시 갱신.
+     *
+     * - accessToken 유효: 로컬 체크만, HTTP 없음
+     * - accessToken 만료: SessionModule.getKeycloakAccessToken() 호출 → Keycloak refresh HTTP 1회
+     * - refreshToken 만료 or Keycloak 오류: false 반환 → 호출부에서 세션 삭제
+     *
+     * @return true: 세션 계속 사용 가능 / false: Keycloak 세션 만료 → 재로그인 필요
+     */
+    private boolean ensureKeycloakTokenValid(String sessionId, SessionData sessionData) {
+        KeycloakTokens keycloakTokens = sessionData.getKeycloakTokens();
+
+        if (keycloakTokens == null) {
+            return false;
+        }
+
+        // accessToken 아직 유효 → HTTP 호출 없이 통과 (대부분의 요청)
+        if (!isExpiredOrSoonExpiry(keycloakTokens.getExpiresAt())) {
+            return true;
+        }
+
+        // accessToken 만료 → refreshToken으로 갱신 시도
+        try {
+            sessionModule.getKeycloakAccessToken(sessionId);
+            log.debug("Keycloak accessToken 갱신 완료 - sessionId: {}", sessionId);
+            return true;
+        } catch (Exception e) {
+            log.info("Keycloak 토큰 갱신 실패 (refreshToken 만료 또는 Keycloak 불가) - sessionId: {}", sessionId);
+            return false;
+        }
+    }
+
+    /**
+     * 토큰이 만료됐거나 60초 이내로 만료될 경우 true (조기 갱신 버퍼).
+     */
+    private boolean isExpiredOrSoonExpiry(LocalDateTime expiresAt) {
+        if (expiresAt == null) return true;
+        return LocalDateTime.now().plusSeconds(60).isAfter(expiresAt);
     }
 
     private String extractSessionId(HttpServletRequest request) {
