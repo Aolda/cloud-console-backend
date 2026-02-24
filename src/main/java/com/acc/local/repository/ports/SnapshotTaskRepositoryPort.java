@@ -13,5 +13,6 @@ public interface SnapshotTaskRepositoryPort {
     Page<SnapshotTaskEntity> findByPolicyId(Long policyId, Pageable pageable);
     Page<SnapshotTaskEntity> findByPolicyIdAndStartedAtAfter(Long policyId, LocalDateTime since, Pageable pageable);
     List<SnapshotTaskEntity> findByPolicyIdAndStatus(Long policyId, TaskStatus status);
+    boolean existsByPolicyIdAndScheduledAt(Long policyId, LocalDateTime scheduledAt);
 }
 

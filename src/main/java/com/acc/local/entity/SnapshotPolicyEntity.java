@@ -46,6 +46,9 @@ public class SnapshotPolicyEntity {
     @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
 
+    @Column(name = "next_run_at")
+    private LocalDateTime nextRunAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -90,6 +93,7 @@ public class SnapshotPolicyEntity {
     @Builder
     public SnapshotPolicyEntity(String name, String description, String volumeId, String projectId,
                                 IntervalType intervalType, Boolean enabled, LocalDateTime expirationDate,
+                                LocalDateTime nextRunAt,
                                 LocalTime dailyTime, Integer weeklyDayOfWeek, LocalTime weeklyTime,
                                 Integer monthlyDayOfMonth, LocalTime monthlyTime, String timezone) {
         this.name = name;
@@ -99,6 +103,7 @@ public class SnapshotPolicyEntity {
         this.intervalType = intervalType;
         this.enabled = enabled;
         this.expirationDate = expirationDate;
+        this.nextRunAt = nextRunAt;
         this.dailyTime = dailyTime;
         this.weeklyDayOfWeek = weeklyDayOfWeek;
         this.weeklyTime = weeklyTime;
@@ -108,8 +113,8 @@ public class SnapshotPolicyEntity {
     }
 
     public void update(String name, String description, IntervalType intervalType,
-                      LocalDateTime expirationDate, LocalTime dailyTime, Integer weeklyDayOfWeek,
-                      LocalTime weeklyTime, Integer monthlyDayOfMonth, LocalTime monthlyTime) {
+                       LocalDateTime expirationDate, LocalTime dailyTime, Integer weeklyDayOfWeek,
+                       LocalTime weeklyTime, Integer monthlyDayOfMonth, LocalTime monthlyTime, String timezone) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
         if (intervalType != null) this.intervalType = intervalType;
@@ -119,6 +124,11 @@ public class SnapshotPolicyEntity {
         if (weeklyTime != null) this.weeklyTime = weeklyTime;
         if (monthlyDayOfMonth != null) this.monthlyDayOfMonth = monthlyDayOfMonth;
         if (monthlyTime != null) this.monthlyTime = monthlyTime;
+        if (timezone != null) this.timezone = timezone;
+    }
+
+    public void updateNextRunAt(LocalDateTime nextRunAt) {
+        this.nextRunAt = nextRunAt;
     }
 
     public void activate() {
