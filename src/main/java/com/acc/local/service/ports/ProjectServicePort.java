@@ -15,20 +15,20 @@ import com.acc.local.dto.project.ProjectResponse;
 
 public interface ProjectServicePort {
 
-	List<ProjectResponse> getProjects(String keyword, String requestUserId);
+	List<ProjectResponse> getProjects(String keyword, String sessionId);
 
-	GetProjectResponse getProjectDetail(String projectId, String requesterId);
+	GetProjectResponse getProjectDetail(String projectId, String sessionId);
 
-	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requestUserId);
+	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String sessionId);
 
-	CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requestUserId);
+	CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String sessionId);
 
 	List<ProjectParticipantDto> getProjectParticipants(String projectId);
 
-	List<ProjectParticipantDto> inviteProjectParticipants(String projectId, List<String> userIds, ProjectRole projectRole, String requestUserId);
+	List<ProjectParticipantDto> inviteProjectParticipants(String projectId, List<String> userIds, ProjectRole projectRole, String sessionId);
 
-	List<ProjectParticipantDto> kickOutParticipants(String projectId, List<String> userIds, String requestUserId);
+	List<ProjectParticipantDto> kickOutParticipants(String projectId, List<String> userIds, String sessionId);
 
-	List<InvitableUser> getInvitableUser(String projectId, String keyword, String requestUserId);
+	List<InvitableUser> getInvitableUser(String projectId, String keyword, String sessionId);
 
 }
