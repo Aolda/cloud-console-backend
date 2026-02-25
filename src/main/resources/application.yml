@@ -52,6 +52,9 @@ super-admin:
   user-id: ${SUPER_ADMIN_USER_ID}
   phone-number: ${SUPER_ADMIN_PHONE_NUMBER}
   user-name: ${SUPER_ADMIN_USER_NAME}
+  keycloak-user-id: ${SUPER_ADMIN_KEYCLOAK_USER_ID}
+  keystone-username: ${SUPER_ADMIN_KEYSTONE_USERNAME}
+  keystone-password: ${SUPER_ADMIN_KEYSTONE_PASSWORD}
 
 keycloak:
   issuer-uri: ${KEYCLOAK_ISSUER_URI}
