@@ -1,5 +1,6 @@
 package com.acc.local.controller;
 
+import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.KeycloakErrorCode;
 import com.acc.global.exception.auth.KeycloakException;
 import com.acc.global.exception.session.SessionErrorCode;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -80,7 +83,20 @@ public class KeycloakAuthController implements KeycloakAuthDocs {
         response.addCookie(deleteStateCookie);
 
         // 4. 콜백 처리 (토큰 교환 + 세션 생성)
-        String sessionId = keycloakAuthServicePort.processCallback(code);
+        String sessionId;
+        try {
+            sessionId = keycloakAuthServicePort.processCallback(code);
+        } catch (AuthServiceException e) {
+            String redirectUrl = oAuth2Properties.getFailure().getRedirectUrl()
+                    + "?error=" + URLEncoder.encode(e.getErrorCode().getCode(), StandardCharsets.UTF_8);
+            try {
+                response.sendRedirect(redirectUrl);
+            } catch (IOException ex) {
+                log.error("실패 리다이렉트 실패", ex);
+                throw new KeycloakException(KeycloakErrorCode.KEYCLOAK_API_FAILURE, ex);
+            }
+            return;
+        }
 
         // 5. 세션 쿠키 설정 (HttpOnly, Secure, SameSite=None, maxAge=30분)
         Cookie sessionCookie = new Cookie(SessionConstants.SESSION_COOKIE_NAME, sessionId);

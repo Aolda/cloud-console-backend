@@ -62,12 +62,19 @@ public class KeycloakIdTokenParser {
             JsonNode payload = decodePayload(idToken);
 
             String sub = getRequiredClaim(payload, "sub");
-            String email = getRequiredClaim(payload, "email");
-            String preferredUsername = getOptionalClaim(payload, "preferred_username", email.split("@")[0]);
-            String department = getOptionalClaim(payload, "department", "");
-            String studentId = getOptionalClaim(payload, "studentId", "");
+            String email = getOptionalClaim(payload, "email", "");
+            String preferredUsername = getOptionalClaim(payload, "preferred_username",
+                    email.isBlank() ? "" : email.split("@")[0]);
+            String ajouMajor     = getOptionalClaim(payload, "ajou_major",      "");
+            String ajouStatus    = getOptionalClaim(payload, "ajou_status",     "");
+            String ajouGrade     = getOptionalClaim(payload, "ajou_grade",      "");
+            String ajouStudentId = getOptionalClaim(payload, "ajou_student_id", "");
 
-            return new KeycloakIdTokenClaims(sub, email, department, studentId, preferredUsername);
+            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}'",
+                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId);
+
+            return new KeycloakIdTokenClaims(sub, email, preferredUsername,
+                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId);
         } catch (KeycloakException e) {
             throw e;
         } catch (Exception e) {
