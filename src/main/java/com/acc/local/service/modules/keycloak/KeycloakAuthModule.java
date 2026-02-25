@@ -1,10 +1,13 @@
 package com.acc.local.service.modules.keycloak;
 
+import com.acc.global.exception.auth.AuthErrorCode;
+import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.session.SessionErrorCode;
 import com.acc.global.exception.session.SessionException;
 import com.acc.global.properties.KeycloakProperties;
 import com.acc.global.security.keycloak.KeycloakIdTokenParser;
 import com.acc.global.security.session.SessionConstants;
+import com.acc.local.domain.enums.UnivAccountType;
 import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.KeystoneTokens;
 import com.acc.local.domain.model.session.SessionData;
@@ -13,10 +16,12 @@ import com.acc.local.dto.auth.KeycloakIdTokenClaims;
 import com.acc.local.dto.auth.KeycloakUserResult;
 import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
+import com.acc.local.dto.auth.UserDepartDto;
 import com.acc.local.external.dto.keycloak.KeycloakTokenResponse;
 import com.acc.local.external.ports.KeycloakOidcExternalPort;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.SessionRepositoryPort;
+import com.acc.local.service.modules.auth.AjouUnivModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -74,6 +79,7 @@ public class KeycloakAuthModule {
 
     // 내부 모듈 의존
     private final KeycloakUserModule keycloakUserModule;
+    private final AjouUnivModule ajouUnivModule;
 
     // Token util
     private final KeycloakIdTokenParser keycloakIdTokenParser;
@@ -101,8 +107,22 @@ public class KeycloakAuthModule {
         // 2. ID Token에서 모든 필요 클레임 추출
         KeycloakIdTokenClaims claims = keycloakIdTokenParser.extractClaims(tokenResponse.idToken());
 
+        // 2.5. 학적 정보 추출 및 재학생 검증 (관리자 계정은 우회)
+        UserDepartDto departDto = null;
+        if (!keycloakUserModule.isLinkedAdmin(claims.subject())) {
+            departDto = ajouUnivModule.getUserDepartInfoFromKeycloakClaims(claims)
+                    .orElseThrow(() -> {
+                        log.warn("Keycloak 로그인 실패 - 학적 정보 없음: {}", claims.email());
+                        return new AuthServiceException(AuthErrorCode.NO_UNIV_ACCOUNT_INFO);
+                    });
+            if (departDto.univAccountType() != UnivAccountType.UNDERGRADUATE) {
+                log.warn("Keycloak 로그인 실패 - 재학생 아님: {}, type={}", claims.email(), departDto.univAccountType());
+                throw new AuthServiceException(AuthErrorCode.ONLY_UNDERGRADUATE_ALLOWED);
+            }
+        }
+
         // 3. 사용자 조회/등록 (3-way 분기: KeycloakUserModule)
-        KeycloakUserResult userResult = keycloakUserModule.findOrRegisterKeycloakUser(claims);
+        KeycloakUserResult userResult = keycloakUserModule.findOrRegisterKeycloakUser(claims, departDto);
 
         // 4. KeycloakTokens 도메인 모델 구성
         KeycloakTokens keycloakTokens = KeycloakTokens.builder()
@@ -112,7 +132,7 @@ public class KeycloakAuthModule {
                 .expiresAt(LocalDateTime.now().plusSeconds(tokenResponse.expiresIn()))
                 .build();
 
-        // 5. Keystone unscoped token 발급 (저장된 credentials 사용)
+        // 5. Keystone unscoped toke                     n 발급 (저장된 credentials 사용)
         //    [대체 대상] AuthModule.getUnscopedTokenByUserId() → UserTokenEntity 조회 방식
         //                대신 DB에 저장된 keystoneUsername/Password로 직접 발급
         KeystonePasswordLoginRequest keystoneLoginRequest = new KeystonePasswordLoginRequest(

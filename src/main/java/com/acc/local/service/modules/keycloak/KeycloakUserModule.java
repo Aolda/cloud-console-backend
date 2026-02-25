@@ -6,6 +6,7 @@ import com.acc.global.security.crypto.KeystonePasswordEncryptor;
 import com.acc.local.domain.enums.auth.AuthType;
 import com.acc.local.dto.auth.KeycloakIdTokenClaims;
 import com.acc.local.dto.auth.KeycloakUserResult;
+import com.acc.local.dto.auth.UserDepartDto;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
@@ -75,11 +76,12 @@ public class KeycloakUserModule {
     /**
      * Keycloak 로그인 시 사용자를 조회하거나 등록한다.
      *
-     * @param claims Keycloak ID Token에서 추출한 클레임
+     * @param claims    Keycloak ID Token에서 추출한 클레임
+     * @param departDto 학적 정보 (DB resolve 완료)
      * @return 이후 Keystone 토큰 발급 + SessionData 구성에 필요한 결과
      */
     @Transactional
-    public KeycloakUserResult findOrRegisterKeycloakUser(KeycloakIdTokenClaims claims) {
+    public KeycloakUserResult findOrRegisterKeycloakUser(KeycloakIdTokenClaims claims, UserDepartDto departDto) {
 
         // ── Branch 1: keycloakUserId가 이미 user_detail에 연결된 사용자 ──────────────
         Optional<UserDbExtraEntity> linkedUser =
@@ -106,7 +108,11 @@ public class KeycloakUserModule {
         }
 
         // ── Branch 3: 신규 사용자 → Keystone 사용자 생성 + DB 저장 ──────────────────
-        return registerNewKeycloakUser(claims);
+        if (departDto == null) {
+            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND,
+                    "관리자 계정 사전 등록이 필요합니다.");
+        }
+        return registerNewKeycloakUser(claims, departDto);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -169,7 +175,7 @@ public class KeycloakUserModule {
     // [phoneNumber] Keycloak이 전화번호를 제공하지 않으므로 빈 문자열로 초기화.
     //               사용자가 이후 프로필 수정을 통해 채워야 한다.
     // ─────────────────────────────────────────────────────────────────────────────
-    private KeycloakUserResult registerNewKeycloakUser(KeycloakIdTokenClaims claims) {
+    private KeycloakUserResult registerNewKeycloakUser(KeycloakIdTokenClaims claims, UserDepartDto departDto) {
         String adminToken = authModule.issueSystemAdminToken(null);
 
         String newPassword = generateSecurePassword();
@@ -198,8 +204,8 @@ public class KeycloakUserModule {
         // user_auth_detail 저장 (AuthType.KEYCLOAK = 3)
         UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
                 .id(new UserIdentityId(keystoneUserId, AuthType.KEYCLOAK.getCode()))
-                .department(claims.department())
-                .studentId(claims.studentId())
+                .department(departDto.department())
+                .studentId(claims.ajouStudentId())
                 .userEmail(claims.email())
                 .build();
         userRepositoryPort.saveUserIdentity(userIdentityEntity);
@@ -208,6 +214,15 @@ public class KeycloakUserModule {
                 keystoneUserId, claims.subject());
 
         return new KeycloakUserResult(keystoneUserId, keystoneUsername, newPassword, claims.preferredUsername());
+    }
+
+    /**
+     * 이미 연결된 관리자 계정 여부 확인 (학적 검증 우회 판단용).
+     */
+    public boolean isLinkedAdmin(String keycloakUserId) {
+        return userRepositoryPort.findUserDetailByKeycloakUserId(keycloakUserId)
+                .map(u -> Boolean.TRUE.equals(u.getIsAdmin()))
+                .orElse(false);
     }
 
     /**
