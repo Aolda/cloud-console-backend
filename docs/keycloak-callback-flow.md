@@ -1,212 +1,83 @@
 # Keycloak OIDC 콜백 처리 흐름
 
-> **대상 독자**: ACC 백엔드 개발자
-> **관련 브랜치**: `Refactor/#129/jwt-to-session`
-> **핵심 클래스**: `KeycloakAuthModule`, `KeycloakUserModule`, `KeycloakAuthController`
+이 문서는 Keycloak Authorization Code Flow 기반 로그인 처리 흐름을 설명합니다. 핵심 진입점은 `KeycloakAuthController`이며, 실제 오케스트레이션은 `KeycloakAuthModule`과 `KeycloakUserModule`이 담당합니다.
 
 ---
 
-## 전체 흐름 개요
+## 전체 흐름
 
-```
-[사용자 브라우저]
-      │
-      │  GET /api/v1/auth/keycloak/login
-      ▼
-[KeycloakAuthController.login()]
-      │  buildAuthorizationUrl(state)
-      │  → KeycloakProperties: issuerUri, clientId, redirectUri 조합
-      │
-      │  302 Redirect
-      ▼
-[Keycloak 로그인 페이지]
-      │  사용자 인증 완료
-      │
-      │  302 Redirect (code, state 포함)
-      ▼
-[KeycloakAuthController.callback()]
-      │  processCallback(code)
-      │
-      ▼
-[KeycloakAuthModule.processCallback()]  ← 핵심 오케스트레이션
-      │
-      ├─ 1. code → Keycloak Token 교환 (access/refresh/id token)
-      ├─ 2. ID Token 파싱 → KeycloakIdTokenClaims 추출
-      ├─ 3. 사용자 조회/등록 3-way 분기  ← KeycloakUserModule
-      ├─ 4. Keystone unscoped token 발급
-      ├─ 5. SessionData 구성 → Redis 저장
-      └─ 6. sessionId 반환
-      │
-      │  Set-Cookie: acc-session-id={sessionId}
-      │  302 Redirect
-      ▼
-[프론트엔드 콜백 URL]
-```
+프론트엔드가 `GET /api/v1/auth/keycloak/login`을 호출하면 백엔드는 CSRF 방지용 state UUID를 생성하여 `keycloak-oauth-state` 쿠키에 저장하고, Keycloak 인가 URL로 302 리다이렉트합니다.
+
+사용자가 Keycloak에서 인증을 마치면 `GET /api/v1/auth/keycloak/callback?code=...&state=...`으로 돌아옵니다. 백엔드는 state 쿠키와 쿼리 파라미터를 비교하여 CSRF를 검증한 뒤 `KeycloakAuthModule.processCallback()`을 호출합니다.
+
+processCallback() 내부 처리 순서입니다.
+- code를 Keycloak Token Endpoint에 전달하여 access/refresh/id token을 교환합니다.
+- ID Token을 Base64 디코딩하여 `KeycloakIdTokenClaims`를 추출합니다.
+- `isLinkedAdmin()`으로 관리자 여부를 확인합니다. 관리자이면 학적 검증을 건너뜁니다.
+- 일반 사용자는 `ajou_status`, `ajou_major` 클레임으로 재학생(UNDERGRADUATE) 여부를 검증합니다.
+- 검증을 통과하면 `KeycloakUserModule.findOrRegisterKeycloakUser()`로 사용자를 분기 처리합니다.
+- Keystone unscoped token을 발급하고, 전체 토큰과 사용자 정보를 SessionData로 묶어 Redis에 저장합니다.
+- sessionId를 반환하면 컨트롤러가 `acc-session-id` 쿠키를 설정하고 `KEYCLOAK_FRONTEND_REDIRECT_URL`로 302 리다이렉트합니다.
 
 ---
 
-## Step 3 상세: 사용자 조회/등록 3-way 분기
+## 사용자 조회/등록 3-way 분기
 
-> `KeycloakUserModule.findOrRegisterKeycloakUser(KeycloakIdTokenClaims claims)`
+`KeycloakUserModule.findOrRegisterKeycloakUser()`는 아래 순서로 분기합니다.
 
----
+**Branch 1. keycloakUserId 연결된 사용자 (일반 로그인)**
+`user_detail.keycloak_user_id = claims.subject()`인 레코드가 있으면 저장된 keystoneUsername과 AES-256 복호화된 keystonePassword를 그대로 반환합니다. 외부 API 호출 없이 DB 조회와 복호화만으로 처리됩니다.
 
-### Branch 1: 기존 Keycloak 연결 사용자 (일반 로그인)
+**Branch 2. 이메일 일치 기존 사용자 (Account Linking)**
+keycloak_user_id는 없지만 `user_auth_detail.user_email = claims.email()`인 레코드가 있을 때 진입합니다. 기존에 ADMIN 또는 GOOGLE 방식으로 가입한 사용자가 Keycloak으로 최초 로그인하는 경우입니다. 기존 Keystone 패스워드를 알 수 없으므로 시스템 어드민 토큰으로 패스워드를 재설정하고, `user_detail`에 keycloak_user_id, keystoneUsername, keystonePassword(암호화)를 업데이트합니다. 이 시점 이후 Keystone 직접 패스워드 로그인은 불가합니다.
 
-**조건**: `user_detail.keycloak_user_id = claims.subject()` 인 레코드가 존재
-
-```
-DB: user_detail
-  keycloak_user_id = "kc-sub-abc123"   ← 이미 연결됨
-  keystone_username = "jungmin"
-  keystone_password = "AES-256-암호화된값"
-```
-
-**처리**:
-1. `UserRepositoryPort.findUserDetailByKeycloakUserId(subject)` 조회
-2. `KeystonePasswordEncryptor.decrypt(entity.keystonePassword)` → 평문 패스워드 복호화
-3. `KeycloakUserResult(keystoneUserId, keystoneUsername, plainPassword, userName)` 반환
-
-**특징**: 외부 API 호출 없음. DB 조회 + 복호화만으로 처리.
+**Branch 3. 신규 사용자 등록**
+keycloak_user_id도, 이메일 일치도 없는 완전히 새로운 사용자입니다. Keystone에 사용자를 새로 생성(email 앞부분을 name으로 사용, Skyline의 @ 도메인 인식 문제 회피)하고, `user_detail`과 `user_auth_detail`(auth_type=3, KEYCLOAK)을 DB에 저장합니다. departDto가 null인 경우 `USER_NOT_FOUND`로 처리합니다. Keystone 생성 성공 후 DB 저장이 실패하면 Keystone 고아 사용자가 발생할 수 있으므로, 운영 환경에서는 보상 트랜잭션 추가를 검토해야 합니다.
 
 ---
 
-### Branch 2: 이메일 일치 기존 사용자 (Account Linking)
+## ID Token 클레임
 
-**조건**: `keycloak_user_id`는 없지만 `user_auth_detail.user_email = claims.email()` 인 레코드 존재
+`KeycloakIdTokenParser.extractClaims()`가 추출하는 클레임입니다. sub, email, preferred_username은 openid 스코프에 기본 포함되며, ajou_* 클레임은 Keycloak Client Mapper를 별도 설정해야 합니다. Mapper 설정 경로는 `Clients → {client} → Client Scopes → {client}-dedicated → Add mapper`이며 User Attribute 타입으로 등록합니다.
 
-**발생 시점**: 기존에 ADMIN 또는 GOOGLE 방식으로 가입된 사용자가 Keycloak으로 **최초** 로그인할 때
-
-```
-DB: user_auth_detail
-  user_email = "jungmin@ajou.ac.kr"   ← 이메일 일치
-  auth_type  = 1 (ADMIN) 또는 2 (GOOGLE)
-
-DB: user_detail
-  keycloak_user_id = NULL             ← 아직 연결 안 됨
-```
-
-**처리**:
-1. `UserRepositoryPort.findUserIdentityByEmail(email)` 조회
-2. `authModule.issueSystemAdminToken(null)` → admin 토큰 발급
-3. `KeystoneAPIExternalPort.getUserDetail(keystoneUserId, adminToken)` → 기존 username 조회
-4. **Keystone 패스워드 재설정** (`updateUser`) — 기존 패스워드를 알 수 없으므로 새 패스워드로 교체
-5. `user_detail` 업데이트:
-   - `keycloak_user_id` = `claims.subject()`
-   - `keystone_username` = Keystone에서 가져온 username
-   - `keystone_password` = AES-256 암호화된 새 패스워드
-6. `KeycloakUserResult` 반환
-
-**주의**: 이후 Keystone 직접 패스워드 로그인은 불가 (Keycloak OIDC 경로만 사용)
+- `sub` → keycloakUserId. Branch 1~3 분기 기준 및 세션 저장에 사용됩니다.
+- `email` → 계정 연결(Branch 2) 조회 기준입니다. 없으면 빈 문자열로 처리합니다.
+- `preferred_username` → 신규 가입 시 userName 초기값입니다.
+- `ajou_major` → 학적 검증 및 department 저장에 사용됩니다. `univ_depart_info` 테이블에 매핑이 없으면 ajou_major 값 자체를 department로 저장합니다(신설학과 대응).
+- `ajou_status` → 재학 상태 코드입니다. `SS0001(학생(학부))` 형태로 오며 괄호 이하는 파싱 시 제거됩니다. UNDERGRADUATE 여부 검증에 사용됩니다.
+- `ajou_grade` → 학년입니다. 정수 파싱에 실패하면 -1로 저장됩니다.
+- `ajou_student_id` → 학번입니다. Keycloak SPI 연동 시 채워지며, 없으면 빈 문자열로 저장됩니다.
 
 ---
 
-### Branch 3: 신규 사용자 등록
+## SuperAdmin 처리
 
-**조건**: `keycloak_user_id`도 없고 `email`도 없음 → 완전히 새로운 사용자
+앱 기동 시 `SuperAdminInitializer`가 `SUPER_ADMIN_USER_ID` 기준으로 `user_detail`에 keycloakUserId, keystoneUsername, keystonePassword(AES-256 암호화)를 함께 저장합니다. `user_auth_detail`도 함께 생성하며(department="관리자", studentId="ADMIN"), 멱등성을 보장하여 재기동 시 중복 생성되지 않습니다. keycloakUserId가 미설정된 기존 계정이면 선택적으로 업데이트합니다.
 
-**처리**:
-1. `authModule.issueSystemAdminToken(null)` → admin 토큰 발급
-2. **Keystone 사용자 생성** (`createUser`)
-   - `name`: 이메일 앞부분 (`@` 기준 split, Skyline의 `@` 도메인 인식 문제 회피)
-   - `email`: `claims.email()`
-   - `password`: UUID 기반 랜덤 패스워드
-3. **`user_detail` INSERT**:
-   - `user_id` = Keystone이 발급한 `userId`
-   - `keycloak_user_id` = `claims.subject()`
-   - `keystone_username` = Keystone 응답의 `name`
-   - `keystone_password` = AES-256 암호화된 패스워드
-   - `user_name` = `claims.preferredUsername()`
-   - `user_phone_number` = `""` (Keycloak은 전화번호 미제공, 추후 사용자가 직접 입력)
-4. **`user_auth_detail` INSERT**:
-   - `auth_type` = 3 (KEYCLOAK)
-   - `department` = `claims.department()`
-   - `student_id` = `claims.studentId()`
-   - `user_email` = `claims.email()`
-5. `KeycloakUserResult` 반환
-
-**주의**: Keystone 사용자 생성 성공 후 DB INSERT 실패 시 Keystone 고아(orphan) 사용자 발생 가능.
-운영 환경에서는 보상 트랜잭션(Keystone 사용자 삭제) 추가 검토 필요.
+로그인 시 `isLinkedAdmin(keycloakUserId)`가 true이면 ajou_status/ajou_major 클레임 유무와 무관하게 학적 검증을 건너뜁니다. Branch 1에서 사전 저장된 Keystone 자격증명으로 바로 처리됩니다.
 
 ---
 
-## ID Token에서 추출하는 클레임 목록
+## Redis 세션 구조
 
-> `KeycloakIdTokenParser.extractClaims(String idToken)` → `KeycloakIdTokenClaims`
+세션 키는 `session:{UUID}` 형태이며 TTL은 30분 슬라이딩 방식입니다. 매 요청마다 `SessionAuthenticationFilter`가 TTL을 연장합니다.
 
-| 클레임 키 | 표준 여부 | 설명 | Keycloak 설정 |
-|---|---|---|---|
-| `sub` | 표준 | Keycloak 사용자 고유 ID (UUID) | 자동 포함 |
-| `email` | 표준 | 사용자 이메일 | 자동 포함 |
-| `preferred_username` | 표준 | Keycloak 로그인 ID | 자동 포함 |
-| `department` | 커스텀 | 학과명 | Client Mapper 필요 |
-| `studentId` | 커스텀 | 학번 | Client Mapper 필요 |
+- `keycloakTokens` → accessToken, refreshToken, idToken, expiresAt
+- `keystoneTokens` → unscopedToken, expiresAt
+- `keycloakUserId` → Keycloak sub claim 값
+- `keystoneUserId` → Keystone user UUID (OpenStack API 호출에 사용)
+- `userInfo` → name, email
 
-**Keycloak Client Mapper 설정** (커스텀 클레임용):
-`Clients → {client} → Client Scopes → {client}-dedicated → Add mapper`
-
-| Mapper Name | Type | User Attribute | Token Claim Name |
-|---|---|---|---|
-| department | User Attribute | department | department |
-| studentId | User Attribute | studentId | studentId |
-
----
-
-## 세션 저장 구조
-
-```
-Redis Key: "session:{UUID}"  (TTL: 30분, 슬라이딩 방식)
-
-Hash Fields:
-  keycloakTokens  → { accessToken, refreshToken, idToken, expiresAt }
-  keystoneTokens  → { unscopedToken, expiresAt }
-  keycloakUserId  → "kc-sub-abc123"
-  keystoneUserId  → "keystone-user-uuid"
-  userInfo        → { name, email }
-```
-
----
-
-## 분기 결정 흐름도
-
-```
-findOrRegisterKeycloakUser(claims)
-        │
-        ▼
-[user_detail WHERE keycloak_user_id = claims.subject()]
-        │
-  ┌─ 존재 ──────────────────────────────────────────────────────┐
-  │ Branch 1: 기존 연결 사용자                                   │
-  │   - DB에서 keystoneUsername/Password 읽기                    │
-  │   - 복호화 후 KeycloakUserResult 반환                        │
-  └──────────────────────────────────────────────────────────────┘
-        │
-  없음  ▼
-[user_auth_detail WHERE user_email = claims.email()]
-        │
-  ┌─ 존재 ──────────────────────────────────────────────────────┐
-  │ Branch 2: 이메일 일치 → Account Linking                     │
-  │   - Keystone 패스워드 재설정                                 │
-  │   - user_detail에 keycloak_user_id + 새 password 업데이트   │
-  └──────────────────────────────────────────────────────────────┘
-        │
-  없음  ▼
-Branch 3: 완전 신규 사용자
-  - Keystone 사용자 생성
-  - user_detail + user_auth_detail INSERT
-```
+accessToken 만료 시 refreshToken으로 Keycloak 갱신을 1회 시도합니다. refreshToken까지 만료되면 Redis 세션을 삭제하고 401을 반환합니다.
 
 ---
 
 ## 관련 파일
 
-| 역할 | 파일 |
-|---|---|
-| 엔드포인트 (login/callback/logout) | `local/controller/KeycloakAuthController.java` |
-| 오케스트레이션 | `local/service/modules/keycloak/KeycloakAuthModule.java` |
-| 3-way 분기 처리 | `local/service/modules/keycloak/KeycloakUserModule.java` |
-| ID Token 파싱 | `global/security/keycloak/KeycloakIdTokenParser.java` |
-| 세션 Redis 저장/조회 | `local/repository/adapters/RedisSessionRepositoryAdapter.java` |
-| 세션 인증 필터 | `global/security/session/SessionAuthenticationFilter.java` |
-| Keycloak API 호출 | `local/external/modules/keycloak/KeycloakOidcAPIModule.java` |
-| 패스워드 AES 암호화 | `global/security/crypto/KeystonePasswordEncryptor.java` |
+- `local/controller/KeycloakAuthController.java` — login/callback/logout 엔드포인트
+- `local/service/modules/keycloak/KeycloakAuthModule.java` — processCallback() 오케스트레이션
+- `local/service/modules/keycloak/KeycloakUserModule.java` — 3-way 분기 처리
+- `global/security/keycloak/KeycloakIdTokenParser.java` — ID Token 파싱
+- `global/security/session/SessionAuthenticationFilter.java` — 세션 인증 필터
+- `global/init/SuperAdminInitializer.java` — 관리자 계정 초기화
+- `global/security/crypto/KeystonePasswordEncryptor.java` — AES-256 패스워드 암호화
