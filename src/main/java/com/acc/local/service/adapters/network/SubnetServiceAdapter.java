@@ -6,9 +6,9 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateSubnetRequest;
 import com.acc.local.dto.network.ViewSubnetsResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.SubnetServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -23,11 +23,11 @@ public class SubnetServiceAdapter implements SubnetServicePort {
 
     private final NeutronModule neutronModule;
     private final NetworkUtil networkUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public void createSubnet(CreateSubnetRequest request, String networkId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void createSubnet(CreateSubnetRequest request, String networkId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (!networkUtil.validateResourceName(request.getSubnetName())) {
             throw new NetworkException(NetworkErrorCode.INVALID_SUBNET_NAME);
@@ -46,8 +46,8 @@ public class SubnetServiceAdapter implements SubnetServicePort {
     }
 
     @Override
-    public void deleteSubnet(String subnetId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void deleteSubnet(String subnetId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (!neutronModule.canDeleteSubnet(token, subnetId)) {
             throw new NetworkException(NetworkErrorCode.CAN_NOT_DELETE_SUBNET);
@@ -58,8 +58,8 @@ public class SubnetServiceAdapter implements SubnetServicePort {
     }
 
     @Override
-    public PageResponse<ViewSubnetsResponse> listSubnets(PageRequest page, String networkId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<ViewSubnetsResponse> listSubnets(PageRequest page, String networkId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return neutronModule.listSubnets(token,
                 networkId,
@@ -69,8 +69,8 @@ public class SubnetServiceAdapter implements SubnetServicePort {
     }
 
     @Override
-    public ViewSubnetsResponse getSubnetDetail(String subnetId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public ViewSubnetsResponse getSubnetDetail(String subnetId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         return neutronModule.getSubnetDetails(token, subnetId);
     }
 }

@@ -3,9 +3,9 @@ package com.acc.local.service.adapters.network;
 import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateSecurityRuleRequest;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.SecurityRuleServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -18,12 +18,12 @@ public class SecurityRuleServiceAdapter implements SecurityRuleServicePort {
 
     private final NeutronModule neutronModule;
     private final NetworkUtil networkUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public String createSecurityRule(String projectId, String userId, CreateSecurityRuleRequest request) {
+    public String createSecurityRule(String projectId, String sessionId, CreateSecurityRuleRequest request) {
 
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (networkUtil.isNullOrEmpty(request.getSecurityGroupId())) {
             throw new NetworkException(NetworkErrorCode.INVALID_SECURITY_GROUP_ID);
@@ -60,8 +60,8 @@ public class SecurityRuleServiceAdapter implements SecurityRuleServicePort {
     }
 
     @Override
-    public void deleteSecurityRule(String srId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void deleteSecurityRule(String srId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         neutronModule.deleteSecurityGroupRule(token, srId);
     }
 }

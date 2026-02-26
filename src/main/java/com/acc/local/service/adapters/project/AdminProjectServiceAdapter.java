@@ -19,6 +19,7 @@ import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.AdminProjectServicePort;
 
 import lombok.RequiredArgsConstructor;
@@ -38,10 +39,12 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	private final AuthModule authModule;
 	private final ProjectModule projectModule;
 	private final NeutronModule neutronModule;
+	private final SessionModule sessionModule;
 
 	@Override
 	@Transactional
-	public CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String userId) {
+	public CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String sessionId) {
+		String userId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 		log.info(adminToken);
@@ -99,7 +102,8 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	}
 
 	@Override
-	public PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requesterId) {
+	public PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String sessionId) {
+		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		ProjectRequestListServiceDto savedProjectRequestList = projectModule.getProjectRequestList(keyword, pageRequest);
 		List<ProjectRequestDto> projectRequestsList = savedProjectRequestList.projectRequests();
 		RepositoryPagination projectRequestsPagination = savedProjectRequestList.pagination();
@@ -126,8 +130,9 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		List<String> projectRequestIds,
 		ProjectRequestStatus decision,
 		String rejectReason,
-		String decidedUserId
+		String sessionId
 	) {
+		String decidedUserId = sessionModule.getKeystoneUserId(sessionId);
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(decidedUserId);
 
 		Map<String, DecisionApplyInfo> projectRequestAppliedResults = new HashMap<>();
@@ -199,7 +204,8 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
     }
 
 	@Override
-	public UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId) {
+	public UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String sessionId) {
+		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
 
 		KeystoneProject updatedProject = projectModule.updateProject(projectId, updateProjectRequest, requesterId);
@@ -207,18 +213,20 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	}
 
 	@Override
-	public void deleteProject(String projectId, String requesterId) {
+	public void deleteProject(String projectId, String sessionId) {
+		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
 		projectModule.deleteProject(projectId, requesterId);
 	}
 
 	@Override
-	public List<ProjectRole> getAssignableRoleTypes(String requesterId) {
+	public List<ProjectRole> getAssignableRoleTypes(String sessionId) {
 		return Arrays.stream(ProjectRole.values()).toList();
 	}
 
 	@Override
-	public PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String requestUserId) {
+	public PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String sessionId) {
+		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
 		log.info(adminToken);

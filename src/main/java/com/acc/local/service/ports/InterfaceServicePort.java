@@ -7,17 +7,17 @@ import com.acc.local.dto.network.ViewInterfacesResponse;
 
 public interface InterfaceServicePort {
 
-    String createInterface(String userId, String projectId, CreateInterfaceRequest request);
+    String createInterface(String sessionId, String projectId, CreateInterfaceRequest request);
 
-    void deleteInterface(String userId, String projectId, String interfaceId);
+    void deleteInterface(String sessionId, String projectId, String interfaceId);
 
-    PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String userId, String projectId, String interfaceId, String networkId);
+    PageResponse<ViewInterfacesResponse> listInterfaces(PageRequest page, String sessionId, String projectId, String interfaceId, String networkId);
 
-    void allocateExternalIp(String userID, String projectId, String interfaceId);
+    void allocateExternalIp(String sessionId, String projectId, String interfaceId);
 
-    void releaseExternalIp(String userId, String projectId, String interfaceId);
+    void releaseExternalIp(String sessionId, String projectId, String interfaceId);
 
-    void createSSHForwarding(String userId, String projectId, String interfaceId);
+    void createSSHForwarding(String sessionId, String projectId, String interfaceId);
 
-    void deleteSSHForwarding(String userId, String projectId, String interfaceId);
+    void deleteSSHForwarding(String sessionId, String projectId, String interfaceId);
 }

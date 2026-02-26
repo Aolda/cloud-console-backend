@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.InstanceDocs;
 import com.acc.local.dto.instance.InstanceActionRequest;
 import com.acc.local.dto.instance.InstanceCreateRequest;
@@ -22,37 +22,37 @@ public class InstanceController implements InstanceDocs {
 
     @Override
     public ResponseEntity<PageResponse<InstanceResponse>> getInstances(Authentication authentication, String projectId, PageRequest page) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        PageResponse<InstanceResponse> response = instanceServicePort.getInstances(page, userId, projectId);
+        PageResponse<InstanceResponse> response = instanceServicePort.getInstances(page, sessionId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Object> createInstance(Authentication authentication, String projectId, InstanceCreateRequest request) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        instanceServicePort.createInstance(request, userId, projectId);
+        instanceServicePort.createInstance(request, sessionId, projectId);
         return ResponseEntity.created(null).build();
     }
 
     @Override
     public ResponseEntity<InstanceQuotaResponse> getQuota(Authentication authentication, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        InstanceQuotaResponse response = instanceServicePort.getQuota(userId, projectId);
+        InstanceQuotaResponse response = instanceServicePort.getQuota(sessionId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Object> controlInstance(Authentication authentication, String projectId, String instanceId, InstanceActionRequest request) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        instanceServicePort.controlInstance(instanceId, request, userId, projectId);
+        instanceServicePort.controlInstance(instanceId, request, sessionId, projectId);
         return ResponseEntity.ok().build();
     }
 }

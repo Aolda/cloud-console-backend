@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface InstanceInterfaceServicePort {
 
-    InterfaceAttachmentResponse createInterface(String userId, String projectId, String instanceId, InterfaceAttachmentRequest request);
-    List<InterfaceAttachmentResponse> listInterfaces(String userId, String projectId, String instanceId);
-    void detachInterface(String userId, String projectId, String instanceId, String interfaceId);
+    InterfaceAttachmentResponse createInterface(String sessionId, String projectId, String instanceId, InterfaceAttachmentRequest request);
+    List<InterfaceAttachmentResponse> listInterfaces(String sessionId, String projectId, String instanceId);
+    void detachInterface(String sessionId, String projectId, String instanceId, String interfaceId);
 }
 

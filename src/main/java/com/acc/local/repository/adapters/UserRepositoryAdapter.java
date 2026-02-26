@@ -80,4 +80,14 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public List<UserDBDto> findUserDBsByUserIds(List<String> userIds) {
         return userQueryDSLModule.findUsersByUserIds(userIds);
     }
+
+    @Override
+    public Optional<UserDbExtraEntity> findUserDetailByKeycloakUserId(String keycloakUserId) {
+        return userDetailJpaRepository.findByKeycloakUserId(keycloakUserId);
+    }
+
+    @Override
+    public Optional<UserIdentityEntity> findUserIdentityByEmail(String email) {
+        return userIdentityJpaRepository.findFirstByUserEmail(email);
+    }
 }

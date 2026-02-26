@@ -1,6 +1,6 @@
 package com.acc.local.controller;
 
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.InstanceInterfaceDocs;
 import com.acc.local.dto.instance.InterfaceAttachmentRequest;
 import com.acc.local.dto.instance.InterfaceAttachmentResponse;
@@ -20,27 +20,27 @@ public class InstanceInterfaceController implements InstanceInterfaceDocs {
 
     @Override
     public ResponseEntity<List<InterfaceAttachmentResponse>> listInterfaces(Authentication authentication, String instanceId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        return ResponseEntity.ok(instanceInterfaceServicePort.listInterfaces(userId, projectId, instanceId));
+        return ResponseEntity.ok(instanceInterfaceServicePort.listInterfaces(sessionId, projectId, instanceId));
     }
 
     @Override
     public ResponseEntity<InterfaceAttachmentResponse> createInterface(Authentication authentication, String instanceId, String projectId, InterfaceAttachmentRequest request) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        InterfaceAttachmentResponse response = instanceInterfaceServicePort.createInterface(userId, projectId, instanceId, request);
+        InterfaceAttachmentResponse response = instanceInterfaceServicePort.createInterface(sessionId, projectId, instanceId, request);
         return ResponseEntity.status(201).body(response);
     }
 
     @Override
     public ResponseEntity<Void> detachInterface(Authentication authentication, String instanceId, String interfaceId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        instanceInterfaceServicePort.detachInterface(userId, projectId, instanceId, interfaceId);
+        instanceInterfaceServicePort.detachInterface(sessionId, projectId, instanceId, interfaceId);
         return ResponseEntity.noContent().build();
     }
 }

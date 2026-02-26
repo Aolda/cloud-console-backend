@@ -5,5 +5,5 @@ import com.acc.local.dto.quickstart.QuickStartResponse;
 
 public interface QuickStartServicePort {
 
-    QuickStartResponse create(String userId, String projectId, QuickStartRequest request);
+    QuickStartResponse create(String sessionId, String projectId, QuickStartRequest request);
 }

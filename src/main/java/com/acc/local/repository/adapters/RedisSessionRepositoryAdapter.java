@@ -4,7 +4,7 @@ import com.acc.global.exception.session.SessionErrorCode;
 import com.acc.global.exception.session.SessionException;
 import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.KeystoneTokens;
-import com.acc.local.domain.model.session.SessionConstants;
+import com.acc.global.security.session.SessionConstants;
 import com.acc.local.domain.model.session.SessionData;
 import com.acc.local.domain.model.session.UserInfo;
 import com.acc.local.repository.ports.SessionRepositoryPort;

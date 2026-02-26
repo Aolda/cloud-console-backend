@@ -9,8 +9,8 @@ import com.acc.local.dto.instance.InstanceResponse;
 
 public interface InstanceServicePort {
 
-    PageResponse<InstanceResponse> getInstances(PageRequest page, String userId, String projectId);
-    void createInstance(InstanceCreateRequest request, String userId, String projectId);
-    void controlInstance(String instanceId, InstanceActionRequest request, String userId, String projectId);
-    InstanceQuotaResponse getQuota(String userId, String projectId);
+    PageResponse<InstanceResponse> getInstances(PageRequest page, String sessionId, String projectId);
+    void createInstance(InstanceCreateRequest request, String sessionId, String projectId);
+    void controlInstance(String instanceId, InstanceActionRequest request, String sessionId, String projectId);
+    InstanceQuotaResponse getQuota(String sessionId, String projectId);
 }

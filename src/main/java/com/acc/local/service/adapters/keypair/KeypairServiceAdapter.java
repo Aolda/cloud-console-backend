@@ -7,9 +7,9 @@ import com.acc.global.exception.keypair.KeypairException;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
 import com.acc.local.dto.keypair.KeypairListResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.keypair.KeypairModule;
 import com.acc.local.service.modules.keypair.KeypairUtil;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.KeypairServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -22,10 +22,11 @@ public class KeypairServiceAdapter implements KeypairServicePort {
 
     private final KeypairModule keypairModule;
     private final KeypairUtil keypairUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String userId, String projectId) {
+    public PageResponse<KeypairListResponse> getKeypairs(PageRequest page, String sessionId, String projectId) {
+        String userId = sessionModule.getKeystoneUserId(sessionId);
         return keypairModule.getKeypairs(
                 userId,
                 projectId,
@@ -35,8 +36,9 @@ public class KeypairServiceAdapter implements KeypairServicePort {
     }
 
     @Override
-    public CreateKeypairResponse createKeypair(CreateKeypairRequest request, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public CreateKeypairResponse createKeypair(CreateKeypairRequest request, String sessionId, String projectId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
+        String userId = sessionModule.getKeystoneUserId(sessionId);
 
         if (!keypairUtil.validateKeypairName(request.getKeypairName())) {
             throw new KeypairException(KeypairErrorCode.INVALID_KEYPAIR_NAME);
@@ -45,7 +47,8 @@ public class KeypairServiceAdapter implements KeypairServicePort {
     }
 
     @Override
-    public void deleteKeypair(String keypairId, String userId, String projectId) {
+    public void deleteKeypair(String keypairId, String sessionId, String projectId) {
+        String userId = sessionModule.getKeystoneUserId(sessionId);
         keypairModule.deleteKeypair(keypairId, userId, projectId);
     }
 }

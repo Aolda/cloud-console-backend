@@ -6,9 +6,9 @@ import com.acc.local.dto.auth.*;
 
 public interface NoticeServicePort {
 
-    CreateNoticeResponse adminCreateNotice(CreateNoticeRequest request, String requesterId);
+    CreateNoticeResponse adminCreateNotice(CreateNoticeRequest request, String sessionId);
 
-    GetNoticeResponse adminGetNotice(String noticeId, String requesterId);
+    GetNoticeResponse adminGetNotice(String noticeId, String sessionId);
 
-    PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, NoticeFilterRequest filter, String requesterId);
+    PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, NoticeFilterRequest filter, String sessionId);
 }

@@ -41,4 +41,9 @@ public interface UserRepositoryPort {
      * 이때, UserIdentity 정보는 가장 최근 인증된 정보이다.
      */
     List<UserDBDto> findUserDBsByUserIds(List<String> userIds);
+
+    Optional<UserDbExtraEntity> findUserDetailByKeycloakUserId(String keycloakUserId);
+
+    // Account Linking: 이메일로 기존 UserIdentity 조회 (keycloakUserId 미연결 사용자 탐색)
+    Optional<UserIdentityEntity> findUserIdentityByEmail(String email);
 }

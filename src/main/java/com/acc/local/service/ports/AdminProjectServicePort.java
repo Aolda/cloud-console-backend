@@ -10,17 +10,17 @@ import com.acc.local.dto.project.*;
 
 public interface AdminProjectServicePort {
 
-	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String requestUserId);
+	PageResponse<ProjectRequestResponse> getProjectRequests(String keyword, PageRequest pageRequest, String sessionId);
 
-	DecideProjectRequestResponse applyProjectRequestDecisions(List<String> projectRequestIds, ProjectRequestStatus decision, String rejectReason, String decideUserId);
+	DecideProjectRequestResponse applyProjectRequestDecisions(List<String> projectRequestIds, ProjectRequestStatus decision, String rejectReason, String sessionId);
 
-	CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String userId);
+	CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String sessionId);
 
-	UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String requesterId);
+	UpdateProjectResponse updateProject(String projectId, UpdateProjectRequest updateProjectRequest, String sessionId);
 
-	void deleteProject(String projectId, String requesterId);
+	void deleteProject(String projectId, String sessionId);
 
-	List<ProjectRole> getAssignableRoleTypes(String requesterId);
+	List<ProjectRole> getAssignableRoleTypes(String sessionId);
 
-	PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String requestUserId);
+	PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String sessionId);
 }
