@@ -34,26 +34,6 @@ import java.util.concurrent.TimeUnit;
  * Keycloak OIDC 인증 오케스트레이션 모듈 (서비스 레이어).
  *
  * ────────────────────────────────────────────────────────────────
- * [대체 대상]
- *
- * ▶ AuthModule.authenticateAndGenerateJwt()  (Keycloak Federate 방식)
- *   - 기존: Keycloak access_token → KeystoneAPIExternalPort.requestFederateLogin()
- *           → Keystone Federate 토큰 발급 → JWT(ACC 서비스 토큰) 발급
- *   - 신규: Authorization Code Flow → ID Token 클레임 추출
- *           → Keystone 직접 password 로그인 → Redis 세션 생성
- *   - 완전 전환 후 requestFederateLogin(), JwtUtils, UserTokenEntity 제거 가능
- *
- * ▶ AuthModule.authenticateKeystoneAndGenerateJwt()  (Keystone 패스워드 로그인)
- *   - 기존: username/password → Keystone unscoped token → JWT 발급
- *   - 신규: 위 흐름은 내부적으로 유지되지만, 사용자는 Keycloak으로만 진입
- *           (keystoneUsername + keystonePlainPassword는 우리 DB에서 관리)
- *
- * ▶ OAuthSuccessHandler, JwtAuthenticationFilter (JWT 기반 세션)
- *   - 기존: Set-Cookie(JWT) → 매 요청마다 JwtAuthenticationFilter 검증
- *   - 신규: Set-Cookie(acc-session-id) → Redis 세션 조회로 대체
- *   - Step 4(세션 미들웨어)에서 JwtAuthenticationFilter를 SessionAuthFilter로 교체
- *
- * ────────────────────────────────────────────────────────────────
  * [processCallback() 처리 흐름]
  *
  *  1. Keycloak에서 code → TokenResponse 교환          (External 계층)
@@ -93,10 +73,6 @@ public class KeycloakAuthModule {
 
     /**
      * Keycloak OIDC 콜백 처리: code → 세션 생성 → sessionId 반환.
-     *
-     * [이전 구현 vs 현재]
-     *   이전: keycloakUserId만 추출 → SessionData(keycloakTokens만 채워진 반쪽 세션)
-     *   현재: 클레임 전체 추출 → 사용자 등록/연결 → Keystone 토큰 발급 → 완전한 SessionData
      */
     public String processCallback(String code) {
 
@@ -132,9 +108,8 @@ public class KeycloakAuthModule {
                 .expiresAt(LocalDateTime.now().plusSeconds(tokenResponse.expiresIn()))
                 .build();
 
-        // 5. Keystone unscoped toke                     n 발급 (저장된 credentials 사용)
-        //    [대체 대상] AuthModule.getUnscopedTokenByUserId() → UserTokenEntity 조회 방식
-        //                대신 DB에 저장된 keystoneUsername/Password로 직접 발급
+        // 5. Keystone unscoped token 발급 (저장된 credentials 사용)
+        //    DB에 저장된 keystoneUsername/Password로 직접 발급
         KeystonePasswordLoginRequest keystoneLoginRequest = new KeystonePasswordLoginRequest(
                 userResult.keystoneUsername(),
                 userResult.keystonePlainPassword(),
