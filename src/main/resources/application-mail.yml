@@ -1,3 +1,4 @@
 mail:
   from: ${MAIL_FROM}
   subject: ${MAIL_SUBJECT}
+  admin-emails: ${MAIL_ADMIN_EMAILS:}
