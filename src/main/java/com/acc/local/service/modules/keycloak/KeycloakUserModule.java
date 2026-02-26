@@ -28,31 +28,6 @@ import java.util.UUID;
  * Keycloak OIDC 기반 사용자 조회/등록 모듈.
  *
  * ────────────────────────────────────────────────────────────────
- * [대체 대상]
- *
- * ▶ AuthModule.signup()
- *   - 기존: 프론트엔드가 email/password를 전송 → Keystone 사용자 생성 → JWT 발급
- *   - 신규: Keycloak 로그인 시 이 모듈이 자동으로 Keystone 사용자 생성 + 계정 연결
- *   - 완전 전환 후 AuthModule.signup() 및 관련 엔드포인트 제거 가능
- *
- * ▶ UserModule.adminCreateUser()
- *   - 기존: 관리자가 수동으로 Keystone 사용자 생성
- *   - 신규: KEYCLOAK AuthType 사용자는 이 모듈이 자동 생성 (관리자 개입 불필요)
- *   - 관리자 생성 기능 자체는 유지하되, Keycloak 경로는 이 모듈로 분리
- *
- * ▶ AuthModule.authenticateAndGenerateJwt() (Keycloak Federate 방식)
- *   - 기존: Keycloak access_token → Keystone Federate 로그인 → JWT 발급
- *   - 신규: Authorization Code Flow + 저장된 credentials → Keystone 직접 로그인 → 세션
- *   - Federate 방식 제거 후 requestFederateLogin() 호출부 전체 정리 가능
- *
- * ────────────────────────────────────────────────────────────────
- * [마이그레이션 완료 후 정리 가능 목록]
- *   - UserTokenEntity, RefreshTokenEntity (JWT → 세션 전환 완료 시)
- *   - JwtUtils, JwtAuthenticationFilter, JwtProperties
- *   - AuthModule의 JWT/Token 관련 메서드 일체
- *   - KeystoneAPIExternalPort.requestFederateLogin()
- * ────────────────────────────────────────────────────────────────
- *
  * [3-way 분기]
  *  Branch 1. keycloakUserId로 DB 조회 → 이미 연결된 사용자 → 일반 로그인
  *  Branch 2. email로 DB 조회 → 기존 Keystone 사용자 → 계정 연결 (Account Linking)
@@ -119,10 +94,10 @@ public class KeycloakUserModule {
     // Branch 2: Account Linking
     // 기존에 ADMIN 또는 GOOGLE 등으로 가입된 사용자가 Keycloak으로 최초 로그인하는 경우.
     //
-    // [대체 대상] AuthModule.signup() / AdminCreateUser()에서 발급된 Keystone 패스워드는
-    //             우리 DB에 저장되어 있지 않으므로, 관리자 권한으로 패스워드를 재설정한다.
-    //             재설정 후 Keystone 직접 패스워드 로그인은 더 이상 작동하지 않음
-    //             (Keycloak OIDC 경로만 사용하도록 의도된 변경).
+    // 기존에 발급된 Keystone 패스워드는 우리 DB에 저장되어 있지 않으므로,
+    // 관리자 권한으로 패스워드를 재설정한다.
+    // 재설정 후 Keystone 직접 패스워드 로그인은 더 이상 작동하지 않음
+    // (Keycloak OIDC 경로만 사용하도록 의도된 변경).
     // ─────────────────────────────────────────────────────────────────────────────
     private KeycloakUserResult linkKeycloakToExistingUser(
             UserIdentityEntity existingIdentity,
@@ -167,10 +142,6 @@ public class KeycloakUserModule {
     // ─────────────────────────────────────────────────────────────────────────────
     // Branch 3: 신규 사용자 등록
     // 기존에 어떤 방식으로도 가입하지 않은 사용자가 Keycloak으로 최초 로그인하는 경우.
-    //
-    // [대체 대상] AuthModule.signup() : 기존 회원가입 API(/api/v1/auth/signup) 흐름과 동일하나
-    //             프론트엔드 요청 없이 Keycloak 콜백 시점에 자동 처리된다.
-    //             AuthType은 기존 GOOGLE/ADMIN 대신 KEYCLOAK(3)으로 저장.
     //
     // [phoneNumber] Keycloak이 전화번호를 제공하지 않으므로 빈 문자열로 초기화.
     //               사용자가 이후 프로필 수정을 통해 채워야 한다.

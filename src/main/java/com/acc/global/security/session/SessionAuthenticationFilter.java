@@ -28,10 +28,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Keycloak OIDC 세션 기반 인증 필터.
  *
- * [대체 대상] JwtAuthenticationFilter (JWT 기반 인증)
- *   - 기존: Authorization: Bearer {jwt} → JwtInfo(userId) → SecurityContext
- *   - 신규: Cookie: acc-session-id={uuid} → SessionPrincipal(sessionId, keycloakUserId, keystoneUserId) → SecurityContext
- *
  * [인증 단계]
  *   1. acc-session-id 쿠키 추출
  *   2. Redis에서 SessionData 조회 (없으면 미인증)
