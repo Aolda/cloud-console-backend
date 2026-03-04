@@ -64,7 +64,7 @@ public class OutboxEventProcessorModule {
                 ProjectRequestEvent.class
         );
 
-        notificationPort.sendProjectNotification(new ProjectRequestCreatedNotification(
+        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestCreatedNotification(
                 projectEvent.projectRequestId(),
                 projectEvent.projectName(),
                 projectEvent.projectDescription(),
@@ -72,7 +72,7 @@ public class OutboxEventProcessorModule {
                 projectEvent.email()
         ));
 
-        event.markAsProcessed();
+        applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
     }
 
@@ -85,7 +85,7 @@ public class OutboxEventProcessorModule {
                 ProjectRequestDecisionEvent.class
         );
 
-        notificationPort.sendProjectNotification(new ProjectRequestApprovedNotification(
+        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestApprovedNotification(
                 decisionEvent.projectRequestId(),
                 decisionEvent.projectName(),
                 decisionEvent.projectDescription(),
@@ -94,7 +94,7 @@ public class OutboxEventProcessorModule {
                 decisionEvent.createdProjectId()
         ));
 
-        event.markAsProcessed();
+        applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
     }
 
@@ -107,7 +107,7 @@ public class OutboxEventProcessorModule {
                 ProjectRequestDecisionEvent.class
         );
 
-        notificationPort.sendProjectNotification(new ProjectRequestRejectedNotification(
+        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestRejectedNotification(
                 decisionEvent.projectRequestId(),
                 decisionEvent.projectName(),
                 decisionEvent.projectDescription(),
@@ -116,7 +116,7 @@ public class OutboxEventProcessorModule {
                 decisionEvent.rejectReason()
         ));
 
-        event.markAsProcessed();
+        applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
     }
 
@@ -142,15 +142,46 @@ public class OutboxEventProcessorModule {
                 ProjectCreatedEvent.class
         );
 
-        notificationPort.sendProjectNotification(new ProjectCreatedNotification(
+        NotificationResult result = notificationPort.sendProjectNotification(new ProjectCreatedNotification(
                 projectEvent.projectId(),
                 projectEvent.projectName(),
                 projectEvent.projectOwnerId(),
                 projectEvent.email()
         ));
 
-        event.markAsProcessed();
+        applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
     }
-}
 
+    /**
+     * NotificationResult를 OutboxEventEntity에 반영
+     * 성공한 채널은 sent = true로, 실패한 채널은 retryCount를 증가시킵니다.
+     */
+    private void applyNotificationResult(OutboxEventEntity event, NotificationResult result) {
+        if (event.needsDiscordRetry()) {
+            if (result.discordSuccess()) {
+                event.markDiscordSent();
+                log.info("Discord notification succeeded: eventId={}", event.getEventId());
+            }
+        }
+
+        if (event.needsEmailRetry()) {
+            if (result.emailSuccess()) {
+                event.markEmailSent();
+                log.info("Email notification succeeded: eventId={}", event.getEventId());
+            }
+        }
+
+        // 어느 채널이든 하나라도 실패했으면 공유 retryCount 증가
+        if (!result.discordSuccess() || !result.emailSuccess()) {
+            event.incrementRetry();
+            log.warn("Notification failed (discord={}, email={}): eventId={}, retryCount={}",
+                    result.discordSuccess(), result.emailSuccess(),
+                    event.getEventId(), event.getRetryCount());
+        }
+
+        if (event.isFullyProcessed()) {
+            log.info("Outbox event fully processed: eventId={}", event.getEventId());
+        }
+    }
+}
