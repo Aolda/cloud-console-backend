@@ -1,0 +1,48 @@
+name: "♻️ 리팩토링 요청"
+description: "코드 구조 개선을 제안합니다"
+title: "[Refactor] "
+labels: ["refactor"]
+
+body:
+
+- type: markdown
+  attributes:
+    value: |
+      기능 변경 없이 코드 품질을 개선하기 위한 리팩토링을 제안할 때 사용합니다.
+
+- type: input
+  id: target
+  attributes:
+    label: 대상 코드 영역
+    description: 리팩토링이 필요한 모듈 또는 코드 영역
+    placeholder: auth 서비스
+  validations:
+    required: true
+
+- type: textarea
+  id: problem
+  attributes:
+    label: 현재 문제점
+    description: 현재 코드의 어떤 부분이 유지보수하기 어려운지 설명해주세요
+
+- type: textarea
+  id: proposal
+  attributes:
+    label: 리팩토링 제안
+    description: 어떤 방식으로 개선하면 좋을지 설명해주세요
+
+- type: textarea
+  id: benefit
+  attributes:
+    label: 기대 효과
+    description: 가독성 / 성능 / 유지보수성 등의 개선 기대 효과
+
+- type: checkboxes
+  id: scope
+  attributes:
+    label: 리팩토링 범위
+    options:
+      - label: 코드 가독성 개선
+      - label: 복잡도 감소
+      - label: 성능 개선
+      - label: 테스트 용이성 개선

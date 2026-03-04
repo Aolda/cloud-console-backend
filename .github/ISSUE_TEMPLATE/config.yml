@@ -1,0 +1,4 @@
+blank_issues_enabled: false
+  - name: "💬 Questions / Support"
+    url: "https://github.com/Aolda/cloud-console-backend/discussions"
+    about: "질문/지원 요청은 Discussions 혹은 Discord를 이용해 주세요."
