@@ -97,8 +97,8 @@ public class OutboxEventEntity {
         return discordDone && emailDone;
     }
 
-    public void markAsProcessed() {
-        this.discordStatus = NotificationStatus.SUCCESS;
-        this.emailStatus = NotificationStatus.SUCCESS;
+    public void markAsFailed() {
+        this.discordStatus = NotificationStatus.FAILED;
+        this.emailStatus = NotificationStatus.FAILED;
     }
 }

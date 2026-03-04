@@ -1,9 +1,9 @@
 package com.acc.local.external.ports;
 
+import com.acc.local.dto.notification.NotificationResult;
 import com.acc.local.dto.notification.ProjectNotification;
 
 public interface NotificationExternalPort {
 
-    void sendProjectNotification(ProjectNotification notification);
+    NotificationResult sendProjectNotification(ProjectNotification notification);
 }
-

@@ -22,27 +22,22 @@ public class OutboxEventSchedulerModule {
     private final OutboxMessageRepositoryPort outboxMessageRepositoryPort;
     private final OutboxEventProcessorModule outboxEventProcessorModule;
 
-    /**
-     * 10초마다 미처리 이벤트를 확인하고 처리
-     * ShedLock으로 분산 환경에서 중복 실행 방지
-     * 각 이벤트는 독립적인 트랜잭션으로 처리
-     */
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 600000) // 10분
     @SchedulerLock(
-            name = "OutboxEventProcessor_processUnprocessedEvents",
-            lockAtMostFor = "15s",
-            lockAtLeastFor = "5s"
+            name = "OutboxEventProcessor_processPendingEvents",
+            lockAtMostFor = "9m",
+            lockAtLeastFor = "1m"
     )
-    public void processUnprocessedEvents() {
-        List<OutboxEventEntity> unprocessedEvents = outboxMessageRepositoryPort.findByProcessedFalse();
+    public void processPendingEvents() {
+        List<OutboxEventEntity> pendingEvents = outboxMessageRepositoryPort.findPendingEvents();
 
-        if (unprocessedEvents.isEmpty()) {
+        if (pendingEvents.isEmpty()) {
             return;
         }
 
-        log.info("Processing {} unprocessed outbox events", unprocessedEvents.size());
+        log.info("Processing {} pending outbox events", pendingEvents.size());
 
-        for (OutboxEventEntity event : unprocessedEvents) {
+        for (OutboxEventEntity event : pendingEvents) {
             try {
                 outboxEventProcessorModule.processEvent(event);
             } catch (Exception e) {

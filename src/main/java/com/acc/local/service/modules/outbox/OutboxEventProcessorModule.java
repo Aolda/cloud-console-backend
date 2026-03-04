@@ -29,7 +29,7 @@ public class OutboxEventProcessorModule {
                 case PROJECT -> processProjectEvent(event);
                 default -> {
                     log.warn("Unknown aggregate type: {}", event.getAggregateType());
-                    event.markAsProcessed();
+                    event.markAsFailed();
                     outboxMessageRepositoryPort.save(event);
                 }
             }
@@ -49,7 +49,7 @@ public class OutboxEventProcessorModule {
             case PROJECT_REQUEST_REJECTED -> handleProjectRequestRejected(event);
             default -> {
                 log.warn("Unknown project request event type: {}", event.getEventType());
-                event.markAsProcessed();
+                event.markAsFailed();
                 outboxMessageRepositoryPort.save(event);
             }
         }
@@ -128,7 +128,7 @@ public class OutboxEventProcessorModule {
             handleProjectCreated(event);
         } else {
             log.warn("Unknown project event type: {}", event.getEventType());
-            event.markAsProcessed();
+            event.markAsFailed();
             outboxMessageRepositoryPort.save(event);
         }
     }

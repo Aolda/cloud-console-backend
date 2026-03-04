@@ -16,8 +16,8 @@ public class OutboxMessageRepositoryAdapter implements OutboxMessageRepositoryPo
 
 
     @Override
-    public List<OutboxEventEntity> findByProcessedFalse() {
-        return outboxEventJpaRepository.findByProcessedFalseOrderByCreatedAtAsc();
+    public List<OutboxEventEntity> findPendingEvents() {
+        return outboxEventJpaRepository.findPendingEvents();
     }
 
     @Override
