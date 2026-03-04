@@ -1,5 +1,6 @@
 package com.acc.local.repository.adapters;
 
+import com.acc.local.domain.enums.outbox.NotificationStatus;
 import com.acc.local.entity.OutboxEventEntity;
 import com.acc.local.repository.jpa.OutboxEventJpaRepository;
 import com.acc.local.repository.ports.OutboxMessageRepositoryPort;
@@ -14,10 +15,9 @@ public class OutboxMessageRepositoryAdapter implements OutboxMessageRepositoryPo
 
     private final OutboxEventJpaRepository outboxEventJpaRepository;
 
-
     @Override
     public List<OutboxEventEntity> findPendingEvents() {
-        return outboxEventJpaRepository.findPendingEvents();
+        return outboxEventJpaRepository.findByDiscordStatusOrEmailStatusOrderByCreatedAtAsc(NotificationStatus.PENDING, NotificationStatus.PENDING);
     }
 
     @Override
