@@ -25,7 +25,7 @@ public class OutboxEventSchedulerModule {
     @Scheduled(fixedDelay = 600000) // 10분
     @SchedulerLock(
             name = "OutboxEventProcessor_processPendingEvents",
-            lockAtMostFor = "9m",
+            lockAtMostFor = "15m",
             lockAtLeastFor = "1m"
     )
     public void processPendingEvents() {
