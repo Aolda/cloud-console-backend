@@ -64,13 +64,16 @@ public class OutboxEventProcessorModule {
                 ProjectRequestEvent.class
         );
 
-        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestCreatedNotification(
-                projectEvent.projectRequestId(),
-                projectEvent.projectName(),
-                projectEvent.projectDescription(),
-                projectEvent.requesterId(),
-                projectEvent.email()
-        ));
+        NotificationResult result = notificationPort.sendProjectNotification(
+                new ProjectRequestCreatedNotification(
+                        projectEvent.projectRequestId(),
+                        projectEvent.projectName(),
+                        projectEvent.projectDescription(),
+                        projectEvent.requesterId(),
+                        projectEvent.email()
+                ),
+                NotificationResult.ofPendingChannels(event.needsDiscordRetry(), event.needsEmailRetry())
+        );
 
         applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
@@ -85,14 +88,17 @@ public class OutboxEventProcessorModule {
                 ProjectRequestDecisionEvent.class
         );
 
-        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestApprovedNotification(
-                decisionEvent.projectRequestId(),
-                decisionEvent.projectName(),
-                decisionEvent.projectDescription(),
-                decisionEvent.requesterId(),
-                decisionEvent.email(),
-                decisionEvent.createdProjectId()
-        ));
+        NotificationResult result = notificationPort.sendProjectNotification(
+                new ProjectRequestApprovedNotification(
+                        decisionEvent.projectRequestId(),
+                        decisionEvent.projectName(),
+                        decisionEvent.projectDescription(),
+                        decisionEvent.requesterId(),
+                        decisionEvent.email(),
+                        decisionEvent.createdProjectId()
+                ),
+                NotificationResult.ofPendingChannels(event.needsDiscordRetry(), event.needsEmailRetry())
+        );
 
         applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
@@ -107,14 +113,17 @@ public class OutboxEventProcessorModule {
                 ProjectRequestDecisionEvent.class
         );
 
-        NotificationResult result = notificationPort.sendProjectNotification(new ProjectRequestRejectedNotification(
-                decisionEvent.projectRequestId(),
-                decisionEvent.projectName(),
-                decisionEvent.projectDescription(),
-                decisionEvent.requesterId(),
-                decisionEvent.email(),
-                decisionEvent.rejectReason()
-        ));
+        NotificationResult result = notificationPort.sendProjectNotification(
+                new ProjectRequestRejectedNotification(
+                        decisionEvent.projectRequestId(),
+                        decisionEvent.projectName(),
+                        decisionEvent.projectDescription(),
+                        decisionEvent.requesterId(),
+                        decisionEvent.email(),
+                        decisionEvent.rejectReason()
+                ),
+                NotificationResult.ofPendingChannels(event.needsDiscordRetry(), event.needsEmailRetry())
+        );
 
         applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);
@@ -142,12 +151,15 @@ public class OutboxEventProcessorModule {
                 ProjectCreatedEvent.class
         );
 
-        NotificationResult result = notificationPort.sendProjectNotification(new ProjectCreatedNotification(
-                projectEvent.projectId(),
-                projectEvent.projectName(),
-                projectEvent.projectOwnerId(),
-                projectEvent.email()
-        ));
+        NotificationResult result = notificationPort.sendProjectNotification(
+                new ProjectCreatedNotification(
+                        projectEvent.projectId(),
+                        projectEvent.projectName(),
+                        projectEvent.projectOwnerId(),
+                        projectEvent.email()
+                ),
+                NotificationResult.ofPendingChannels(event.needsDiscordRetry(), event.needsEmailRetry())
+        );
 
         applyNotificationResult(event, result);
         outboxMessageRepositoryPort.save(event);

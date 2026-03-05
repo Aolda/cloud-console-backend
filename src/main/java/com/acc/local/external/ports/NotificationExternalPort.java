@@ -5,5 +5,5 @@ import com.acc.local.dto.notification.ProjectNotification;
 
 public interface NotificationExternalPort {
 
-    NotificationResult sendProjectNotification(ProjectNotification notification);
+    NotificationResult sendProjectNotification(ProjectNotification notification, NotificationResult previousResult);
 }
