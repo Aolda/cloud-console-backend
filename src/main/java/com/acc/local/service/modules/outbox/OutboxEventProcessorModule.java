@@ -154,8 +154,9 @@ public class OutboxEventProcessorModule {
     }
 
     /**
-     * NotificationResult를 OutboxEventEntity에 반영
-     * 성공한 채널은 sent = true로, 실패한 채널은 retryCount를 증가시킵니다.
+     * NotificationResult를 OutboxEventEntity에 반영합니다.
+     * 각 채널(Discord/Email)의 결과에 따라 상태(discordStatus/emailStatus)를 SENT 등으로 갱신하고,
+     * 하나라도 실패한 채널이 있으면 공유 retryCount를 증가시킵니다.
      */
     private void applyNotificationResult(OutboxEventEntity event, NotificationResult result) {
         if (event.needsDiscordRetry()) {
