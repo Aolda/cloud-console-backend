@@ -1,0 +1,64 @@
+name: "🐛 버그 리포트"
+description: "버그를 신고합니다"
+title: "[Bug] "
+labels: ["bug"]
+
+body:
+
+- type: markdown
+  attributes:
+    value: |
+      버그를 재현할 수 있도록 가능한 자세히 작성해주세요.
+
+- type: input
+  id: summary
+  attributes:
+    label: 버그 요약
+    description: 버그를 한 줄로 설명해주세요
+    placeholder: 로그인 시 500 에러 발생
+  validations:
+    required: true
+
+- type: dropdown
+  id: severity
+  attributes:
+    label: 심각도
+    description: 버그의 영향도를 선택하세요
+    options:
+      - Critical (서비스 사용 불가)
+      - High (주요 기능 영향)
+      - Medium (일부 기능 문제)
+      - Low (경미한 문제)
+  validations:
+    required: true
+
+- type: textarea
+  id: steps
+  attributes:
+    label: 재현 방법
+    description: 버그를 재현하는 단계를 작성해주세요
+    value: |
+      1.
+      2.
+      3.
+  validations:
+    required: true
+
+- type: textarea
+  id: expected
+  attributes:
+    label: 예상 동작
+    description: 정상적으로 동작했을 때 기대했던 결과
+
+- type: textarea
+  id: actual
+  attributes:
+    label: 실제 동작
+    description: 실제로 발생한 문제 상황
+
+- type: textarea
+  id: logs
+  attributes:
+    label: 로그
+    description: 관련 로그가 있다면 첨부해주세요 (민감 정보 제거)
+    render: shell
