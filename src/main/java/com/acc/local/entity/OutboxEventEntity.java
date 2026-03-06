@@ -15,8 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEventEntity {
 
-    // 재시도 횟수 상한
-    public static final int MAX_RETRY_COUNT = 5;
 
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "event_id", length = 64, nullable = false)
@@ -71,9 +69,9 @@ public class OutboxEventEntity {
      * 전송 실패 시 공유 재시도 횟수 증가.
      * 상한 초과 시 PENDING 상태인 채널을 포기(FAILED) 처리.
      */
-    public void incrementRetry() {
+    public void incrementRetry(int maxRetryCount) {
         this.retryCount++;
-        if (this.retryCount >= MAX_RETRY_COUNT) {
+        if (this.retryCount >= maxRetryCount) {
             if (this.discordStatus == NotificationStatus.PENDING) {
                 this.discordStatus = NotificationStatus.FAILED;
             }

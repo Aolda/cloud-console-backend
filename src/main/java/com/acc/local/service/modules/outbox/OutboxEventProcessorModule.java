@@ -5,6 +5,7 @@ import com.acc.local.dto.notification.*;
 import com.acc.local.entity.OutboxEventEntity;
 import com.acc.local.external.ports.NotificationExternalPort;
 import com.acc.local.repository.ports.OutboxMessageRepositoryPort;
+import com.acc.global.properties.OutboxProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ public class OutboxEventProcessorModule {
     private final OutboxMessageRepositoryPort outboxMessageRepositoryPort;
     private final ObjectMapper objectMapper;
     private final NotificationExternalPort notificationPort;
+    private final OutboxProperties outboxProperties;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processEvent(OutboxEventEntity event) {
@@ -187,7 +189,7 @@ public class OutboxEventProcessorModule {
 
         // 어느 채널이든 하나라도 실패했으면 공유 retryCount 증가
         if (!result.discordSuccess() || !result.emailSuccess()) {
-            event.incrementRetry();
+            event.incrementRetry(outboxProperties.getMaxRetryCount());
             log.warn("Notification failed (discord={}, email={}): eventId={}, retryCount={}",
                     result.discordSuccess(), result.emailSuccess(),
                     event.getEventId(), event.getRetryCount());
