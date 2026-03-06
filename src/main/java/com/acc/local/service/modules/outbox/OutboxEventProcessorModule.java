@@ -26,7 +26,10 @@ public class OutboxEventProcessorModule {
     private final NotificationExternalPort notificationPort;
     private final OutboxProperties outboxProperties;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(
+            propagation = Propagation.REQUIRES_NEW,
+            noRollbackFor = OutboxEventException.class
+    )
     public void processEvent(OutboxEventEntity event) {
         try {
             switch (event.getAggregateType()) {
@@ -63,7 +66,7 @@ public class OutboxEventProcessorModule {
     /**
      * ProjectRequest 관련 이벤트 처리
      */
-    private void processProjectRequestEvent(OutboxEventEntity event) throws Exception {
+    private void processProjectRequestEvent(OutboxEventEntity event) {
         switch (event.getEventType()) {
             case PROJECT_REQUEST_CREATED -> handleProjectRequestCreated(event);
             case PROJECT_REQUEST_APPROVED -> handleProjectRequestApproved(event);
@@ -76,7 +79,7 @@ public class OutboxEventProcessorModule {
     /**
      * 프로젝트 요청 생성 이벤트 처리
      */
-    private void handleProjectRequestCreated(OutboxEventEntity event) throws Exception {
+    private void handleProjectRequestCreated(OutboxEventEntity event) {
         ProjectRequestEvent projectEvent = deserialize(event, ProjectRequestEvent.class);
 
         NotificationResult result = notificationPort.sendProjectNotification(
@@ -97,7 +100,7 @@ public class OutboxEventProcessorModule {
     /**
      * 프로젝트 요청 승인 이벤트 처리
      */
-    private void handleProjectRequestApproved(OutboxEventEntity event) throws Exception {
+    private void handleProjectRequestApproved(OutboxEventEntity event) {
         ProjectRequestDecisionEvent decisionEvent = deserialize(event, ProjectRequestDecisionEvent.class);
 
         NotificationResult result = notificationPort.sendProjectNotification(
@@ -119,7 +122,7 @@ public class OutboxEventProcessorModule {
     /**
      * 프로젝트 요청 거부 이벤트 처리
      */
-    private void handleProjectRequestRejected(OutboxEventEntity event) throws Exception {
+    private void handleProjectRequestRejected(OutboxEventEntity event) {
         ProjectRequestDecisionEvent decisionEvent = deserialize(event, ProjectRequestDecisionEvent.class);
 
         NotificationResult result = notificationPort.sendProjectNotification(
@@ -141,7 +144,7 @@ public class OutboxEventProcessorModule {
     /**
      * Project 관련 이벤트 처리
      */
-    private void processProjectEvent(OutboxEventEntity event) throws Exception {
+    private void processProjectEvent(OutboxEventEntity event) {
         if (event.getEventType() == EventType.PROJECT_CREATED) {
             handleProjectCreated(event);
         } else {
@@ -153,7 +156,7 @@ public class OutboxEventProcessorModule {
     /**
      * 프로젝트 생성 이벤트 처리
      */
-    private void handleProjectCreated(OutboxEventEntity event) throws Exception {
+    private void handleProjectCreated(OutboxEventEntity event) {
         ProjectCreatedEvent projectEvent = deserialize(event, ProjectCreatedEvent.class);
 
         NotificationResult result = notificationPort.sendProjectNotification(
