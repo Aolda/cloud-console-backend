@@ -1,5 +1,6 @@
 package com.acc.local.repository.jpa;
 
+import com.acc.local.domain.enums.outbox.NotificationStatus;
 import com.acc.local.entity.OutboxEventEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -9,9 +10,8 @@ import java.util.List;
 @Repository
 public interface OutboxEventJpaRepository extends JpaRepository<OutboxEventEntity, String> {
 
-    /**
-     * 처리되지 않은 이벤트 조회
-     */
-    List<OutboxEventEntity> findByProcessedFalseOrderByCreatedAtAsc();
-
+    List<OutboxEventEntity> findByDiscordStatusOrEmailStatusOrderByCreatedAtAsc(
+            NotificationStatus discordStatus,
+            NotificationStatus emailStatus
+    );
 }

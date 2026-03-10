@@ -2,20 +2,19 @@ package com.acc.local.entity;
 
 import com.acc.local.domain.enums.outbox.AggregateType;
 import com.acc.local.domain.enums.outbox.EventType;
+import com.acc.local.domain.enums.outbox.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Outbox 패턴을 위한 이벤트 저장 엔티티
- */
 @Entity
 @Table(name = "outbox_events")
 @Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEventEntity {
+
 
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "event_id", length = 64, nullable = false)
@@ -35,23 +34,69 @@ public class OutboxEventEntity {
     @Column(name = "payload", columnDefinition = "TEXT")
     private String payload;
 
-    @Column(name = "processed", nullable = false)
-    @Builder.Default
-    private Boolean processed = false;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "processed_at")
-    private LocalDateTime processedAt;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discord_status", nullable = false)
+    @Builder.Default
+    private NotificationStatus discordStatus = NotificationStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "email_status", nullable = false)
+    @Builder.Default
+    private NotificationStatus emailStatus = NotificationStatus.PENDING;
+
+    // 공통 재시도 횟수 (두 채널이 항상 같이 시도되므로 공유)
+    @Column(name = "retry_count", nullable = false)
+    @Builder.Default
+    private Integer retryCount = 0;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void markAsProcessed() {
-        this.processed = true;
-        this.processedAt = LocalDateTime.now();
+    public void markDiscordSent() {
+        this.discordStatus = NotificationStatus.SUCCESS;
+    }
+
+    public void markEmailSent() {
+        this.emailStatus = NotificationStatus.SUCCESS;
+    }
+
+    /**
+     * 전송 실패 시 공유 재시도 횟수 증가.
+     * 상한 초과 시 PENDING 상태인 채널을 포기(FAILED) 처리.
+     */
+    public void incrementRetry(int maxRetryCount) {
+        this.retryCount++;
+        if (this.retryCount >= maxRetryCount) {
+            if (this.discordStatus == NotificationStatus.PENDING) {
+                this.discordStatus = NotificationStatus.FAILED;
+            }
+            if (this.emailStatus == NotificationStatus.PENDING) {
+                this.emailStatus = NotificationStatus.FAILED;
+            }
+        }
+    }
+
+    public boolean needsDiscordRetry() {
+        return discordStatus == NotificationStatus.PENDING;
+    }
+
+    public boolean needsEmailRetry() {
+        return emailStatus == NotificationStatus.PENDING;
+    }
+
+    public boolean isFullyProcessed() {
+        boolean discordDone = discordStatus == NotificationStatus.SUCCESS || discordStatus == NotificationStatus.FAILED;
+        boolean emailDone = emailStatus == NotificationStatus.SUCCESS || emailStatus == NotificationStatus.FAILED;
+        return discordDone && emailDone;
+    }
+
+    public void markAsFailed() {
+        this.discordStatus = NotificationStatus.FAILED;
+        this.emailStatus = NotificationStatus.FAILED;
     }
 }

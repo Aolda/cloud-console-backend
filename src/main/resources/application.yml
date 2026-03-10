@@ -84,3 +84,6 @@ quick-start:
 acc:
   dump:
     enabled: true
+
+outbox:
+  max-retry-count: 5
