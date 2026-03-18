@@ -9,12 +9,12 @@ import com.acc.local.dto.snapshot.policy.SnapshotTaskResponse;
 import java.time.LocalDate;
 
 public interface SnapshotPolicyServicePort {
-    PageResponse<SnapshotPolicyResponse> getPolicies(PageRequest page, String sessionId, String projectId);
-    SnapshotPolicyResponse getPolicyDetails(Long policyId, String sessionId, String projectId);
+    PageResponse<SnapshotPolicyResponse> getPolicies(PageRequest page, String projectId);
+    SnapshotPolicyResponse getPolicyDetails(Long policyId, String projectId);
     SnapshotPolicyResponse createPolicy(SnapshotPolicyRequest request, String sessionId, String projectId);
-    SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String sessionId, String projectId);
-    void deletePolicy(Long policyId, String sessionId, String projectId);
-    void activatePolicy(Long policyId, String sessionId, String projectId);
-    void deactivatePolicy(Long policyId, String sessionId, String projectId);
-    PageResponse<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, PageRequest page, String sessionId, String projectId);
+    SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String projectId);
+    void deletePolicy(Long policyId, String projectId);
+    void activatePolicy(Long policyId, String projectId);
+    void deactivatePolicy(Long policyId, String projectId);
+    PageResponse<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, PageRequest page, String projectId);
 }

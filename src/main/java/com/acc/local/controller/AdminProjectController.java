@@ -58,10 +58,7 @@ public class AdminProjectController implements AdminProjectDocs {
 	public ResponseEntity<List<ProjectRoleResponse>> getProjectRoles(
 		Authentication authentication
 	) {
-		SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-		String sessionId = principal.getSessionId();
-
-		List<ProjectRole> projectRole = adminProjectServicePort.getAssignableRoleTypes(sessionId);
+		List<ProjectRole> projectRole = adminProjectServicePort.getAssignableRoleTypes();
 		List<ProjectRoleResponse> responses = projectRole.stream().map(ProjectRoleResponse::from).toList();
 		return ResponseEntity.status(200).body(responses);
 	}

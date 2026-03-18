@@ -10,6 +10,7 @@ public record KeycloakRevokeRequest(
         String clientId,
         String clientSecret
 ) implements KeycloakFormRequest {
+    @Override
     public MultiValueMap<String, String> toFormData() {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("token", token);

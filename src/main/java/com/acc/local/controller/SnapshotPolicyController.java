@@ -29,9 +29,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, principal.getSessionId(), projectId);
+        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -41,9 +39,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, principal.getSessionId(), projectId);
+        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -66,9 +62,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, principal.getSessionId(), projectId);
+        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -78,9 +72,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        policyServicePort.deletePolicy(policyId, principal.getSessionId(), projectId);
+        policyServicePort.deletePolicy(policyId, projectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,9 +82,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        policyServicePort.deactivatePolicy(policyId, principal.getSessionId(), projectId);
+        policyServicePort.deactivatePolicy(policyId, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -102,9 +92,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        policyServicePort.activatePolicy(policyId, principal.getSessionId(), projectId);
+        policyServicePort.activatePolicy(policyId, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -116,9 +104,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
-
-        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, principal.getSessionId(), projectId);
+        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, projectId);
         return ResponseEntity.ok(response);
     }
 }

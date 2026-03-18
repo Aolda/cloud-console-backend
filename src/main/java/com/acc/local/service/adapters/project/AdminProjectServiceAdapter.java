@@ -281,7 +281,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	}
 
 	@Override
-	public List<ProjectRole> getAssignableRoleTypes(String sessionId) {
+	public List<ProjectRole> getAssignableRoleTypes() {
 		return Arrays.stream(ProjectRole.values()).toList();
 	}
 

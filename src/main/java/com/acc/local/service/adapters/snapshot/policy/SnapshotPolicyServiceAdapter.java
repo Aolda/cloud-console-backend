@@ -27,14 +27,14 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
     private final VolumeModule volumeModule;
 
     @Override
-    public PageResponse<SnapshotPolicyResponse> getPolicies(PageRequest page, String sessionId, String projectId) {
+    public PageResponse<SnapshotPolicyResponse> getPolicies(PageRequest page, String projectId) {
         Pageable pageable = policyModule.toPageable(page);
         Page<SnapshotPolicyResponse> policies = policyModule.getPolicies(projectId, pageable);
         return policyModule.toPageResponse(policies, page);
     }
 
     @Override
-    public SnapshotPolicyResponse getPolicyDetails(Long policyId, String sessionId, String projectId) {
+    public SnapshotPolicyResponse getPolicyDetails(Long policyId, String projectId) {
         policyModule.validatePolicyId(policyId);
         return policyModule.getPolicyDetails(policyId, projectId);
     }
@@ -51,32 +51,32 @@ public class SnapshotPolicyServiceAdapter implements SnapshotPolicyServicePort {
     }
 
     @Override
-    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String sessionId, String projectId) {
+    public SnapshotPolicyResponse updatePolicy(Long policyId, SnapshotPolicyRequest request, String projectId) {
         policyModule.validatePolicyId(policyId);
         policyModule.validateRequest(request);
         return policyModule.updatePolicy(policyId, request, projectId);
     }
 
     @Override
-    public void deletePolicy(Long policyId, String sessionId, String projectId) {
+    public void deletePolicy(Long policyId, String projectId) {
         policyModule.validatePolicyId(policyId);
         policyModule.deletePolicy(policyId, projectId);
     }
 
     @Override
-    public void activatePolicy(Long policyId, String sessionId, String projectId) {
+    public void activatePolicy(Long policyId, String projectId) {
         policyModule.validatePolicyId(policyId);
         policyModule.activatePolicy(policyId, projectId);
     }
 
     @Override
-    public void deactivatePolicy(Long policyId, String sessionId, String projectId) {
+    public void deactivatePolicy(Long policyId, String projectId) {
         policyModule.validatePolicyId(policyId);
         policyModule.deactivatePolicy(policyId, projectId);
     }
 
     @Override
-    public PageResponse<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, PageRequest page, String sessionId, String projectId) {
+    public PageResponse<SnapshotTaskResponse> getPolicyRuns(Long policyId, LocalDate since, PageRequest page, String projectId) {
         policyModule.validatePolicyId(policyId);
         Pageable pageable = policyModule.toPageable(page);
         Page<SnapshotTaskResponse> tasks = policyModule.getPolicyRuns(policyId, projectId, since, pageable);

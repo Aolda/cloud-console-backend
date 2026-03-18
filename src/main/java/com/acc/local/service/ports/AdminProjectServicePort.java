@@ -20,7 +20,7 @@ public interface AdminProjectServicePort {
 
 	void deleteProject(String projectId, String sessionId);
 
-	List<ProjectRole> getAssignableRoleTypes(String sessionId);
+	List<ProjectRole> getAssignableRoleTypes();
 
 	PageResponse<ProjectResponse> getProjects(String keyword, PageRequest pageRequest, String sessionId);
 }
