@@ -43,10 +43,17 @@ public class AjouUnivModule {
 		UnivDepartInfoEntity dept = predictUserDepartProfile(claims.ajouMajor());
 		int grade = resolveGrade(statusCode, claims.ajouGrade());
 
+		String college = Optional.ofNullable(dept)
+				.map(UnivDepartInfoEntity::getCollege)
+				.orElse(null);
+		String department = Optional.ofNullable(dept)
+				.map(UnivDepartInfoEntity::getDepartment)
+				.orElse(claims.ajouMajor());
+
 		return Optional.of(new UserDepartDto(
 				claims.ajouMajor(),
-				dept != null ? dept.getCollege() : null,
-				dept != null ? dept.getDepartment() : claims.ajouMajor(),
+				college,
+				department,
 				grade,
 				UnivAccountType.getType(statusCode),
 				UnivDepartStatus.getUnivDepartStatus(statusCode)
