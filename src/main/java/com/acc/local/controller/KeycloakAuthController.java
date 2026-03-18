@@ -36,7 +36,18 @@ public class KeycloakAuthController implements KeycloakAuthDocs {
     private final OAuth2Properties oAuth2Properties;
 
     @Override
-    public void login(HttpServletResponse response) {
+    public void login(HttpServletRequest request, HttpServletResponse response) {
+        String existingSessionId = extractCookieValue(request, SessionConstants.SESSION_COOKIE_NAME);
+        if (existingSessionId != null && keycloakAuthServicePort.isSessionValid(existingSessionId)) {
+            try {
+                response.sendRedirect(keycloakProperties.getFrontendRedirectUrl());
+            } catch (IOException e) {
+                log.error("이미 로그인된 사용자 리다이렉트 실패", e);
+                throw new KeycloakException(KeycloakErrorCode.KEYCLOAK_API_FAILURE, e);
+            }
+            return;
+        }
+
         String state = UUID.randomUUID().toString();
 
         // state 쿠키 설정 (HttpOnly, Secure, SameSite=Lax, maxAge=300s)

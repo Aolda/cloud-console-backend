@@ -27,7 +27,7 @@ public interface KeycloakAuthDocs {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @GetMapping("/login")
-    void login(HttpServletResponse response);
+    void login(HttpServletRequest request, HttpServletResponse response);
 
     @Operation(
             summary = "Keycloak OIDC 콜백",

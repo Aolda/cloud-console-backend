@@ -27,4 +27,9 @@ public class KeycloakAuthServiceAdapter implements KeycloakAuthServicePort {
     public void logout(String sessionId) {
         keycloakAuthModule.logout(sessionId);
     }
+
+    @Override
+    public boolean isSessionValid(String sessionId) {
+        return keycloakAuthModule.isSessionValid(sessionId);
+    }
 }

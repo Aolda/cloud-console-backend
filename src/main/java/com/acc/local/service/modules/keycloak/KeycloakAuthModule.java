@@ -66,6 +66,11 @@ public class KeycloakAuthModule {
 
     private final KeycloakProperties keycloakProperties;
 
+    /** 세션 유효성 확인 */
+    public boolean isSessionValid(String sessionId) {
+        return sessionRepositoryPort.findById(sessionId).isPresent();
+    }
+
     /** Keycloak 인가 URL 생성 */
     public String buildAuthorizationUrl(String state) {
         return keycloakOidcExternalPort.getAuthorizationUrl(state, keycloakProperties.getRedirectUri());

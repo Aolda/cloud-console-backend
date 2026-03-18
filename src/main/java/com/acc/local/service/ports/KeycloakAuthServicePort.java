@@ -26,4 +26,12 @@ public interface KeycloakAuthServicePort {
      * @param sessionId 로그아웃할 세션 ID (acc-session-id 쿠키 값)
      */
     void logout(String sessionId);
+
+    /**
+     * 세션 유효성 확인.
+     *
+     * @param sessionId acc-session-id 쿠키 값
+     * @return 세션이 존재하고 유효하면 true
+     */
+    boolean isSessionValid(String sessionId);
 }
