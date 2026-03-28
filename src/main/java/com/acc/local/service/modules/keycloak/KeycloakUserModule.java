@@ -12,7 +12,6 @@ import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.entity.UserIdentityEntity;
 import com.acc.local.entity.id.UserIdentityId;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
-import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
@@ -28,11 +27,10 @@ import java.util.UUID;
  * Keycloak OIDC 기반 사용자 조회/등록 모듈.
  *
  * ────────────────────────────────────────────────────────────────
- * [3-way 분기]
+ * [2-way 분기]
  *  Branch 1. keycloakUserId로 DB 조회 → 이미 연결된 사용자 → 일반 로그인
- *  Branch 2. email로 DB 조회 → 기존 Keystone 사용자 → 계정 연결 (Account Linking)
- *            └ Keystone 패스워드 재설정 후 keycloak_user_id / keystone_* 컬럼 업데이트
- *  Branch 3. 미존재 → Keystone 신규 사용자 생성 + user_detail + user_auth_detail 저장
+ *  Branch 2. 미존재 → Keystone 신규 사용자 생성 + user_detail + user_auth_detail 저장
+ *            └ auth_idp_type 클레임(google/gitlab)으로 AuthType 결정
  *
  * [주의] Keystone API 호출은 트랜잭션 외부 시스템이므로 롤백되지 않는다.
  *        Keystone 생성 성공 후 DB 저장 실패 시 Keystone 고아(orphan) 사용자가 생길 수 있다.
@@ -74,15 +72,7 @@ public class KeycloakUserModule {
             );
         }
 
-        // ── Branch 2: 이메일로 기존 Keystone 사용자 발견 → 계정 연결 ─────────────────
-        Optional<UserIdentityEntity> existingIdentity =
-                userRepositoryPort.findUserIdentityByEmail(claims.email());
-
-        if (existingIdentity.isPresent()) {
-            return linkKeycloakToExistingUser(existingIdentity.get(), claims);
-        }
-
-        // ── Branch 3: 신규 사용자 → Keystone 사용자 생성 + DB 저장 ──────────────────
+        // ── Branch 2: 신규 사용자 → Keystone 사용자 생성 + DB 저장 ──────────────────
         if (departDto == null) {
             throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND,
                     "관리자 계정 사전 등록이 필요합니다.");
@@ -91,56 +81,7 @@ public class KeycloakUserModule {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // Branch 2: Account Linking
-    // 기존에 ADMIN 또는 GOOGLE 등으로 가입된 사용자가 Keycloak으로 최초 로그인하는 경우.
-    //
-    // 기존에 발급된 Keystone 패스워드는 우리 DB에 저장되어 있지 않으므로,
-    // 관리자 권한으로 패스워드를 재설정한다.
-    // 재설정 후 Keystone 직접 패스워드 로그인은 더 이상 작동하지 않음
-    // (Keycloak OIDC 경로만 사용하도록 의도된 변경).
-    // ─────────────────────────────────────────────────────────────────────────────
-    private KeycloakUserResult linkKeycloakToExistingUser(
-            UserIdentityEntity existingIdentity,
-            KeycloakIdTokenClaims claims
-    ) {
-        String keystoneUserId = existingIdentity.getUserId();
-        String adminToken = authModule.issueSystemAdminToken(null);
-
-        // Keystone에서 기존 사용자의 username 조회
-        UserKeystoneDto keystoneUser = keystoneAPIExternalPort.getUserDetail(keystoneUserId, adminToken);
-        String keystoneUsername = keystoneUser.name();
-
-        // 관리자 권한으로 Keystone 패스워드 재설정 (기존 패스워드 알 수 없음)
-        String newPassword = generateSecurePassword();
-        keystoneAPIExternalPort.updateUser(
-                keystoneUserId,
-                adminToken,
-                UpdateKeystoneUserRequest.builder()
-                        .password(newPassword)
-                        .isEnable(true)
-                        .build()
-        );
-
-        // user_detail에 keycloakUserId, keystoneUsername, keystonePassword 업데이트
-        UserDbExtraEntity existing = userRepositoryPort.findUserDetailById(keystoneUserId)
-                .orElseThrow(() -> new AuthServiceException(
-                        AuthErrorCode.USER_NOT_FOUND, "계정 연결 대상 사용자를 찾을 수 없습니다."));
-
-        UserDbExtraEntity updated = existing.toBuilder()
-                .keycloakUserId(claims.subject())
-                .keystoneUsername(keystoneUsername)
-                .keystonePassword(keystonePasswordEncryptor.encrypt(newPassword))
-                .build();
-        userRepositoryPort.saveUserDetail(updated);
-
-        log.info("계정 연결(Account Linking) 완료 - keystoneUserId={}, keycloakUserId={}",
-                keystoneUserId, claims.subject());
-
-        return new KeycloakUserResult(keystoneUserId, keystoneUsername, newPassword, existing.getUserName());
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Branch 3: 신규 사용자 등록
+    // Branch 2: 신규 사용자 등록
     // 기존에 어떤 방식으로도 가입하지 않은 사용자가 Keycloak으로 최초 로그인하는 경우.
     //
     // [phoneNumber] Keycloak이 전화번호를 제공하지 않으므로 빈 문자열로 초기화.
@@ -172,9 +113,9 @@ public class KeycloakUserModule {
                 .build();
         userRepositoryPort.saveUserDetail(userDbExtraEntity);
 
-        // user_auth_detail 저장 (AuthType.KEYCLOAK = 3)
+        // user_auth_detail 저장 (auth_idp_type 클레임으로 AuthType 결정)
         UserIdentityEntity userIdentityEntity = UserIdentityEntity.builder()
-                .id(new UserIdentityId(keystoneUserId, AuthType.KEYCLOAK.getCode()))
+                .id(new UserIdentityId(keystoneUserId, AuthType.fromIdpType(claims.authIdpType()).getCode()))
                 .department(departDto.department())
                 .studentId(claims.ajouStudentId())
                 .userEmail(claims.email())

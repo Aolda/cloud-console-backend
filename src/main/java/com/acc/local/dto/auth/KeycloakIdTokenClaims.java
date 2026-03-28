@@ -8,6 +8,7 @@ package com.acc.local.dto.auth;
  *   - ajou_status     : User Attribute → Token Claim Name "ajou_status"     (String)
  *   - ajou_grade      : User Attribute → Token Claim Name "ajou_grade"      (String)
  *   - ajou_student_id : User Attribute → Token Claim Name "ajou_student_id" (String, SPI 연동 시)
+ *   - auth_idp_type   : User Attribute → Token Claim Name "auth_idp_type"   (String, google/gitlab)
  *   - email, preferred_username은 표준 클레임으로 openid scope에 기본 포함
  */
 public record KeycloakIdTokenClaims(
@@ -17,5 +18,6 @@ public record KeycloakIdTokenClaims(
         String ajouMajor,         // ajou_major       → "소프트웨어및컴퓨터공학전공"
         String ajouStatus,        // ajou_status      → "SS0001(학생(학부))"
         String ajouGrade,         // ajou_grade       → "4"
-        String ajouStudentId      // ajou_student_id  → 학번 (Keycloak SPI 연동 시 채워짐)
+        String ajouStudentId,     // ajou_student_id  → 학번 (Keycloak SPI 연동 시 채워짐)
+        String authIdpType        // auth_idp_type     → IDP 종류 (google/gitlab)
 ) {}

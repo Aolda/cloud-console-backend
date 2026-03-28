@@ -69,12 +69,13 @@ public class KeycloakIdTokenParser {
             String ajouStatus    = getOptionalClaim(payload, "ajou_status",     "");
             String ajouGrade     = getOptionalClaim(payload, "ajou_grade",      "");
             String ajouStudentId = getOptionalClaim(payload, "ajou_student_id", "");
+            String authIdpType   = getOptionalClaim(payload, "auth_idp_type",   "");
 
-            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}'",
-                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId);
+            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}', authIdpType='{}'",
+                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, authIdpType);
 
             return new KeycloakIdTokenClaims(sub, email, preferredUsername,
-                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId);
+                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId, authIdpType);
         } catch (KeycloakException e) {
             throw e;
         } catch (Exception e) {

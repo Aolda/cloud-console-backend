@@ -9,6 +9,8 @@ public enum KeycloakErrorCode implements ErrorCode {
     // 400 Bad Request
     KEYCLOAK_INVALID_GRANT(400, "ACC-KEYCLOAK-INVALID-GRANT", "Keycloak 인증 코드가 유효하지 않습니다."),
     KEYCLOAK_INVALID_STATE(400, "ACC-KEYCLOAK-INVALID-STATE", "CSRF state 값이 일치하지 않습니다."),
+    KEYCLOAK_MISSING_IDP_TYPE(400, "ACC-KEYCLOAK-MISSING-IDP-TYPE", "Keycloak auth_idp_type 클레임이 존재하지 않습니다."),
+    KEYCLOAK_UNSUPPORTED_IDP_TYPE(400, "ACC-KEYCLOAK-UNSUPPORTED-IDP-TYPE", "지원하지 않는 auth_idp_type 값입니다."),
 
     // 401 Unauthorized
     KEYCLOAK_UNAUTHORIZED(401, "ACC-KEYCLOAK-UNAUTHORIZED", "Keycloak 인증에 실패했습니다."),
