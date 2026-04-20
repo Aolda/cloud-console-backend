@@ -9,17 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Keycloak ID Token (JWT) 파싱 컴포넌트.
  *
- * [위치 근거] JwtUtils가 global/security/jwt/ 에 있는 것처럼,
- *            ID Token 파싱도 JWT 파싱 관심사이므로 global/security/ 계층에 위치한다.
- *
- * [서명 검증 생략 이유]
- *   Keycloak Authorization Server로부터 HTTPS로 직접 수신한 토큰이므로
- *   중간자 공격 가능성이 없다. Payload Base64 디코딩만 수행한다.
  */
 @Slf4j
 @Component
@@ -62,20 +58,22 @@ public class KeycloakIdTokenParser {
             JsonNode payload = decodePayload(idToken);
 
             String sub = getRequiredClaim(payload, "sub");
-            String email = getOptionalClaim(payload, "email", "");
+            String email = getRequiredKeycloakClaim(payload, "email");
             String preferredUsername = getOptionalClaim(payload, "preferred_username",
                     email.isBlank() ? "" : email.split("@")[0]);
-            String ajouMajor     = getOptionalClaim(payload, "ajou_major",      "");
-            String ajouStatus    = getOptionalClaim(payload, "ajou_status",     "");
-            String ajouGrade     = getOptionalClaim(payload, "ajou_grade",      "");
-            String ajouStudentId = getOptionalClaim(payload, "ajou_student_id", "");
-            String authIdpType   = getOptionalClaim(payload, "auth_idp_type",   "");
+            String ajouMajor     = getRequiredKeycloakClaim(payload, "ajou_major");
+            String ajouStatus    = getRequiredKeycloakClaim(payload, "ajou_status");
+            String ajouGrade     = getRequiredKeycloakClaim(payload, "ajou_grade");
+            String ajouStudentId = getRequiredKeycloakClaim(payload, "ajou_student_id");
+            String phoneNumber   = getRequiredKeycloakClaim(payload, "user_phone_number");
+            String authIdpType   = getRequiredKeycloakClaim(payload, "auth_idp_type");
+            List<String> groups  = getOptionalArrayClaim(payload, "groups");
 
-            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}', authIdpType='{}'",
-                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, authIdpType);
+            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}', phoneNumber='{}', authIdpType='{}', groups={}",
+                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
 
             return new KeycloakIdTokenClaims(sub, email, preferredUsername,
-                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId, authIdpType);
+                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
         } catch (KeycloakException e) {
             throw e;
         } catch (Exception e) {
@@ -93,6 +91,15 @@ public class KeycloakIdTokenParser {
         return objectMapper.readTree(decodedPayload);
     }
 
+    private String getRequiredKeycloakClaim(JsonNode payload, String claimName) {
+        JsonNode node = payload.get(claimName);
+        if (node == null || node.isNull() || node.asText().isBlank()) {
+            throw new KeycloakException(KeycloakErrorCode.KEYCLOAK_MISSING_CLAIM,
+                    "Keycloak 계정에 " + claimName + " 필드가 없습니다.");
+        }
+        return node.asText();
+    }
+
     private String getRequiredClaim(JsonNode payload, String claimName) {
         JsonNode node = payload.get(claimName);
         if (node == null || node.isNull() || node.asText().isBlank()) {
@@ -107,5 +114,19 @@ public class KeycloakIdTokenParser {
             return defaultValue;
         }
         return node.asText();
+    }
+
+    private List<String> getOptionalArrayClaim(JsonNode payload, String claimName) {
+        JsonNode node = payload.get(claimName);
+        if (node == null || node.isNull() || !node.isArray()) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        node.forEach(element -> {
+            if (!element.isNull() && !element.asText().isBlank()) {
+                result.add(element.asText());
+            }
+        });
+        return result;
     }
 }

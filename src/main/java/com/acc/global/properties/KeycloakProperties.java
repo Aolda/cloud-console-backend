@@ -15,4 +15,5 @@ public class KeycloakProperties {
     private String clientSecret;
     private String redirectUri;
     private String frontendRedirectUrl;
+    private String adminGroupPath;
 }

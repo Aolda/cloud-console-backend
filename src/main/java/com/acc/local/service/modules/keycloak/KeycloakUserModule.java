@@ -1,7 +1,5 @@
 package com.acc.local.service.modules.keycloak;
 
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.security.crypto.KeystonePasswordEncryptor;
 import com.acc.local.domain.enums.auth.AuthType;
 import com.acc.local.dto.auth.KeycloakIdTokenClaims;
@@ -49,12 +47,15 @@ public class KeycloakUserModule {
     /**
      * Keycloak 로그인 시 사용자를 조회하거나 등록한다.
      *
-     * @param claims    Keycloak ID Token에서 추출한 클레임
-     * @param departDto 학적 정보 (DB resolve 완료)
+     * @param claims         Keycloak ID Token에서 추출한 클레임
+     * @param departDto      학적 정보 (호출 전에 항상 resolve된 값)
+     * @param isAdminByGroup Keycloak 그룹 기반 admin 여부
      * @return 이후 Keystone 토큰 발급 + SessionData 구성에 필요한 결과
      */
     @Transactional
-    public KeycloakUserResult findOrRegisterKeycloakUser(KeycloakIdTokenClaims claims, UserDepartDto departDto) {
+    public KeycloakUserResult findOrRegisterKeycloakUser(KeycloakIdTokenClaims claims,
+                                                         UserDepartDto departDto,
+                                                         boolean isAdminByGroup) {
 
         // ── Branch 1: keycloakUserId가 이미 user_detail에 연결된 사용자 ──────────────
         Optional<UserDbExtraEntity> linkedUser =
@@ -62,6 +63,16 @@ public class KeycloakUserModule {
 
         if (linkedUser.isPresent()) {
             UserDbExtraEntity entity = linkedUser.get();
+
+            // 그룹 변경으로 admin 상태가 달라졌으면 DB 동기화
+            if (isAdminByGroup != Boolean.TRUE.equals(entity.getIsAdmin())) {
+                log.info("Keycloak 그룹 변경 감지 - admin 상태 동기화: keystoneUserId={}, isAdmin={}→{}",
+                        entity.getUserId(), entity.getIsAdmin(), isAdminByGroup);
+                entity = userRepositoryPort.saveUserDetail(
+                        entity.toBuilder().isAdmin(isAdminByGroup).build()
+                );
+            }
+
             String plainPassword = keystonePasswordEncryptor.decrypt(entity.getKeystonePassword());
             log.debug("Keycloak 로그인 - 기존 연결 사용자: keystoneUserId={}", entity.getUserId());
             return new KeycloakUserResult(
@@ -73,21 +84,16 @@ public class KeycloakUserModule {
         }
 
         // ── Branch 2: 신규 사용자 → Keystone 사용자 생성 + DB 저장 ──────────────────
-        if (departDto == null) {
-            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND,
-                    "관리자 계정 사전 등록이 필요합니다.");
-        }
-        return registerNewKeycloakUser(claims, departDto);
+        return registerNewKeycloakUser(claims, departDto, isAdminByGroup);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Branch 2: 신규 사용자 등록
     // 기존에 어떤 방식으로도 가입하지 않은 사용자가 Keycloak으로 최초 로그인하는 경우.
-    //
-    // [phoneNumber] Keycloak이 전화번호를 제공하지 않으므로 빈 문자열로 초기화.
-    //               사용자가 이후 프로필 수정을 통해 채워야 한다.
     // ─────────────────────────────────────────────────────────────────────────────
-    private KeycloakUserResult registerNewKeycloakUser(KeycloakIdTokenClaims claims, UserDepartDto departDto) {
+    private KeycloakUserResult registerNewKeycloakUser(KeycloakIdTokenClaims claims,
+                                                        UserDepartDto departDto,
+                                                        boolean isAdminByGroup) {
         String adminToken = authModule.issueSystemAdminToken(null);
 
         String newPassword = generateSecurePassword();
@@ -101,12 +107,12 @@ public class KeycloakUserModule {
         String keystoneUserId = createdUser.id();
         String keystoneUsername = createdUser.name();
 
-        // user_detail 저장
+        // user_detail 저장 (Keycloak 그룹 기반 admin 여부 반영)
         UserDbExtraEntity userDbExtraEntity = UserDbExtraEntity.builder()
                 .userId(keystoneUserId)
                 .userName(claims.preferredUsername())
-                .userPhoneNumber("")   // Keycloak은 전화번호를 제공하지 않음. 추후 사용자 업데이트 필요.
-                .isAdmin(false)
+                .userPhoneNumber(claims.phoneNumber())
+                .isAdmin(isAdminByGroup)
                 .keycloakUserId(claims.subject())
                 .keystoneUsername(keystoneUsername)
                 .keystonePassword(keystonePasswordEncryptor.encrypt(newPassword))
@@ -126,15 +132,6 @@ public class KeycloakUserModule {
                 keystoneUserId, claims.subject());
 
         return new KeycloakUserResult(keystoneUserId, keystoneUsername, newPassword, claims.preferredUsername());
-    }
-
-    /**
-     * 이미 연결된 관리자 계정 여부 확인 (학적 검증 우회 판단용).
-     */
-    public boolean isLinkedAdmin(String keycloakUserId) {
-        return userRepositoryPort.findUserDetailByKeycloakUserId(keycloakUserId)
-                .map(u -> Boolean.TRUE.equals(u.getIsAdmin()))
-                .orElse(false);
     }
 
     /**

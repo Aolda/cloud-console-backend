@@ -11,6 +11,7 @@ public enum KeycloakErrorCode implements ErrorCode {
     KEYCLOAK_INVALID_STATE(400, "ACC-KEYCLOAK-INVALID-STATE", "CSRF state 값이 일치하지 않습니다."),
     KEYCLOAK_MISSING_IDP_TYPE(400, "ACC-KEYCLOAK-MISSING-IDP-TYPE", "Keycloak auth_idp_type 클레임이 존재하지 않습니다."),
     KEYCLOAK_UNSUPPORTED_IDP_TYPE(400, "ACC-KEYCLOAK-UNSUPPORTED-IDP-TYPE", "지원하지 않는 auth_idp_type 값입니다."),
+    KEYCLOAK_MISSING_CLAIM(400, "ACC-KEYCLOAK-MISSING-CLAIM", "Keycloak 계정에 필수 클레임이 누락되었습니다."),
 
     // 401 Unauthorized
     KEYCLOAK_UNAUTHORIZED(401, "ACC-KEYCLOAK-UNAUTHORIZED", "Keycloak 인증에 실패했습니다."),

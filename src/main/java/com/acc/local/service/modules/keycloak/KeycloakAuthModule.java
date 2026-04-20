@@ -88,22 +88,16 @@ public class KeycloakAuthModule {
         // 2. ID Token에서 모든 필요 클레임 추출
         KeycloakIdTokenClaims claims = keycloakIdTokenParser.extractClaims(tokenResponse.idToken());
 
-        // 2.5. 학적 정보 추출 및 재학생 검증 (관리자 계정은 우회)
-        UserDepartDto departDto = null;
-        if (!keycloakUserModule.isLinkedAdmin(claims.subject())) {
-            departDto = ajouUnivModule.getUserDepartInfoFromKeycloakClaims(claims)
-                    .orElseThrow(() -> {
-                        log.warn("Keycloak 로그인 실패 - 학적 정보 없음: {}", claims.email());
-                        return new AuthServiceException(AuthErrorCode.NO_UNIV_ACCOUNT_INFO);
-                    });
-            if (departDto.univAccountType() != UnivAccountType.UNDERGRADUATE) {
-                log.warn("Keycloak 로그인 실패 - 재학생 아님: {}, type={}", claims.email(), departDto.univAccountType());
-                throw new AuthServiceException(AuthErrorCode.ONLY_UNDERGRADUATE_ALLOWED);
-            }
-        }
+        // 2.5. 그룹 기반 admin 여부 판별 및 학적 정보 조회 (재학생 검증은 Keycloak에서 처리)
+        boolean isAdminByGroup = claims.groups().contains(keycloakProperties.getAdminGroupPath());
+        UserDepartDto departDto = ajouUnivModule.getUserDepartInfoFromKeycloakClaims(claims)
+                .orElseThrow(() -> {
+                    log.warn("Keycloak 로그인 실패 - 학적 정보 없음: {}", claims.email());
+                    return new AuthServiceException(AuthErrorCode.NO_UNIV_ACCOUNT_INFO);
+                });
 
-        // 3. 사용자 조회/등록 (3-way 분기: KeycloakUserModule)
-        KeycloakUserResult userResult = keycloakUserModule.findOrRegisterKeycloakUser(claims, departDto);
+        // 3. 사용자 조회/등록 (KeycloakUserModule) — admin 여부도 함께 전달
+        KeycloakUserResult userResult = keycloakUserModule.findOrRegisterKeycloakUser(claims, departDto, isAdminByGroup);
 
         // 4. KeycloakTokens 도메인 모델 구성
         KeycloakTokens keycloakTokens = KeycloakTokens.builder()
