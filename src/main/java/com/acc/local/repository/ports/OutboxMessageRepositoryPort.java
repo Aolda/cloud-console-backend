@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface OutboxMessageRepositoryPort {
 
-    List<OutboxEventEntity> findByProcessedFalse();
+    List<OutboxEventEntity> findPendingEvents();
 
     void save(OutboxEventEntity event);
 }

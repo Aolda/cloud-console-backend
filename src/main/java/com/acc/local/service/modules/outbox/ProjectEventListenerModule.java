@@ -35,7 +35,6 @@ public class ProjectEventListenerModule {
                     .aggregateId(event.projectRequestId())
                     .eventType(EventType.PROJECT_REQUEST_CREATED)
                     .payload(payload)
-                    .processed(false)
                     .build();
 
             outboxEventJpaRepository.save(outboxEvent);
@@ -58,7 +57,6 @@ public class ProjectEventListenerModule {
                     .aggregateId(event.projectRequestId())
                     .eventType(event.toEventType())
                     .payload(payload)
-                    .processed(false)
                     .build();
 
             outboxEventJpaRepository.save(outboxEvent);
@@ -81,7 +79,6 @@ public class ProjectEventListenerModule {
                     .aggregateId(event.projectId())
                     .eventType(EventType.PROJECT_CREATED)
                     .payload(payload)
-                    .processed(false)
                     .build();
 
             outboxEventJpaRepository.save(outboxEvent);

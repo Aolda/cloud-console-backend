@@ -95,3 +95,6 @@ security:
   crypto:
     keystone-password-key: ${KEYSTONE_PASSWORD_ENCRYPTION_KEY}
     # 키 생성: openssl rand -base64 32
+
+outbox:
+  max-retry-count: 5
