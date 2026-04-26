@@ -7,15 +7,15 @@ import java.io.InputStream;
 
 public interface ImageServicePort {
 
-    PageResponse<GlanceImageSummary> getImagesWithPagination(String userId, String projectId, PageRequest pageRequest, ImageFilterRequest imageFilterRequest);
+    PageResponse<GlanceImageSummary> getImagesWithPagination(String sessionId, String projectId, PageRequest pageRequest, ImageFilterRequest imageFilterRequest);
 
-    ImageDetailResponse getImageDetail(String userId, String projectId, String imageId);
+    ImageDetailResponse getImageDetail(String sessionId, String projectId, String imageId);
 
-    ImageUploadAckResponse importImageByUrl(String userId, String projectId, ImageUrlImportRequest request);
+    ImageUploadAckResponse importImageByUrl(String sessionId, String projectId, ImageUrlImportRequest request);
 
-    ImageUploadAckResponse createImageMetadata(String userId, String projectId, ImageMetadataRequest req);
+    ImageUploadAckResponse createImageMetadata(String sessionId, String projectId, ImageMetadataRequest req);
 
-    void deleteImage(String userId, String projectId, String imageId);
+    void deleteImage(String sessionId, String projectId, String imageId);
 
-    void uploadFileStream(String userId, String projectId, String imageId, InputStream input, String contentType);
+    void uploadFileStream(String sessionId, String projectId, String imageId, InputStream input, String contentType);
 }

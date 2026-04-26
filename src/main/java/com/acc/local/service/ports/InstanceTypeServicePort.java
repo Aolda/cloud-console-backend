@@ -7,7 +7,7 @@ import com.acc.local.dto.type.InstanceTypeResponse;
 
 public interface InstanceTypeServicePort {
 
-    PageResponse<InstanceTypeResponse> listUserInstanceTypes(String userId, String projectId, String architect, PageRequest page);
-    PageResponse<InstanceTypeResponse> listAdminInstanceTypes(String userId, String architect, PageRequest page);
-    void createInstanceType(String userId, InstanceTypeCreateRequest request);
+    PageResponse<InstanceTypeResponse> listUserInstanceTypes(String sessionId, String projectId, String architect, PageRequest page);
+    PageResponse<InstanceTypeResponse> listAdminInstanceTypes(String sessionId, String architect, PageRequest page);
+    void createInstanceType(String sessionId, InstanceTypeCreateRequest request);
 }

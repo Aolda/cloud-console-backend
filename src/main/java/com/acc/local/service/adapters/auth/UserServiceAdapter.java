@@ -8,6 +8,7 @@ import com.acc.local.dto.auth.*;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.UserModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.UserServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +21,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceAdapter implements UserServicePort {
 
-
     private final AuthModule authModule;
     private final UserModule userModule;
     private final UserRepositoryPort userRepositoryPort;
+    private final SessionModule sessionModule;
 
     @Override
-    public AdminCreateUserResponse adminCreateUser(AdminCreateUserRequest request, String requesterId) {
+    public AdminCreateUserResponse adminCreateUser(AdminCreateUserRequest request, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
 
         // 권한 체크
         userModule.isAdminUser(requesterId);
@@ -45,7 +47,8 @@ public class UserServiceAdapter implements UserServicePort {
     }
 
     @Override
-    public AdminUpdateUserResponse adminUpdateUser(AdminUpdateUserRequest request, String requesterId, String userId) {
+    public AdminUpdateUserResponse adminUpdateUser(AdminUpdateUserRequest request, String sessionId, String userId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
 
         // 권한 체크
         userModule.isAdminUser(requesterId);
@@ -56,7 +59,7 @@ public class UserServiceAdapter implements UserServicePort {
 
         String adminToken = authModule.issueSystemAdminToken("admin-update-user");
         try {
-            String updateUserId = userModule.adminUpdateUser(request, adminToken , userId);
+            String updateUserId = userModule.adminUpdateUser(request, adminToken, userId);
             return AdminUpdateUserResponse.from(updateUserId);
         } finally {
             authModule.invalidateSystemAdminToken(adminToken);
@@ -64,7 +67,8 @@ public class UserServiceAdapter implements UserServicePort {
     }
 
     @Override
-    public AdminGetUserResponse adminGetUser(String userId, String requesterId) {
+    public AdminGetUserResponse adminGetUser(String userId, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
 
         userModule.isAdminUser(requesterId);
 
@@ -91,7 +95,8 @@ public class UserServiceAdapter implements UserServicePort {
     }
 
     @Override
-    public PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String requesterId) {
+    public PageResponse<AdminListUsersResponse> adminListUsers(PageRequest page, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
 
         // 권한 체크
         userModule.isAdminUser(requesterId);
@@ -119,7 +124,9 @@ public class UserServiceAdapter implements UserServicePort {
     }
 
     @Override
-    public void adminDeleteUser(String userId, String requesterId) {
+    public void adminDeleteUser(String userId, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
+
         // 권한 체크
         userModule.isAdminUser(requesterId);
 
@@ -136,4 +143,3 @@ public class UserServiceAdapter implements UserServicePort {
         }
     }
 }
-

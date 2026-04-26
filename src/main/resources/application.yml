@@ -52,11 +52,17 @@ super-admin:
   user-id: ${SUPER_ADMIN_USER_ID}
   phone-number: ${SUPER_ADMIN_PHONE_NUMBER}
   user-name: ${SUPER_ADMIN_USER_NAME}
+  keycloak-user-id: ${SUPER_ADMIN_KEYCLOAK_USER_ID}
+  keystone-username: ${SUPER_ADMIN_KEYSTONE_USERNAME}
+  keystone-password: ${SUPER_ADMIN_KEYSTONE_PASSWORD}
 
 keycloak:
   issuer-uri: ${KEYCLOAK_ISSUER_URI}
   client-id: ${KEYCLOAK_CLIENT_ID}
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
+  redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+  frontend-redirect-url: ${KEYCLOAK_FRONTEND_REDIRECT_URL}
+  admin-group-path: ${KEYCLOAK_ADMIN_GROUP_PATH}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -84,6 +90,11 @@ quick-start:
 acc:
   dump:
     enabled: true
+
+security:
+  crypto:
+    keystone-password-key: ${KEYSTONE_PASSWORD_ENCRYPTION_KEY}
+    # 키 생성: openssl rand -base64 32
 
 outbox:
   max-retry-count: 5

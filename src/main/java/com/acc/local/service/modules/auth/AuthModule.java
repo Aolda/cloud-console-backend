@@ -102,6 +102,12 @@ public class AuthModule {
         return issueACCToken(tokenInfo);
     }
 
+    /**
+     * @deprecated [Keycloak 세션 전환] SessionModule 기반으로 대체 예정.
+     *             Keycloak 로그인 사용자는 SessionModule.getKeystoneUnscopedToken(sessionId)으로
+     *             토큰을 얻어 권한 조회. 기존 JWT 기반 사용자는 이 메서드를 계속 사용.
+     */
+    @Deprecated
     public ProjectRole getProjectPermission(String projectId, String userId) {
         String keystoneToken = getUnscopedTokenByUserId(userId);
 
@@ -173,6 +179,12 @@ public class AuthModule {
         return false;
     }
 
+    /**
+     * @deprecated [Keycloak 세션 전환] SessionModule.getKeystoneScopedToken(sessionId, projectId) 으로 대체 예정.
+     *             Keycloak 로그인 사용자는 sessionId 기반으로 Keystone scoped token을 발급한다.
+     *             기존 JWT 기반 사용자는 이 메서드를 계속 사용.
+     */
+    @Deprecated
     public String issueProjectScopeToken(String projectId, String userId) {
         String unscopedToken = getUnscopedTokenByUserId(userId);
 
@@ -188,12 +200,29 @@ public class AuthModule {
         }
     }
 
+    // [Keycloak 세션 전환] SessionModule.getKeystoneScopedToken(sessionId, projectId) 참고
+    // public String issueProjectScopeTokenBySession(String sessionId, String projectId) {
+    //     return sessionModule.getKeystoneScopedToken(sessionId, projectId);
+    // }
+
+    /**
+     * @deprecated [Keycloak 세션 전환] SessionModule.getKeystoneUnscopedToken(sessionId) 으로 대체 예정.
+     *             Keycloak 로그인 사용자는 SessionData에서 Keystone unscoped token을 조회하며,
+     *             만료 시 DB credentials로 자동 재발급한다.
+     *             기존 JWT 기반 사용자는 이 메서드를 계속 사용.
+     */
+    @Deprecated
     public String getUnscopedTokenByUserId(String userId) {
         UserTokenEntity userToken = getAvailUserTokenEntities(userId).getFirst();
         checkUnscopedTokenExpired(userToken);
 
         return userToken.getKeystoneUnscopedToken();
     }
+
+    // [Keycloak 세션 전환] SessionModule.getKeystoneUnscopedToken(sessionId) 참고
+    // public String getUnscopedTokenBySessionId(String sessionId) {
+    //     return sessionModule.getKeystoneUnscopedToken(sessionId);
+    // }
 
     private List<UserTokenEntity> getAvailUserTokenEntities(String userId) {
         List<UserTokenEntity> userTokens = userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId);

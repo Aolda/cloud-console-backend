@@ -6,7 +6,7 @@ import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
-import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.modules.volume.VolumeModule;
 import com.acc.local.service.modules.volume.VolumeUtil;
 import com.acc.local.service.ports.VolumeServicePort;
@@ -22,17 +22,17 @@ public class VolumeServiceAdapter implements VolumeServicePort {
 
     private final VolumeModule volumeModule;
     private final VolumeUtil volumeUtil;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String userId, String projectId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<VolumeResponse> getVolumes(PageRequest page, String sessionId, String projectId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         return volumeModule.getVolumes(page, projectId, keystoneToken);
     }
 
     @Override
-    public VolumeResponse getVolumeDetails(String userId, String projectId, String volumeId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public VolumeResponse getVolumeDetails(String sessionId, String projectId, String volumeId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
@@ -40,8 +40,8 @@ public class VolumeServiceAdapter implements VolumeServicePort {
     }
 
     @Override
-    public ResponseEntity<Void> deleteVolume(String userId, String projectId, String volumeId) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public ResponseEntity<Void> deleteVolume(String sessionId, String projectId, String volumeId) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         if (!volumeUtil.validateVolumeId(volumeId)) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_ID);
         }
@@ -49,8 +49,8 @@ public class VolumeServiceAdapter implements VolumeServicePort {
     }
 
     @Override
-    public VolumeResponse createVolume(String userId, String projectId, VolumeRequest request) {
-        String keystoneToken = authModule.issueProjectScopeToken(projectId, userId);
+    public VolumeResponse createVolume(String sessionId, String projectId, VolumeRequest request) {
+        String keystoneToken = sessionModule.getKeystoneScopedToken(sessionId, projectId);
         if (!volumeUtil.validateVolumeSize(request.getSize())) {
             throw new VolumeException(VolumeErrorCode.INVALID_VOLUME_SIZE);
         }

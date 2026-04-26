@@ -13,4 +13,7 @@ public class SuperAdminProperties {
 	private String userId;
 	private String phoneNumber;
     private String userName;
+    private String keycloakUserId;
+    private String keystoneUsername;
+    private String keystonePassword;
 }

@@ -8,7 +8,7 @@ import com.acc.local.dto.auth.ListRolesResponse;
 
 public interface RoleServicePort {
 
-    CreateRoleResponse adminCreateRole(CreateRoleRequest request, String requesterId);
+    CreateRoleResponse adminCreateRole(CreateRoleRequest request, String sessionId);
 
-    PageResponse<ListRolesResponse> adminListRoles(PageRequest page, String name, String requesterId);
+    PageResponse<ListRolesResponse> adminListRoles(PageRequest page, String name, String sessionId);
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.AdminProjectDocs;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.project.*;
@@ -32,10 +32,10 @@ public class AdminProjectController implements AdminProjectDocs {
 		Authentication authentication,
 		@RequestBody CreateProjectRequest request
 	) {
-		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-		String userId = jwtInfo.getUserId();
+		SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+		String sessionId = principal.getSessionId();
 
-		CreateProjectResponse response = adminProjectServicePort.createProject(request, userId);
+		CreateProjectResponse response = adminProjectServicePort.createProject(request, sessionId);
 		return ResponseEntity.status(201).body(response);
 	}
 
@@ -47,10 +47,10 @@ public class AdminProjectController implements AdminProjectDocs {
 		String keyword,
 		PageRequest page
 	) {
-		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-		String userId = jwtInfo.getUserId();
+		SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+		String sessionId = principal.getSessionId();
 
-		PageResponse<ProjectResponse> response = adminProjectServicePort.getProjects(keyword, page, userId);
+		PageResponse<ProjectResponse> response = adminProjectServicePort.getProjects(keyword, page, sessionId);
 		return ResponseEntity.status(200).body(response);
 	}
 
@@ -58,10 +58,7 @@ public class AdminProjectController implements AdminProjectDocs {
 	public ResponseEntity<List<ProjectRoleResponse>> getProjectRoles(
 		Authentication authentication
 	) {
-		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-		String userId = jwtInfo.getUserId();
-
-		List<ProjectRole> projectRole = adminProjectServicePort.getAssignableRoleTypes(userId);
+		List<ProjectRole> projectRole = adminProjectServicePort.getAssignableRoleTypes();
 		List<ProjectRoleResponse> responses = projectRole.stream().map(ProjectRoleResponse::from).toList();
 		return ResponseEntity.status(200).body(responses);
 	}
@@ -72,10 +69,10 @@ public class AdminProjectController implements AdminProjectDocs {
 		String keyword,
 		PageRequest pageable
 	) {
-		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-		String userId = jwtInfo.getUserId();
+		SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+		String sessionId = principal.getSessionId();
 
-		PageResponse<ProjectRequestResponse> response = adminProjectServicePort.getProjectRequests(keyword, pageable, userId);
+		PageResponse<ProjectRequestResponse> response = adminProjectServicePort.getProjectRequests(keyword, pageable, sessionId);
 		return ResponseEntity.status(200).body(response);
 	}
 
@@ -84,14 +81,14 @@ public class AdminProjectController implements AdminProjectDocs {
 		Authentication authentication,
 		@RequestBody DecideProjectRequestRequest request
 	) {
-		JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-		String userId = jwtInfo.getUserId();
+		SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+		String sessionId = principal.getSessionId();
 
 		DecideProjectRequestResponse response = adminProjectServicePort.applyProjectRequestDecisions(
 				request.projectRequestIds(),
 				request.status(),
 				request.reason(),
-				userId
+				sessionId
 		);
 
 		return ResponseEntity.status(200).body(response);

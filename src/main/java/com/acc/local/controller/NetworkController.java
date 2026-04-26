@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.NetworkDocs;
 import com.acc.local.dto.network.CreateNetworkRequest;
 import com.acc.local.dto.network.ViewNetworksResponse;
@@ -25,9 +25,9 @@ public class NetworkController implements NetworkDocs {
             Authentication authentication,
             String projectId,
             PageRequest page) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
         PageResponse<ViewNetworksResponse> response =
-                networkServicePort.listNetworks(page, jwtInfo.getUserId(), projectId);
+                networkServicePort.listNetworks(page, principal.getSessionId(), projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -36,8 +36,8 @@ public class NetworkController implements NetworkDocs {
             Authentication authentication,
             String projectId,
             CreateNetworkRequest request) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String id = networkServicePort.createNetwork(request, jwtInfo.getUserId(), projectId);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String id = networkServicePort.createNetwork(request, principal.getSessionId(), projectId);
         return ResponseEntity.created(null).build();
     }
 
@@ -46,8 +46,8 @@ public class NetworkController implements NetworkDocs {
             Authentication authentication,
             String projectId,
             String networkId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        networkServicePort.deleteNetwork(networkId, jwtInfo.getUserId(), projectId);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        networkServicePort.deleteNetwork(networkId, principal.getSessionId(), projectId);
         return ResponseEntity.noContent().build();
     }
 }

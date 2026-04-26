@@ -7,11 +7,11 @@ import com.acc.local.dto.instance.InstanceCreateRequest;
 import com.acc.local.dto.network.CreateInterfaceRequest;
 import com.acc.local.dto.quickstart.QuickStartRequest;
 import com.acc.local.dto.quickstart.QuickStartResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.instance.InstanceModule;
 import com.acc.local.service.modules.instance.InstanceUtil;
 import com.acc.local.service.modules.network.ApmModule;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.QuickStartServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -27,13 +27,13 @@ public class QuickStartServiceAdapter implements QuickStartServicePort {
 
     private final NeutronModule neutronModule;
     private final ApmModule apmModule;
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
     private final InstanceModule instanceModule;
     private final InstanceUtil instanceUtil;
 
     @Override
-    public QuickStartResponse create(String userId, String projectId, QuickStartRequest request) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public QuickStartResponse create(String sessionId, String projectId, QuickStartRequest request) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         String defaultInterfaceId = null;
         String serverPort = null;

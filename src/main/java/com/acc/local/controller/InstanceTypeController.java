@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.InstanceTypeDocs;
 import com.acc.local.dto.type.InstanceTypeCreateRequest;
 import com.acc.local.dto.type.InstanceTypeResponse;
@@ -20,20 +20,20 @@ public class InstanceTypeController implements InstanceTypeDocs {
 
     @Override
     public ResponseEntity<PageResponse<InstanceTypeResponse>> getUserInstanceTypes(Authentication authentication, PageRequest page, String architect, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(instanceTypeServicePort.listUserInstanceTypes(jwtInfo.getUserId(), projectId, architect, page));
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(instanceTypeServicePort.listUserInstanceTypes(principal.getSessionId(), projectId, architect, page));
     }
 
     @Override
     public ResponseEntity<PageResponse<InstanceTypeResponse>> getAdminInstanceTypes(Authentication authentication, PageRequest page, String architect) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        return ResponseEntity.ok(instanceTypeServicePort.listAdminInstanceTypes(jwtInfo.getUserId(), architect, page));
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(instanceTypeServicePort.listAdminInstanceTypes(principal.getSessionId(), architect, page));
     }
 
     @Override
     public ResponseEntity<Object> createInstanceType(Authentication authentication, InstanceTypeCreateRequest request) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        instanceTypeServicePort.createInstanceType(jwtInfo.getUserId(), request);
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        instanceTypeServicePort.createInstanceType(principal.getSessionId(), request);
         return ResponseEntity.created(null).build();
     }
 }

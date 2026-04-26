@@ -5,6 +5,7 @@ import com.acc.global.common.PageResponse;
 import com.acc.local.dto.auth.*;
 import com.acc.local.service.modules.auth.NoticeModule;
 import com.acc.local.service.modules.auth.UserModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.NoticeServicePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +20,12 @@ public class NoticeServiceAdapter implements NoticeServicePort {
 
     private final NoticeModule noticeModule;
     private final UserModule userModule;
+    private final SessionModule sessionModule;
 
     @Override
-    public CreateNoticeResponse adminCreateNotice(CreateNoticeRequest request, String requesterId) {
+    public CreateNoticeResponse adminCreateNotice(CreateNoticeRequest request, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
+
         // 권한 체크
         userModule.isAdminUser(requesterId);
 
@@ -29,7 +33,9 @@ public class NoticeServiceAdapter implements NoticeServicePort {
     }
 
     @Override
-    public GetNoticeResponse adminGetNotice(String noticeId, String requesterId) {
+    public GetNoticeResponse adminGetNotice(String noticeId, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
+
         // 권한 체크
         userModule.isAdminUser(requesterId);
 
@@ -37,7 +43,9 @@ public class NoticeServiceAdapter implements NoticeServicePort {
     }
 
     @Override
-    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, NoticeFilterRequest filter, String requesterId) {
+    public PageResponse<ListNoticesResponse> adminListNotices(PageRequest page, NoticeFilterRequest filter, String sessionId) {
+        String requesterId = sessionModule.getKeystoneUserId(sessionId);
+
         // 권한 체크
         userModule.isAdminUser(requesterId);
         return noticeModule.adminListNotices(page, filter);

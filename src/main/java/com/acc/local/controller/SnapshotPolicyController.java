@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.SnapshotPolicyDocs;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyRequest;
 import com.acc.local.dto.snapshot.policy.SnapshotPolicyResponse;
@@ -29,9 +29,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, jwtInfo.getUserId(), projectId);
+        PageResponse<SnapshotPolicyResponse> response = policyServicePort.getPolicies(page, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -41,9 +39,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, jwtInfo.getUserId(), projectId);
+        SnapshotPolicyResponse response = policyServicePort.getPolicyDetails(policyId, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -53,9 +49,9 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
 
-        SnapshotPolicyResponse response = policyServicePort.createPolicy(request, jwtInfo.getUserId(), projectId);
+        SnapshotPolicyResponse response = policyServicePort.createPolicy(request, principal.getSessionId(), projectId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -66,9 +62,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, jwtInfo.getUserId(), projectId);
+        SnapshotPolicyResponse response = policyServicePort.updatePolicy(policyId, request, projectId);
         return ResponseEntity.ok(response);
     }
 
@@ -78,9 +72,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        policyServicePort.deletePolicy(policyId, jwtInfo.getUserId(), projectId);
+        policyServicePort.deletePolicy(policyId, projectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,9 +82,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        policyServicePort.deactivatePolicy(policyId, jwtInfo.getUserId(), projectId);
+        policyServicePort.deactivatePolicy(policyId, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -102,9 +92,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        policyServicePort.activatePolicy(policyId, jwtInfo.getUserId(), projectId);
+        policyServicePort.activatePolicy(policyId, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -116,9 +104,7 @@ public class SnapshotPolicyController implements SnapshotPolicyDocs {
             Authentication authentication,
             String projectId
     ) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-
-        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, jwtInfo.getUserId(), projectId);
+        PageResponse<SnapshotTaskResponse> response = policyServicePort.getPolicyRuns(policyId, since, page, projectId);
         return ResponseEntity.ok(response);
     }
 }

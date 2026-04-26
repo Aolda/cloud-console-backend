@@ -2,7 +2,7 @@ package com.acc.local.controller;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
-import com.acc.global.security.jwt.JwtInfo;
+import com.acc.global.security.session.SessionPrincipal;
 import com.acc.local.controller.docs.KeypairDocs;
 import com.acc.local.dto.keypair.CreateKeypairRequest;
 import com.acc.local.dto.keypair.CreateKeypairResponse;
@@ -22,28 +22,28 @@ public class KeypairController implements KeypairDocs {
 
     @Override
     public ResponseEntity<PageResponse<KeypairListResponse>> getKeypairs(Authentication authentication, PageRequest page, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, userId, projectId);
+        PageResponse<KeypairListResponse> response = keypairServicePort.getKeypairs(page, sessionId, projectId);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<CreateKeypairResponse> createKeypair(Authentication authentication, CreateKeypairRequest request, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        CreateKeypairResponse response = keypairServicePort.createKeypair(request, userId, projectId);
+        CreateKeypairResponse response = keypairServicePort.createKeypair(request, sessionId, projectId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
     public ResponseEntity<Object> deleteKeypair(Authentication authentication, String keypairId, String projectId) {
-        JwtInfo jwtInfo = (JwtInfo) authentication.getPrincipal();
-        String userId = jwtInfo.getUserId();
+        SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
+        String sessionId = principal.getSessionId();
 
-        keypairServicePort.deleteKeypair(keypairId, userId, projectId);
+        keypairServicePort.deleteKeypair(keypairId, sessionId, projectId);
         return ResponseEntity.noContent().build();
     }
 }

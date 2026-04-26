@@ -39,6 +39,18 @@ public class UserDbExtraEntity {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    @Column(name = "keycloak_user_id", length = 64, unique = true)
+    private String keycloakUserId;
+    // PK(user_id)는 여전히 keystoneUserId. Keycloak sub claim을 별도 저장.
+
+    @Column(name = "keystone_username", length = 128)
+    private String keystoneUsername;
+    // Keystone 로그인 name (email prefix: guswp320)
+
+    @Column(name = "keystone_password", length = 512)
+    private String keystonePassword;
+    // AES-256 암호화된 Keystone password
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

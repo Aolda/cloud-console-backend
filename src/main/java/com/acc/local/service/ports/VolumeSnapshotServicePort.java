@@ -7,8 +7,8 @@ import com.acc.local.dto.volume.snapshot.VolumeSnapshotResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface VolumeSnapshotServicePort {
-    PageResponse<VolumeSnapshotResponse> getSnapshots(PageRequest page, String userId, String projectId);
-    VolumeSnapshotResponse getSnapshotDetails(String userId, String projectId, String snapshotId);
-    ResponseEntity<Void> deleteSnapshot(String userId, String projectId, String snapshotId);
-    VolumeSnapshotResponse createSnapshot(String userId, String projectId, VolumeSnapshotRequest request);
+    PageResponse<VolumeSnapshotResponse> getSnapshots(PageRequest page, String sessionId, String projectId);
+    VolumeSnapshotResponse getSnapshotDetails(String sessionId, String projectId, String snapshotId);
+    ResponseEntity<Void> deleteSnapshot(String sessionId, String projectId, String snapshotId);
+    VolumeSnapshotResponse createSnapshot(String sessionId, String projectId, VolumeSnapshotRequest request);
 }

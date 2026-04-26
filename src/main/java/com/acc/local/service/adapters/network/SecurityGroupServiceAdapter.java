@@ -6,9 +6,9 @@ import com.acc.global.exception.network.NetworkErrorCode;
 import com.acc.global.exception.network.NetworkException;
 import com.acc.local.dto.network.CreateSecurityGroupRequest;
 import com.acc.local.dto.network.ViewSecurityGroupsResponse;
-import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.network.NetworkUtil;
 import com.acc.local.service.modules.network.NeutronModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.ports.SecurityGroupServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -19,13 +19,13 @@ import org.springframework.stereotype.Service;
 @Primary
 public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
 
-    private final AuthModule authModule;
+    private final SessionModule sessionModule;
     private final NetworkUtil networkUtil;
     private final NeutronModule neutronModule;
 
     @Override
-    public String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public String createSecurityGroup(CreateSecurityGroupRequest request, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         if (!networkUtil.validateResourceName(request.getSecurityGroupName())
         || networkUtil.isDefaultSecurityGroup(request.getSecurityGroupName())) {
@@ -36,8 +36,8 @@ public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
     }
 
     @Override
-    public PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(PageRequest page, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public PageResponse<ViewSecurityGroupsResponse> listSecurityGroups(PageRequest page, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return neutronModule.listSecurityGroups(token,
                 projectId,
@@ -47,8 +47,8 @@ public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
     }
 
     @Override
-    public ViewSecurityGroupsResponse getSecurityGroupDetail(PageRequest page, String securityGroupId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public ViewSecurityGroupsResponse getSecurityGroupDetail(PageRequest page, String securityGroupId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         return neutronModule.getSecurityGroupDetails(token,
                 securityGroupId,
@@ -58,8 +58,8 @@ public class SecurityGroupServiceAdapter implements SecurityGroupServicePort {
     }
 
     @Override
-    public void deleteSecurityGroup(String securityGroupId, String projectId, String userId) {
-        String token = authModule.issueProjectScopeToken(projectId, userId);
+    public void deleteSecurityGroup(String securityGroupId, String projectId, String sessionId) {
+        String token = sessionModule.getKeystoneScopedToken(sessionId, projectId);
 
         ViewSecurityGroupsResponse sg = neutronModule.getSecurityGroupDetails(
                 token,
