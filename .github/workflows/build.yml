@@ -82,5 +82,3 @@ jobs:
             APP_JAR=${{ steps.boot-jar.outputs.path }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
