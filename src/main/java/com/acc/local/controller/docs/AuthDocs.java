@@ -100,7 +100,7 @@ public interface AuthDocs {
     ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(
         @Parameter(hidden = true)
         Authentication authentication,
-        @RequestParam
+        @RequestParam(required = false)
         @Parameter(description = "프로젝트 ID", required = false)
         String projectId
     );
