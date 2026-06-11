@@ -6,7 +6,7 @@ import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotRequest;
 import com.acc.local.dto.volume.snapshot.VolumeSnapshotResponse;
-import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.modules.volume.snapshot.VolumeSnapshotModule;
 import com.acc.local.service.modules.volume.snapshot.VolumeSnapshotUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class VolumeSnapshotServiceAdapterTest {
     private VolumeSnapshotUtil volumeSnapshotUtil;
 
     @Mock
-    private AuthModule authModule;
+    private SessionModule sessionModule;
 
     @InjectMocks
     private VolumeSnapshotServiceAdapter volumeSnapshotServiceAdapter;
@@ -75,8 +75,8 @@ class VolumeSnapshotServiceAdapterTest {
                 .last(true)
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
-        when(volumeSnapshotModule.getSnapshots(eq(pageRequest), eq(projectId), eq(keystoneToken)))
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
+        when(volumeSnapshotModule.getSnapshots(eq(keystoneToken), eq(projectId), eq(pageRequest)))
                 .thenReturn(expectedResponse);
 
         // when
@@ -86,7 +86,7 @@ class VolumeSnapshotServiceAdapterTest {
         assertNotNull(actualResponse);
         assertEquals(2, actualResponse.getSize());
         assertEquals("snapshot-1", actualResponse.getContents().get(0).getSnapshotId());
-        verify(volumeSnapshotModule).getSnapshots(eq(pageRequest), eq(projectId), eq(keystoneToken));
+        verify(volumeSnapshotModule).getSnapshots(eq(keystoneToken), eq(projectId), eq(pageRequest));
     }
 
     @Test
@@ -107,7 +107,7 @@ class VolumeSnapshotServiceAdapterTest {
                 .createdAt("2025-01-01T00:00:00.000000")
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(snapshotId)).thenReturn(true);
         when(volumeSnapshotModule.getSnapshotDetails(eq(keystoneToken), eq(projectId), eq(snapshotId)))
                 .thenReturn(expectedSnapshot);
@@ -132,7 +132,7 @@ class VolumeSnapshotServiceAdapterTest {
         String keystoneToken = "test-keystone-token";
         String invalidSnapshotId = "invalid-id";
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(invalidSnapshotId)).thenReturn(false);
 
         // when & then
@@ -164,7 +164,7 @@ class VolumeSnapshotServiceAdapterTest {
                 .sourceVolumeId("b8f6a3b2-9d3a-4a6e-8b1e-2e4a6d8c2e1f")
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateVolumeId(request.getSourceVolumeId())).thenReturn(true);
         when(volumeSnapshotUtil.validateSnapshotName(request.getName())).thenReturn(true);
         when(volumeSnapshotModule.createSnapshot(eq(keystoneToken), eq(projectId), eq(request)))
@@ -214,7 +214,7 @@ class VolumeSnapshotServiceAdapterTest {
         String keystoneToken = "test-keystone-token";
         String snapshotId = "e1f2a3b4-c5d6-e7f8-a9b0-c1d2e3f4a5b6";
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeSnapshotUtil.validateSnapshotId(snapshotId)).thenReturn(true);
         when(volumeSnapshotModule.deleteSnapshot(eq(keystoneToken), eq(projectId), eq(snapshotId)))
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());

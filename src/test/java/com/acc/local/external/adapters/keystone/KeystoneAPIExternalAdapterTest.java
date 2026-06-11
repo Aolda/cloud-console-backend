@@ -7,9 +7,12 @@ import static org.mockito.Mockito.*;
 import java.util.Map;
 
 import com.acc.local.domain.enums.project.ProjectRole;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
+import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
+import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -222,19 +225,23 @@ class KeystoneAPIExternalAdapterTest {
 	void givenTokenAndUserRequest_whenCreateUser_thenReturnResponse() throws JsonProcessingException {
 		// given
 		String token = "test-token";
-		Map<String, Object> userRequest = Map.of("user", Map.of("name", "testUser"));
-		JsonNode responseBody = objectMapper.readTree("{\"user\": {\"id\": \"user-id\"}}");
+		CreateKeystoneUserRequest userRequest = CreateKeystoneUserRequest.builder()
+			.email("testUser@example.com")
+			.password("password")
+			.isEnable(true)
+			.build();
+		JsonNode responseBody = objectMapper.readTree("{\"user\": {\"id\": \"user-id\", \"name\": \"testUser\"}}");
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 
-		when(keystoneUserAPIModule.createUser(token, userRequest)).thenReturn(expectedResponse);
+		when(keystoneUserAPIModule.createUser(token, userRequest.toKeystoneRequest())).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.createUser(token, userRequest);
+		UserKeystoneDto result = keystoneAPIExternalAdapter.createUser(token, userRequest);
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.CREATED, result.getStatusCode());
-		verify(keystoneUserAPIModule).createUser(token, userRequest);
+		assertEquals("user-id", result.id());
+		verify(keystoneUserAPIModule).createUser(token, userRequest.toKeystoneRequest());
 	}
 
 	@Test
@@ -249,11 +256,11 @@ class KeystoneAPIExternalAdapterTest {
 		when(keystoneUserAPIModule.getUserDetail(userId, token)).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.getUserDetail(userId, token);
+		UserKeystoneDto result = keystoneAPIExternalAdapter.getUserDetail(userId, token);
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.OK, result.getStatusCode());
+		assertEquals(userId, result.id());
 		verify(keystoneUserAPIModule).getUserDetail(userId, token);
 	}
 
@@ -263,19 +270,22 @@ class KeystoneAPIExternalAdapterTest {
 		// given
 		String userId = "test-user-id";
 		String token = "test-token";
-		Map<String, Object> userRequest = Map.of("user", Map.of("name", "updatedUser"));
-		JsonNode responseBody = objectMapper.readTree("{\"user\": {\"id\": \"" + userId + "\"}}");
+		UpdateKeystoneUserRequest userRequest = UpdateKeystoneUserRequest.builder()
+			.email("updatedUser@example.com")
+			.isEnable(true)
+			.build();
+		JsonNode responseBody = objectMapper.readTree("{\"user\": {\"id\": \"" + userId + "\", \"name\": \"updatedUser\"}}");
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
-		when(keystoneUserAPIModule.updateUser(userId, token, userRequest)).thenReturn(expectedResponse);
+		when(keystoneUserAPIModule.updateUser(userId, token, userRequest.toKeystoneRequest())).thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.updateUser(userId, token, userRequest);
+		UserKeystoneDto result = keystoneAPIExternalAdapter.updateUser(userId, token, userRequest);
 
 		// then
 		assertNotNull(result);
-		assertEquals(HttpStatus.OK, result.getStatusCode());
-		verify(keystoneUserAPIModule).updateUser(userId, token, userRequest);
+		assertEquals(userId, result.id());
+		verify(keystoneUserAPIModule).updateUser(userId, token, userRequest.toKeystoneRequest());
 	}
 
 	@Test
@@ -284,16 +294,10 @@ class KeystoneAPIExternalAdapterTest {
 		// given
 		String userId = "test-user-id";
 		String token = "test-token";
-		JsonNode responseBody = objectMapper.readTree("{}");
-		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.NO_CONTENT);
-
-		when(keystoneUserAPIModule.deleteUser(userId, token)).thenReturn(expectedResponse);
-
 		// when
-		ResponseEntity<JsonNode> result = keystoneAPIExternalAdapter.deleteUser(userId, token);
+		keystoneAPIExternalAdapter.deleteUser(userId, token);
 
 		// then
-		assertNotNull(result);
 		verify(keystoneUserAPIModule).deleteUser(userId, token);
 	}
 
@@ -304,18 +308,21 @@ class KeystoneAPIExternalAdapterTest {
 	void givenTokenAndProjectRequest_whenCreateProject_thenReturnResponse() throws JsonProcessingException {
 		// given
 		String token = "test-token";
-		Map<String, Object> projectRequest = Map.of("project", Map.of("name", "testProject"));
-		JsonNode responseBody = objectMapper.readTree("{\"project\": {\"id\": \"project-id\"}}");
+		CreateKeystoneProjectRequest projectRequest = CreateKeystoneProjectRequest.builder()
+			.projectName("testProject")
+			.projectDescription("description")
+			.build();
+		JsonNode responseBody = objectMapper.readTree("{\"project\": {\"id\": \"project-id\", \"name\": \"testProject\"}}");
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.CREATED);
 
-		when(keystoneProjectAPIModule.createProject(token, projectRequest)).thenReturn(expectedResponse);
+		when(keystoneProjectAPIModule.createProject(token, projectRequest.toKeystoneRequest())).thenReturn(expectedResponse);
 
 		// when
-		KeystoneProject result = keystoneAPIExternalAdapter.createProject(token, CreateKeystoneProjectRequest.builder().build());
+		KeystoneProject result = keystoneAPIExternalAdapter.createProject(token, projectRequest);
 
 		// then
 		assertNotNull(result);
-		verify(keystoneProjectAPIModule).createProject(token, projectRequest);
+		verify(keystoneProjectAPIModule).createProject(token, projectRequest.toKeystoneRequest());
 	}
 
 	@Test
@@ -343,19 +350,21 @@ class KeystoneAPIExternalAdapterTest {
 		// given
 		String projectId = "test-project-id";
 		String token = "test-token";
-		Map<String, Object> projectRequest = Map.of("project", Map.of("name", "updatedProject"));
-		JsonNode responseBody = objectMapper.readTree("{\"project\": {\"id\": \"" + projectId + "\"}}");
+		UpdateKeystoneProjectRequest projectRequest = UpdateKeystoneProjectRequest.builder()
+			.name("updatedProject")
+			.build();
+		JsonNode responseBody = objectMapper.readTree("{\"project\": {\"id\": \"" + projectId + "\", \"name\": \"updatedProject\"}}");
 		ResponseEntity<JsonNode> expectedResponse = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
-		when(keystoneProjectAPIModule.updateProject(projectId, token, projectRequest)).thenReturn(expectedResponse);
+		when(keystoneProjectAPIModule.updateProject(projectId, token, projectRequest.toKeystoneRequest())).thenReturn(expectedResponse);
 
 		// when
-		KeystoneProject result = keystoneAPIExternalAdapter.updateProject(projectId, token, UpdateKeystoneProjectRequest.builder().build());
+		KeystoneProject result = keystoneAPIExternalAdapter.updateProject(projectId, token, projectRequest);
 
 		// then
 		assertNotNull(result);
-//		assertEquals(HttpStatus.OK, result.getStatusCode());
-		verify(keystoneProjectAPIModule).updateProject(projectId, token, projectRequest);
+	//		assertEquals(HttpStatus.OK, result.getStatusCode());
+		verify(keystoneProjectAPIModule).updateProject(projectId, token, projectRequest.toKeystoneRequest());
 	}
 
 	@Test
