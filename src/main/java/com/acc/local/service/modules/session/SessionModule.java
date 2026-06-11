@@ -1,21 +1,16 @@
 package com.acc.local.service.modules.session;
 
-import com.acc.global.exception.auth.AuthErrorCode;
-import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.session.SessionErrorCode;
 import com.acc.global.exception.session.SessionException;
-import com.acc.global.security.crypto.KeystonePasswordEncryptor;
 import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.KeystoneTokens;
 import com.acc.local.domain.model.session.SessionData;
-import com.acc.local.dto.auth.KeystonePasswordLoginRequest;
 import com.acc.local.dto.auth.KeystoneToken;
-import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keycloak.KeycloakTokenResponse;
 import com.acc.local.external.ports.KeycloakOidcExternalPort;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.SessionRepositoryPort;
-import com.acc.local.repository.ports.UserRepositoryPort;
+import com.acc.local.service.modules.auth.KeystoneTokenModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -51,10 +46,9 @@ import java.time.LocalDateTime;
 public class SessionModule {
 
     private final SessionRepositoryPort sessionRepositoryPort;
-    private final UserRepositoryPort userRepositoryPort;
     private final KeystoneAPIExternalPort keystoneAPIExternalPort;
     private final KeycloakOidcExternalPort keycloakOidcExternalPort;
-    private final KeystonePasswordEncryptor keystonePasswordEncryptor;
+    private final KeystoneTokenModule keystoneTokenModule;
 
     /**
      * 세션에서 Keystone unscoped token을 조회한다. 만료 시 자동 재발급.
@@ -145,20 +139,7 @@ public class SessionModule {
      */
     private String reissueKeystoneUnscopedToken(String sessionId, SessionData sessionData) {
         String keystoneUserId = sessionData.getKeystoneUserId();
-
-        UserDbExtraEntity userDetail = userRepositoryPort.findUserDetailById(keystoneUserId)
-                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.USER_NOT_FOUND));
-
-        if (userDetail.getKeystoneUsername() == null || userDetail.getKeystonePassword() == null) {
-            throw new AuthServiceException(AuthErrorCode.USER_NOT_FOUND,
-                    "Keystone credentials가 없습니다. keystoneUserId: " + keystoneUserId);
-        }
-
-        String plainPassword = keystonePasswordEncryptor.decrypt(userDetail.getKeystonePassword());
-        KeystonePasswordLoginRequest loginRequest = new KeystonePasswordLoginRequest(
-                userDetail.getKeystoneUsername(), plainPassword, "Default");
-
-        KeystoneToken newToken = keystoneAPIExternalPort.getUnscopedToken(loginRequest);
+        KeystoneToken newToken = keystoneTokenModule.issueUnscopedTokenByUserCredentials(keystoneUserId);
 
         // 세션의 keystoneTokens 갱신
         KeystoneTokens updatedKeystoneTokens = KeystoneTokens.builder()

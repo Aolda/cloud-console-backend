@@ -369,6 +369,27 @@ public class KeystoneAPIUtils {
         return authRequest;
     }
 
+    public static Map<String, Object> createProjectScopePasswordAuthRequest(
+            String projectId,
+            KeystonePasswordLoginRequest request
+    ) {
+        Map<String, Object> authRequest = new HashMap<>();
+        authRequest.put("auth", Map.of(
+                "identity", Map.of(
+                        "methods", List.of("password"),
+                        "password", Map.of(
+                                "user", Map.of(
+                                        "name", request.username(),
+                                        "domain", Map.of("name", request.domainName()),
+                                        "password", request.password()
+                                )
+                        )
+                ),
+                "scope", Map.of("project", Map.of("id", projectId))
+        ));
+        return authRequest;
+    }
+
     public static Map<String, Object> createTokenAuthRequest(String existingToken) {
         Map<String, Object> authRequest = new HashMap<>();
         authRequest.put("auth", Map.of(

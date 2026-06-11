@@ -17,6 +17,7 @@ import com.acc.local.dto.project.quota.QuotaGroup;
 import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.KeystoneTokenModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.modules.outbox.ProjectCreatedEvent;
@@ -42,6 +43,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	private final AuthModule authModule;
 	private final ProjectModule projectModule;
 	private final NeutronModule neutronModule;
+	private final KeystoneTokenModule keystoneTokenModule;
 	private final ApplicationEventPublisher eventPublisher;
 	private final SessionModule sessionModule;
 
@@ -51,14 +53,9 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		String userId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
-		log.info(adminToken);
 
 		try {
 			return createProjectFromProjectCreateDto(createProjectRequest.toProjectCreateDto(), userId, adminToken);
-		} catch(Exception e) {
-			authModule.invalidateSystemAdminToken(adminToken);
-			e.printStackTrace();
-			throw e;
 		} finally {
 			authModule.invalidateSystemAdminToken(adminToken);
 		}
@@ -77,8 +74,12 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 				adminToken
 		);
 
-		String projectOwnerScopedToken = authModule.issueProjectScopeToken(createdProjectId, projectOwnerId);
-		neutronModule.createDefaultNetwork(projectOwnerScopedToken);
+		String projectOwnerScopedToken = keystoneTokenModule.issueScopedTokenByUserCredentials(projectOwnerId, createdProjectId);
+		try {
+			neutronModule.createDefaultNetwork(projectOwnerScopedToken);
+		} finally {
+			keystoneTokenModule.revokeTokenQuietly(projectOwnerScopedToken);
+		}
 
 		// 프로젝트 생성 이벤트 발행
 		try {
@@ -157,49 +158,51 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		int appliedCount = 0;
 
 		List<ProjectRequestDto> projectRequestList = projectModule.getProjectRequestList(projectRequestIds);
-		for (ProjectRequestDto projectRequestDto: projectRequestList) {
-			String projectRequestId = projectRequestDto.projectRequestId();
-			if (!projectRequestDto.status().equals(ProjectRequestStatus.PENDING)) {
-				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail("이미 승인/반려여부가 결정된 프로젝트 요청입니다."));
-				continue;
-			}
-
-			try {
-				String createdProjectId = null;
-				if (decision == ProjectRequestStatus.APPROVED) {
-					CreateProjectResponse projectCreateResponse = createProjectFromProjectCreateDto(projectRequestDto.toProjectCreateDto(decidedUserId), decidedUserId, adminToken);
-					createdProjectId = projectCreateResponse.projectId();
+		try {
+			for (ProjectRequestDto projectRequestDto: projectRequestList) {
+				String projectRequestId = projectRequestDto.projectRequestId();
+				if (!projectRequestDto.status().equals(ProjectRequestStatus.PENDING)) {
+					projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail("이미 승인/반려여부가 결정된 프로젝트 요청입니다."));
+					continue;
 				}
 
-				projectModule.updateStatus(projectRequestId, decision, rejectReason);
-				log.info(String.format("Project result: %s (%s) / Decided by %s", decision, projectRequestId, decidedUserId));
-				appliedCount++;
+				try {
+					String createdProjectId = null;
+					if (decision == ProjectRequestStatus.APPROVED) {
+						CreateProjectResponse projectCreateResponse = createProjectFromProjectCreateDto(projectRequestDto.toProjectCreateDto(decidedUserId), decidedUserId, adminToken);
+						createdProjectId = projectCreateResponse.projectId();
+					}
 
-				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.success(createdProjectId));
+					projectModule.updateStatus(projectRequestId, decision, rejectReason);
+					log.info(String.format("Project result: %s (%s) / Decided by %s", decision, projectRequestId, decidedUserId));
+					appliedCount++;
 
-				// 프로젝트 요청 결정 이벤트 발행
-				publishProjectRequestDecisionEvent(
-					projectRequestDto,
-					decision,
-					rejectReason,
-					decidedUserId,
-					createdProjectId
-				);
-			} catch(Exception e) {
-				projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail(e.getMessage()));
-				log.error("Project Approve - Failed ({})", projectRequestId);
-				revertProjectDecision(projectRequestId, decidedUserId);
-				e.printStackTrace();
+					projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.success(createdProjectId));
+
+					// 프로젝트 요청 결정 이벤트 발행
+					publishProjectRequestDecisionEvent(
+						projectRequestDto,
+						decision,
+						rejectReason,
+						decidedUserId,
+						createdProjectId
+					);
+				} catch(Exception e) {
+					projectRequestAppliedResults.put(projectRequestId, DecisionApplyInfo.fail(e.getMessage()));
+					log.error("Project Approve - Failed ({})", projectRequestId, e);
+					revertProjectDecision(projectRequestId, decidedUserId, adminToken, e);
+				}
 			}
-		}
-		authModule.invalidateSystemAdminToken(adminToken);
 
-		return DecideProjectRequestResponse.builder()
-				.requested(projectRequestIds.size())
-				.acknowledged(projectRequestList.size())
-				.applied(appliedCount)
-				.data(projectRequestAppliedResults)
-				.build();
+			return DecideProjectRequestResponse.builder()
+					.requested(projectRequestIds.size())
+					.acknowledged(projectRequestList.size())
+					.applied(appliedCount)
+					.data(projectRequestAppliedResults)
+					.build();
+		} finally {
+			authModule.invalidateSystemAdminToken(adminToken);
+		}
 	}
 
 	/**
@@ -236,32 +239,39 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		}
 	}
 
-    private void revertProjectDecision(String projectRequestId, String approvedUserId) {
-		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(approvedUserId);
-		try {
-			ProjectRequestDto projectRequest = projectModule.getProjectRequest(projectRequestId);
+    private void revertProjectDecision(
+			String projectRequestId,
+			String approvedUserId,
+			String adminToken,
+			Exception originalException
+	) {
+			try {
+				ProjectRequestDto projectRequest = projectModule.getProjectRequest(projectRequestId);
 
-			ProjectListServiceDto searchedProjectList = projectModule.getProjectList(projectRequest.projectName(), null, adminToken);
-			for (ProjectServiceDto projectDto: searchedProjectList.projects()) {
+				ProjectListServiceDto searchedProjectList = projectModule.getProjectList(projectRequest.projectName(), null, adminToken);
+				for (ProjectServiceDto projectDto: searchedProjectList.projects()) {
 				if (!projectDto.description().equals(
 						ProjectRequestDto.getProjectDescriptionMessage(projectRequest.projectRequestId(), approvedUserId)
 				)) {
 					continue;
 				}
 
-				String projectId = projectDto.projectId();
-				projectModule.deleteProject(projectId, approvedUserId);
-			}
+					String projectId = projectDto.projectId();
+					projectModule.deleteProjectWithToken(projectId, adminToken);
+				}
 
-			if (!projectRequest.status().equals(ProjectRequestStatus.PENDING)) {
-				projectModule.revertStatus(projectRequestId);
-			}
+				if (!projectRequest.status().equals(ProjectRequestStatus.PENDING)) {
+					projectModule.revertStatus(projectRequestId);
+				}
 
-		} catch (Exception e) {
-			throw new AuthServiceException(AuthErrorCode.KEYSTONE_API_FAILURE, "Openstack 프로젝트 정합성 복구에 실패했습니다");
-		} finally {
-			authModule.invalidateSystemAdminToken(adminToken);
-		}
+			} catch (Exception e) {
+				e.addSuppressed(originalException);
+				throw new AuthServiceException(
+						AuthErrorCode.KEYSTONE_API_FAILURE,
+						"Openstack 프로젝트 정합성 복구에 실패했습니다",
+						e
+				);
+			}
     }
 
 	@Override
@@ -269,15 +279,25 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
 
-		KeystoneProject updatedProject = projectModule.updateProject(projectId, updateProjectRequest, requesterId);
-		return UpdateProjectResponse.from(updatedProject);
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requesterId);
+		try {
+			KeystoneProject updatedProject = projectModule.updateProjectWithToken(projectId, updateProjectRequest, adminToken);
+			return UpdateProjectResponse.from(updatedProject);
+		} finally {
+			authModule.invalidateSystemAdminToken(adminToken);
+		}
 	}
 
 	@Override
 	public void deleteProject(String projectId, String sessionId) {
 		String requesterId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: requesterId를 통해, 요청을 보낸 사람이 Root or 해당 프로젝트 권한이 있는지 확인
-		projectModule.deleteProject(projectId, requesterId);
+		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requesterId);
+		try {
+			projectModule.deleteProjectWithToken(projectId, adminToken);
+		} finally {
+			authModule.invalidateSystemAdminToken(adminToken);
+		}
 	}
 
 	@Override
@@ -290,7 +310,6 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 		String requestUserId = sessionModule.getKeystoneUserId(sessionId);
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(requestUserId);
-		log.info(adminToken);
 
 		try {
 			ProjectListServiceDto projectServiceDataList = projectModule.getProjectList(keyword, pageRequest, adminToken);
