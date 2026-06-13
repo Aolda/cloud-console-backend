@@ -1,5 +1,6 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,6 +12,9 @@ public record CreateProjectRequest(
         @Schema(description = "프로젝트 설명", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String projectDescription,
 
+        @Schema(description = "프로젝트 유형", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        ProjectRequestType projectType,
+
 		@Schema(description = "프로젝트 가용량", requiredMode = Schema.RequiredMode.REQUIRED)
         ProjectQuotaRequest quota,
 
@@ -21,6 +25,7 @@ public record CreateProjectRequest(
         return ProjectCreateDto.builder()
                 .projectName(projectName)
                 .projectDescription(projectDescription)
+                .projectType(projectType)
                 .quota(quota)
                 .projectOwnerId(projectOwnerId)
                 .build();
