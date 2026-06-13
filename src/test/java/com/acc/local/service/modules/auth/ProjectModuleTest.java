@@ -81,7 +81,7 @@ class ProjectModuleTest {
     }
 
     @Test
-    @DisplayName("프로젝트 요청 목록은 marker offset부터 조회하고 이전 페이지 marker를 반환한다.")
+    @DisplayName("프로젝트 요청 목록은 marker offset부터 조회하고 direction=prev용 이전 페이지 marker를 반환한다.")
     void givenMarker_whenGetProjectRequestListForUser_thenReadFromOffset() {
         PageRequest pageRequest = new PageRequest();
         pageRequest.setMarker("Mg==");
@@ -96,8 +96,31 @@ class ProjectModuleTest {
         assertThat(result.pagination().isFirst()).isFalse();
         assertThat(result.pagination().isLast()).isTrue();
         assertThat(result.pagination().nextMarker()).isNull();
-        assertThat(result.pagination().prevMarker()).isEqualTo("MA==");
+        assertThat(result.pagination().prevMarker()).isEqualTo("Mg==");
         verify(projectRequestRepositoryPort).findAllByKeywordAndRequestUserId("issue30", "owner-id", 2, 2);
+    }
+
+    @Test
+    @DisplayName("프로젝트 요청 목록은 direction=prev이면 marker 이전 페이지 offset부터 조회한다.")
+    void givenPrevDirection_whenGetProjectRequestList_thenReadPreviousPageOffset() {
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setMarker("NA==");
+        pageRequest.setLimit(2);
+        pageRequest.setDirection(PageRequest.Direction.prev);
+        List<ProjectRequestEntity> previousPage = List.of(entity("request-3"), entity("request-4"));
+
+        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 2, 2)).willReturn(previousPage);
+        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 4, 1)).willReturn(List.of(entity("request-5")));
+
+        ProjectRequestListServiceDto result = projectModule.getProjectRequestList("issue30", pageRequest);
+
+        assertThat(result.projectRequests()).hasSize(2);
+        assertThat(result.pagination().isFirst()).isFalse();
+        assertThat(result.pagination().isLast()).isFalse();
+        assertThat(result.pagination().nextMarker()).isEqualTo("NA==");
+        assertThat(result.pagination().prevMarker()).isEqualTo("Mg==");
+        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 2, 2);
+        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 4, 1);
     }
 
     private ProjectRequestEntity entity(String id) {

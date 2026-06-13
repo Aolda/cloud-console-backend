@@ -93,7 +93,7 @@ public class ProjectModule {
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
 		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
-		int offset = PaginationUtils.decodeOffsetMarker(normalized.getMarker());
+		int offset = resolveProjectRequestOffset(normalized);
 		int size = normalized.getLimit();
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(
@@ -113,7 +113,7 @@ public class ProjectModule {
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest, String requestUserId) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
 		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
-		int offset = PaginationUtils.decodeOffsetMarker(normalized.getMarker());
+		int offset = resolveProjectRequestOffset(normalized);
 		int size = normalized.getLimit();
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeywordAndRequestUserId(
@@ -128,6 +128,14 @@ public class ProjectModule {
 			offset,
 			hasNext
 		);
+	}
+
+	private int resolveProjectRequestOffset(PageRequest pageRequest) {
+		int markerOffset = PaginationUtils.decodeOffsetMarker(pageRequest.getMarker());
+		if (PaginationUtils.isPrevious(pageRequest) && pageRequest.getMarker() != null) {
+			return Math.max(markerOffset - pageRequest.getLimit(), 0);
+		}
+		return markerOffset;
 	}
 
 	public ProjectRequestDto getProjectRequest(String projectRequestId) {

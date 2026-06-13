@@ -44,6 +44,10 @@ public final class PaginationUtils {
         return normalize(request).getLimit() == 0;
     }
 
+    public static boolean isPrevious(PageRequest request) {
+        return normalize(request).getDirection() == PageRequest.Direction.prev;
+    }
+
     public static int decodeOffsetMarker(String marker) {
         String normalizedMarker = normalizeMarker(marker);
         if (normalizedMarker == null) {

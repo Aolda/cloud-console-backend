@@ -1,9 +1,9 @@
 package com.acc.local.dto.project;
 
+import java.util.List;
+
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PaginationUtils;
-
-import java.util.List;
 
 import lombok.Builder;
 
@@ -18,13 +18,11 @@ public record ProjectRequestListServiceDto(
 		int currentOffset,
 		boolean hasNext
 	) {
-		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
-		int previousOffset = Math.max(currentOffset - normalized.getLimit(), 0);
 		String nextMarker = hasNext
 			? PaginationUtils.encodeOffsetMarker(currentOffset + savedProjectRequestList.size())
 			: null;
 		String prevMarker = currentOffset > 0
-			? PaginationUtils.encodeOffsetMarker(previousOffset)
+			? PaginationUtils.encodeOffsetMarker(currentOffset)
 			: null;
 
 		RepositoryPagination projectRequestPaginationInfo = RepositoryPagination.builder()

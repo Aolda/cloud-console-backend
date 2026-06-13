@@ -421,7 +421,7 @@ class KeystoneAPIExternalAdapterTest {
 	}
 
 	@Test
-	@DisplayName("사용자 프로젝트 목록 조회 시 marker query map을 누락하지 않는다")
+	@DisplayName("사용자 프로젝트 목록 조회 시 marker query map을 누락하지 않고 응답 첫 항목을 prevMarker로 반환한다")
 	void givenMarkerPageRequest_whenGetUserProjectsByProjectName_thenPassMarkerQuery() throws JsonProcessingException {
 		String token = "test-token";
 		String userId = "user-id";
@@ -443,13 +443,60 @@ class KeystoneAPIExternalAdapterTest {
 		assertFalse(result.pageInfo().isFirst());
 		assertTrue(result.pageInfo().isLast());
 		assertNull(result.pageInfo().nextMarker());
-		assertEquals("project-0", result.pageInfo().prevMarker());
+		assertEquals("project-2", result.pageInfo().prevMarker());
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 		verify(keystoneProjectAPIModule).getProjectsUser(eq(token), eq(userId), captor.capture());
 		assertEquals("issue30", captor.getValue().get("name"));
 		assertEquals("project-1", captor.getValue().get("marker"));
 		assertEquals("1", captor.getValue().get("limit"));
+	}
+
+	@Test
+	@DisplayName("관리자 프로젝트 목록은 direction=prev이면 현재 페이지 첫 marker 이전 페이지를 반환한다")
+	void givenPrevDirection_whenGetProjectsByProjectName_thenReturnPreviousProjectPage() throws JsonProcessingException {
+		String token = "test-token";
+		PageRequest pageRequest = new PageRequest();
+		pageRequest.setMarker("project-3");
+		pageRequest.setLimit(2);
+		pageRequest.setDirection(PageRequest.Direction.prev);
+		JsonNode firstPageBody = objectMapper.readTree(
+			"{\"projects\":[" +
+				"{\"id\":\"project-1\",\"name\":\"issue30-1\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}," +
+				"{\"id\":\"project-2\",\"name\":\"issue30-2\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/projects?limit=2\"," +
+				"\"next\":\"http://keystone/v3/projects?marker=project-2&limit=2\"," +
+				"\"previous\":null}}"
+		);
+		JsonNode currentPageBody = objectMapper.readTree(
+			"{\"projects\":[" +
+				"{\"id\":\"project-3\",\"name\":\"issue30-3\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}," +
+				"{\"id\":\"project-4\",\"name\":\"issue30-4\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/projects?marker=project-2&limit=2\"," +
+				"\"next\":\"http://keystone/v3/projects?marker=project-4&limit=2\"," +
+				"\"previous\":null}}"
+		);
+		ResponseEntity<JsonNode> firstPageResponse = new ResponseEntity<>(firstPageBody, HttpStatus.OK);
+		ResponseEntity<JsonNode> currentPageResponse = new ResponseEntity<>(currentPageBody, HttpStatus.OK);
+		when(keystoneProjectAPIModule.getProjects(eq(token), anyMap()))
+			.thenReturn(firstPageResponse, currentPageResponse);
+
+		ProjectListDto result = keystoneAPIExternalAdapter.getProjectsByProjectName("issue30", pageRequest, token);
+
+		assertEquals(2, result.projectList().size());
+		assertEquals("project-1", result.projectList().get(0).getId());
+		assertEquals("project-2", result.projectList().get(1).getId());
+		assertTrue(result.pageInfo().isFirst());
+		assertFalse(result.pageInfo().isLast());
+		assertEquals("project-2", result.pageInfo().nextMarker());
+		assertNull(result.pageInfo().prevMarker());
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(keystoneProjectAPIModule, times(2)).getProjects(eq(token), captor.capture());
+		assertEquals("issue30", captor.getAllValues().get(0).get("name"));
+		assertEquals("2", captor.getAllValues().get(0).get("limit"));
+		assertFalse(captor.getAllValues().get(0).containsKey("marker"));
+		assertEquals("project-2", captor.getAllValues().get(1).get("marker"));
 	}
 
 	// ===== Role Methods =====
