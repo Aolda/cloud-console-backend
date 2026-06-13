@@ -250,11 +250,12 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 
 				ProjectListServiceDto searchedProjectList = projectModule.getProjectList(projectRequest.projectName(), null, adminToken);
 				for (ProjectServiceDto projectDto: searchedProjectList.projects()) {
-				if (!projectDto.description().equals(
-						ProjectRequestDto.getProjectDescriptionMessage(projectRequest.projectRequestId(), approvedUserId)
-				)) {
-					continue;
-				}
+					if (!Objects.equals(
+							projectDto.description(),
+							ProjectRequestDto.getProjectDescriptionMessage(projectRequest.projectRequestId(), approvedUserId)
+					)) {
+						continue;
+					}
 
 					String projectId = projectDto.projectId();
 					projectModule.deleteProjectWithToken(projectId, adminToken);
