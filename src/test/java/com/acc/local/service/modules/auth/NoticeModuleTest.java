@@ -204,4 +204,25 @@ class NoticeModuleTest {
 
         verify(noticeRepositoryPort).findAllNotices(eq("n2"), eq("next"), eq(10), any());
     }
+
+    @Test
+    @DisplayName("공지사항 목록은 PageRequest가 null이어도 기본 페이지 값으로 조회한다.")
+    void whenAdminListNoticesWithNullPage_thenUseDefaultPageRequest() {
+        PageResponse<ListNoticesResponse> mockResponse = PageResponse.<ListNoticesResponse>builder()
+                .contents(List.of())
+                .first(true)
+                .last(true)
+                .size(0)
+                .nextMarker(null)
+                .prevMarker(null)
+                .build();
+        when(noticeRepositoryPort.findAllNotices(eq(null), eq("next"), eq(10), any()))
+                .thenReturn(mockResponse);
+
+        PageResponse<ListNoticesResponse> response = noticeModule.adminListNotices(null, null);
+
+        assertTrue(response.getFirst());
+        assertTrue(response.getLast());
+        verify(noticeRepositoryPort).findAllNotices(eq(null), eq("next"), eq(10), any());
+    }
 }

@@ -1,9 +1,15 @@
 package com.acc.local.service.adapters.project;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PageResponse;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.DecideProjectRequestResponse;
 import com.acc.local.dto.project.ProjectListServiceDto;
 import com.acc.local.dto.project.ProjectRequestDto;
+import com.acc.local.dto.project.ProjectRequestListServiceDto;
+import com.acc.local.dto.project.ProjectRequestResponse;
+import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
 import com.acc.local.external.dto.keystone.KeystoneProject;
@@ -20,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +61,40 @@ class AdminProjectServiceAdapterTest {
 
     @InjectMocks
     private AdminProjectServiceAdapter adminProjectServiceAdapter;
+
+    @Test
+    @DisplayName("관리자 프로젝트 요청 목록은 모듈 pagination 정보를 API 응답으로 보존한다.")
+    void givenProjectRequestPagination_whenGetProjectRequests_thenReturnMarkers() {
+        String sessionId = "session-id";
+        String adminUserId = "admin-user-id";
+        String ownerUserId = "owner-user-id";
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setLimit(2);
+        ProjectRequestDto request = createPendingProjectRequest(ownerUserId);
+        ProjectRequestListServiceDto listServiceDto = ProjectRequestListServiceDto.builder()
+                .pagination(RepositoryPagination.builder()
+                        .isFirst(true)
+                        .isLast(false)
+                        .nextMarker("Mg==")
+                        .prevMarker(null)
+                        .build())
+                .projectRequests(List.of(request))
+                .build();
+
+        given(sessionModule.getKeystoneUserId(sessionId)).willReturn(adminUserId);
+        given(projectModule.getProjectRequestList("issue30", pageRequest)).willReturn(listServiceDto);
+        given(authModule.getUserDetail(ownerUserId, adminUserId))
+                .willReturn(UserKeystoneDto.builder().id(ownerUserId).name("owner@ajou.ac.kr").build());
+
+        PageResponse<ProjectRequestResponse> response =
+                adminProjectServiceAdapter.getProjectRequests("issue30", pageRequest, sessionId);
+
+        assertThat(response.getContents()).hasSize(1);
+        assertThat(response.getFirst()).isTrue();
+        assertThat(response.getLast()).isFalse();
+        assertThat(response.getNextMarker()).isEqualTo("Mg==");
+        assertThat(response.getPrevMarker()).isNull();
+    }
 
     @Test
     @DisplayName("프로젝트 요청 승인 시 프로젝트 소유자 credential로 작업용 스코프 토큰을 발급한다.")
@@ -128,6 +169,7 @@ class AdminProjectServiceAdapterTest {
                 .requestUserId(ownerUserId)
                 .description("description")
                 .status(ProjectRequestStatus.PENDING)
+                .createdAt(LocalDateTime.now())
                 .projectBrief(ProjectGlobalQuotaDto.getDefault())
                 .build();
     }

@@ -6,8 +6,10 @@ import static org.mockito.Mockito.*;
 
 import java.util.Map;
 
+import com.acc.global.common.PageRequest;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
+import com.acc.local.dto.project.ProjectListDto;
 import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
@@ -16,6 +18,7 @@ import com.acc.local.external.dto.keystone.UpdateKeystoneUserRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -384,6 +387,69 @@ class KeystoneAPIExternalAdapterTest {
 		// then
 //		assertNotNull(result);
 		verify(keystoneProjectAPIModule).deleteProject(projectId, token);
+	}
+
+	@Test
+	@DisplayName("프로젝트 목록 조회 시 PageRequest를 Keystone query로 변환하고 next marker만 파싱한다")
+	void givenPageRequest_whenGetProjectsByProjectName_thenUseMarkerQueryAndParseLinks() throws JsonProcessingException {
+		String token = "test-token";
+		PageRequest pageRequest = new PageRequest();
+		pageRequest.setLimit(1);
+		JsonNode responseBody = objectMapper.readTree(
+			"{\"projects\":[{\"id\":\"project-1\",\"name\":\"issue30\",\"description\":\"\"," +
+				"\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/projects?limit=1\"," +
+				"\"next\":\"http://keystone/v3/projects?marker=project-1&limit=1\"," +
+				"\"previous\":null}}"
+		);
+		ResponseEntity<JsonNode> response = new ResponseEntity<>(responseBody, HttpStatus.OK);
+		when(keystoneProjectAPIModule.getProjects(eq(token), anyMap())).thenReturn(response);
+
+		ProjectListDto result = keystoneAPIExternalAdapter.getProjectsByProjectName("issue30", pageRequest, token);
+
+		assertEquals(1, result.projectList().size());
+		assertTrue(result.pageInfo().isFirst());
+		assertFalse(result.pageInfo().isLast());
+		assertEquals("project-1", result.pageInfo().nextMarker());
+		assertNull(result.pageInfo().prevMarker());
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(keystoneProjectAPIModule).getProjects(eq(token), captor.capture());
+		assertEquals("issue30", captor.getValue().get("name"));
+		assertEquals("1", captor.getValue().get("limit"));
+		assertFalse(captor.getValue().containsKey("marker"));
+	}
+
+	@Test
+	@DisplayName("사용자 프로젝트 목록 조회 시 marker query map을 누락하지 않는다")
+	void givenMarkerPageRequest_whenGetUserProjectsByProjectName_thenPassMarkerQuery() throws JsonProcessingException {
+		String token = "test-token";
+		String userId = "user-id";
+		PageRequest pageRequest = new PageRequest();
+		pageRequest.setMarker("project-1");
+		pageRequest.setLimit(1);
+		JsonNode responseBody = objectMapper.readTree(
+			"{\"projects\":[{\"id\":\"project-2\",\"name\":\"issue30\",\"description\":\"\"," +
+				"\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/users/user-id/projects?marker=project-1&limit=1\"," +
+				"\"next\":null," +
+				"\"previous\":\"http://keystone/v3/users/user-id/projects?marker=project-0&limit=1\"}}"
+		);
+		ResponseEntity<JsonNode> response = new ResponseEntity<>(responseBody, HttpStatus.OK);
+		when(keystoneProjectAPIModule.getProjectsUser(eq(token), eq(userId), anyMap())).thenReturn(response);
+
+		ProjectListDto result = keystoneAPIExternalAdapter.getUserProjectsByProjectName("issue30", pageRequest, userId, token);
+
+		assertFalse(result.pageInfo().isFirst());
+		assertTrue(result.pageInfo().isLast());
+		assertNull(result.pageInfo().nextMarker());
+		assertEquals("project-0", result.pageInfo().prevMarker());
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(keystoneProjectAPIModule).getProjectsUser(eq(token), eq(userId), captor.capture());
+		assertEquals("issue30", captor.getValue().get("name"));
+		assertEquals("project-1", captor.getValue().get("marker"));
+		assertEquals("1", captor.getValue().get("limit"));
 	}
 
 	// ===== Role Methods =====

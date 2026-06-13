@@ -1,5 +1,7 @@
 package com.acc.local.external.modules.keystone;
 
+import com.acc.global.common.PageRequest;
+import com.acc.global.common.PaginationUtils;
 import com.acc.local.domain.enums.auth.KeystoneTokenType;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.external.dto.OpenstackPagination;
@@ -418,11 +420,12 @@ public class KeystoneAPIUtils {
         return tokenTaskHeader;
     }
 
-    public static Map<String, String> createKeystoneListProjectRequest(String projectName, String marker, int limit) {
+    public static Map<String, String> createKeystoneListProjectRequest(String projectName, String marker, Integer limit) {
         Map<String, String> request = new HashMap<>();
         if (projectName != null) request.put("name", projectName);
-        request.put("marker", marker);
-        request.put("limit", String.valueOf(limit));
+        String normalizedMarker = PaginationUtils.normalizeMarker(marker);
+        if (normalizedMarker != null) request.put("marker", normalizedMarker);
+        if (limit != null) request.put("limit", String.valueOf(limit));
 
         return request;
     }
@@ -564,19 +567,28 @@ public class KeystoneAPIUtils {
         return responseProjects;
     }
 
-    public static OpenstackPagination getPaginateInfo(ResponseEntity<JsonNode> response, String prevMarker, boolean isLast) {
+    public static OpenstackPagination getPaginateInfo(ResponseEntity<JsonNode> response, PageRequest pageRequest) {
         JsonNode body = validateAndExtractBody(response);
         if (!body.has("links")) {
             return null;
         }
 
         JsonNode projects = getObjectValue(body, "links");
+        PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+        String requestMarker = normalized.getMarker();
+        String nextMarker = extractMarkerFromLink(projects, "next");
+        String prevMarker = extractMarkerFromLink(projects, "previous");
+
         return OpenstackPagination.builder()
-            .isFirst(projects.get("self").asText("").contains("marker"))
-            .isLast(isLast)
-            .nextMarker(projects.get("next").asText(""))
+            .isFirst(requestMarker == null)
+            .isLast(nextMarker == null)
+            .nextMarker(nextMarker)
             .prevMarker(prevMarker)
             .build();
+    }
+
+    public static OpenstackPagination getPaginateInfo(ResponseEntity<JsonNode> response, String prevMarker, boolean isLast) {
+        return getPaginateInfo(response, null);
     }
     private static String extractMarkerFromLink(JsonNode linksNode, String linkType) {
         if (linksNode == null || !linksNode.has(linkType)) {

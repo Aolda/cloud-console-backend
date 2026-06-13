@@ -2,6 +2,7 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -147,14 +149,18 @@ public class UserModule {
      */
     @Transactional(readOnly = true)
     public PageResponse<User> adminListUsers(PageRequest page, String adminToken) {
+        PageRequest normalized = PaginationUtils.normalize(page);
         List<User> validUsers = new ArrayList<>();
-        String currentMarker = page.getMarker();
+        String currentMarker = normalized.getMarker();
         String lastNextMarker = null;
+        boolean fetchAll = PaginationUtils.isFetchAll(normalized);
+        int requestLimit = normalized.getLimit();
+        int keystoneLimit = fetchAll ? PaginationUtils.DEFAULT_LIMIT : requestLimit;
 
         // 요청한 개수를 채울 때까지 반복 조회
-        while (validUsers.size() < page.getLimit()) {
+        while (fetchAll || validUsers.size() < requestLimit) {
             UserListResponse keystoneResponse = keystoneAPIExternalPort.listUsers(
-                    adminToken, currentMarker, page.getLimit()
+                    adminToken, currentMarker, keystoneLimit
             );
 
             // Keystone 사용자들을 필터링하여 User 도메인 모델로 변환
@@ -164,20 +170,21 @@ public class UserModule {
             lastNextMarker = keystoneResponse.getNextMarker();
 
             // Keystone에 더 이상 데이터가 없으면 중단
-            if (lastNextMarker == null) {
+            if (lastNextMarker == null || Objects.equals(currentMarker, lastNextMarker)) {
+                lastNextMarker = null;
                 break;
             }
 
             // 요청한 개수를 채웠으면 중단
-            if (validUsers.size() >= page.getLimit()) {
-                validUsers = validUsers.subList(0, page.getLimit());
+            if (!fetchAll && validUsers.size() >= requestLimit) {
+                validUsers = validUsers.subList(0, requestLimit);
                 break;
             }
 
             currentMarker = lastNextMarker;
         }
 
-        return buildUserPageResponse(validUsers, page.getMarker(), lastNextMarker);
+        return buildUserPageResponse(validUsers, normalized.getMarker(), fetchAll ? null : lastNextMarker);
     }
 
     /**
@@ -229,11 +236,11 @@ public class UserModule {
 
         return PageResponse.<User>builder()
                 .contents(users)
-                .first(requestMarker == null || requestMarker.isEmpty())
+                .first(PaginationUtils.normalizeMarker(requestMarker) == null)
                 .last(nextMarker == null)
                 .size(users.size())
                 .nextMarker(nextMarker)
-                .prevMarker(requestMarker)
+                .prevMarker(PaginationUtils.normalizeMarker(requestMarker))
                 .build();
     }
 
@@ -262,15 +269,19 @@ public class UserModule {
      */
     @Transactional(readOnly = true)
     public PageResponse<User> adminListUsersViaRoleAssignments(PageRequest page, String adminToken) {
+        PageRequest normalized = PaginationUtils.normalize(page);
         List<User> validUsers = new ArrayList<>();
-        String currentMarker = page.getMarker();
+        String currentMarker = normalized.getMarker();
         String lastNextMarker = null;
+        boolean fetchAll = PaginationUtils.isFetchAll(normalized);
+        int requestLimit = normalized.getLimit();
+        int keystoneLimit = fetchAll ? PaginationUtils.DEFAULT_LIMIT : requestLimit;
 
         // 요청한 개수를 채울 때까지 반복 조회
-        while (validUsers.size() < page.getLimit()) {
+        while (fetchAll || validUsers.size() < requestLimit) {
             // 1. Role Assignments API로 모든 권한이 할당된 사용자 조회
             Map<String, String> filters = KeystoneAPIUtils.createKeystoneRoleAssignmentsFilters(
-                    currentMarker, page.getLimit()
+                    currentMarker, keystoneLimit
             );
 
             RoleAssignmentListResponse roleAssignmentResponse = keystoneAPIExternalPort
@@ -286,20 +297,21 @@ public class UserModule {
             lastNextMarker = roleAssignmentResponse.getNextMarker();
 
             // Keystone에 더 이상 데이터가 없으면 중단
-            if (lastNextMarker == null) {
+            if (lastNextMarker == null || Objects.equals(currentMarker, lastNextMarker)) {
+                lastNextMarker = null;
                 break;
             }
 
             // 요청한 개수를 채웠으면 중단
-            if (validUsers.size() >= page.getLimit()) {
-                validUsers = validUsers.subList(0, page.getLimit());
+            if (!fetchAll && validUsers.size() >= requestLimit) {
+                validUsers = validUsers.subList(0, requestLimit);
                 break;
             }
 
             currentMarker = lastNextMarker;
         }
 
-        return buildUserPageResponse(validUsers, page.getMarker(), lastNextMarker);
+        return buildUserPageResponse(validUsers, normalized.getMarker(), fetchAll ? null : lastNextMarker);
     }
 
     /**

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.JwtAuthenticationException;
@@ -324,16 +325,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String token) {
 		try {
-			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
-			if (keyword != null) {
-				keystoneListProjectRequest = Collections.singletonMap("name", keyword);
-			}
-			if (pageRequest != null) {
-				keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
 					keyword,
-					pageRequest.getMarker(), pageRequest.getLimit()
-				);
-			}
+					normalized.getMarker(),
+					normalized.getLimit()
+			);
 
 			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjects(
 				token,
@@ -341,7 +338,7 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			);
 
 			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
-			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
+			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, normalized);
 
 			return ProjectListDto.from(keystoneProjects, projectsPagination);
 		} catch (WebClientResponseException e) {
@@ -362,10 +359,11 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	public ProjectListDto getUserProjectsByProjectName(String keyword, PageRequest pageRequest, String requestUserId, String token) {
 
 		try {
-			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
-			if (pageRequest != null) KeystoneAPIUtils.createKeystoneListProjectRequest(
-				keyword,
-				pageRequest.getMarker(), pageRequest.getLimit()
+			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+					keyword,
+					normalized.getMarker(),
+					normalized.getLimit()
 			);
 
 			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjectsUser(
@@ -375,7 +373,7 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			);
 
 			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
-			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
+			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, normalized);
 
 			return ProjectListDto.from(keystoneProjects, projectsPagination);
 		} catch (WebClientResponseException e) {
