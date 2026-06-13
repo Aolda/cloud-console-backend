@@ -61,7 +61,7 @@ public class KeystoneTokenModule {
     private void validateCredentials(UserDbExtraEntity user, String userId) {
         if (user.getKeystoneUsername() == null || user.getKeystonePassword() == null) {
             throw new AuthServiceException(
-                    AuthErrorCode.USER_NOT_FOUND,
+                    AuthErrorCode.NOT_FOUND_USER_AUTH_INFO,
                     "Keystone credentials가 없습니다. userId: " + userId
             );
         }
