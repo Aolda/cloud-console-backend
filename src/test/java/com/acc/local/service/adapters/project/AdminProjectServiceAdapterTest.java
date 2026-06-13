@@ -1,6 +1,8 @@
 package com.acc.local.service.adapters.project;
 
+import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.dto.project.ProjectCreateDto;
 import com.acc.local.dto.project.DecideProjectRequestResponse;
 import com.acc.local.dto.project.ProjectListServiceDto;
 import com.acc.local.dto.project.ProjectRequestDto;
@@ -30,6 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class AdminProjectServiceAdapterTest {
@@ -84,6 +87,10 @@ class AdminProjectServiceAdapterTest {
         then(keystoneTokenModule).should().revokeTokenQuietly(ownerToken);
         then(authModule).should(never()).issueProjectScopeToken(anyString(), anyString());
         then(authModule).should().invalidateSystemAdminToken(adminToken);
+
+        ArgumentCaptor<ProjectCreateDto> createDtoCaptor = ArgumentCaptor.forClass(ProjectCreateDto.class);
+        then(projectModule).should().createProject(eq(adminToken), createDtoCaptor.capture(), eq(adminUserId));
+        assertThat(createDtoCaptor.getValue().projectType()).isEqualTo(ProjectRequestType.CAPSTONE_DESIGN);
     }
 
     @Test
@@ -127,6 +134,7 @@ class AdminProjectServiceAdapterTest {
                 .projectName("project")
                 .requestUserId(ownerUserId)
                 .description("description")
+                .projectType(ProjectRequestType.CAPSTONE_DESIGN)
                 .status(ProjectRequestStatus.PENDING)
                 .projectBrief(ProjectGlobalQuotaDto.getDefault())
                 .build();

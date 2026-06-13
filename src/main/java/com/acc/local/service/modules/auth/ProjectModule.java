@@ -289,7 +289,7 @@ public class ProjectModule {
 			.quotaVRamMB((long)request.quota().vRam())
 			.quotaStorageGB((long)request.quota().storage())
 			.quotaInstanceCount((long)request.quota().instance())
-			// .projectType()
+			.projectType(request.projectType())
 			.build();
 		projectRepositoryPort.save(aoldaProject);
 

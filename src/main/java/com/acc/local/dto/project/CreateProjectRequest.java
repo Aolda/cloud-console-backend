@@ -1,5 +1,6 @@
 package com.acc.local.dto.project;
 
+import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,6 +22,7 @@ public record CreateProjectRequest(
         return ProjectCreateDto.builder()
                 .projectName(projectName)
                 .projectDescription(projectDescription)
+                .projectType(ProjectRequestType.ETC)
                 .quota(quota)
                 .projectOwnerId(projectOwnerId)
                 .build();
