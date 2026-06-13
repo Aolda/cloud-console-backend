@@ -36,8 +36,8 @@ class SnapshotPolicyServiceAdapterTest {
     @Mock
     private VolumeModule volumeModule;
 
-	@Mock
-	private SessionModule sessionModule;
+    @Mock
+    private SessionModule sessionModule;
 
     @InjectMocks
     private SnapshotPolicyServiceAdapter policyServiceAdapter;
