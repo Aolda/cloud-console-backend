@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder(toBuilder = true)
@@ -14,5 +15,6 @@ import java.time.LocalDateTime;
 public class KeystoneTokens {
     private String unscopedToken;
     private String scopedToken;
+    private List<ProjectScopedToken> scopedTokens;
     private LocalDateTime expiresAt;
 }

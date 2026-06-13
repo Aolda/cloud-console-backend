@@ -9,6 +9,7 @@ import com.acc.local.dto.auth.*;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.KeystoneTokenModule;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.AuthServicePort;
@@ -26,6 +27,7 @@ public class AuthServiceAdapter implements AuthServicePort {
     private final AuthModule authModule;
     private final UserModule userModule;
     private final ProjectModule projectModule;
+    private final KeystoneTokenModule keystoneTokenModule;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -131,7 +133,11 @@ public class AuthServiceAdapter implements AuthServicePort {
             ProjectServiceDto projectServiceDto = null;
             if (projectId != null && !projectId.isBlank()) {
                 String scopedToken = authModule.issueProjectScopeToken(projectId, userId);
-                projectServiceDto = projectModule.getProjectDetail(projectId, scopedToken);
+                try {
+                    projectServiceDto = projectModule.getProjectDetail(projectId, scopedToken);
+                } finally {
+                    keystoneTokenModule.revokeTokenQuietly(scopedToken);
+                }
             }
 
             return LoginedUserProfileResponse.builder()
