@@ -27,7 +27,6 @@ public class NeutronModule {
     private final NeutronSecurityRuleExternalPort neutronSecurityRuleExternalPort;
     private final AuthModule authModule;
 
-    private final int DEFAULT_MTU = 1450;
     private final String DEFAULT_CIDR = "192.168.0.0/24";
 
     public String createGeneralNetwork(CreateNetworkRequest request, String keystoneToken) {
@@ -59,7 +58,7 @@ public class NeutronModule {
                 keystoneToken,
                 "default-network",
                 null,
-                DEFAULT_MTU
+                null
         );
 
         String subnetId = createSubnet(

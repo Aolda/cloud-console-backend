@@ -37,7 +37,7 @@ public class NetworkServiceAdapter implements NetworkServicePort {
         request.getNetworkName().equals("default-network")) {
             throw new NetworkException(NetworkErrorCode.INVALID_NETWORK_NAME);
         }
-        if (!networkUtil.validateNetworkMtu(request.getMtu())) {
+        if (request.getMtu() != null && !networkUtil.validateNetworkMtu(request.getMtu())) {
             throw new NetworkException(NetworkErrorCode.INVALID_NETWORK_MTU);
         }
         String networkId = neutronModule.createGeneralNetwork(request, token);
