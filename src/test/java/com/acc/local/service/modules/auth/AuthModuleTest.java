@@ -34,6 +34,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -556,6 +557,12 @@ class AuthModuleTest {
 
         when(keystoneAPIExternalPort.getUnscopedToken(request)).thenReturn(mockKeystoneToken);
         when(userTokenRepositoryPort.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of());
+        when(userRepositoryPort.findUserDetailById(userId)).thenReturn(Optional.of(
+            UserDbExtraEntity.builder()
+                .userId(userId)
+                .isDeleted(false)
+                .build()
+        ));
         when(jwtUtils.generateToken(userId)).thenReturn(expectedAccessToken);
 
         UserTokenEntity savedEntity = mock(UserTokenEntity.class);
@@ -658,13 +665,6 @@ class AuthModuleTest {
         when(userRepositoryPort.saveUserIdentity(any(UserIdentityEntity.class)))
                 .thenReturn(savedUserAuthDetail);
 
-        when(keystoneAPIExternalPort.getTokenObject(any())).thenReturn(
-            KeystoneToken.builder()
-                .token(adminToken)
-                .isAdmin(true)
-                .build()
-        );
-
         // when
         String resultUserId = authModule.signup(signupRequest, adminToken);
 
@@ -673,6 +673,5 @@ class AuthModuleTest {
         verify(keystoneAPIExternalPort).createUser(eq(adminToken), any());
         verify(userRepositoryPort).saveUserDetail(any(UserDbExtraEntity.class));
         verify(userRepositoryPort).saveUserIdentity(any(UserIdentityEntity.class));
-        verify(keystoneAPIExternalPort).revokeToken(adminToken);
     }
 }

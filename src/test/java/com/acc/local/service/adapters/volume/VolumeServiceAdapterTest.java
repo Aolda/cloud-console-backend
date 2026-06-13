@@ -6,7 +6,7 @@ import com.acc.global.exception.volume.VolumeErrorCode;
 import com.acc.global.exception.volume.VolumeException;
 import com.acc.local.dto.volume.VolumeRequest;
 import com.acc.local.dto.volume.VolumeResponse;
-import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.session.SessionModule;
 import com.acc.local.service.modules.volume.VolumeModule;
 import com.acc.local.service.modules.volume.VolumeUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class VolumeServiceAdapterTest {
     private VolumeUtil volumeUtil;
 
     @Mock
-    private AuthModule authModule;
+    private SessionModule sessionModule;
 
     @InjectMocks
     private VolumeServiceAdapter volumeServiceAdapter;
@@ -73,7 +73,7 @@ class VolumeServiceAdapterTest {
                 .last(true)
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeModule.getVolumes(eq(pageRequest), eq(projectId), eq(keystoneToken)))
                 .thenReturn(expectedResponse);
 
@@ -109,7 +109,7 @@ class VolumeServiceAdapterTest {
                 .bootable("false")
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeId(volumeId)).thenReturn(true);
         when(volumeModule.getVolumeDetails(eq(keystoneToken), eq(projectId), eq(volumeId)))
                 .thenReturn(expectedVolume);
@@ -135,7 +135,7 @@ class VolumeServiceAdapterTest {
         String keystoneToken = "test-keystone-token";
         String invalidVolumeId = "invalid-id";
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeId(invalidVolumeId)).thenReturn(false);
 
         // when & then
@@ -170,7 +170,7 @@ class VolumeServiceAdapterTest {
                 .description("New test volume")
                 .build();
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeSize(10)).thenReturn(true);
         when(volumeUtil.validateVolumeName("new-volume")).thenReturn(true);
         when(volumeModule.createVolume(eq(keystoneToken), eq(projectId), eq(request)))
@@ -200,6 +200,7 @@ class VolumeServiceAdapterTest {
         request.setName("new-volume");
         request.setSize(0);
 
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeSize(0)).thenReturn(false);
 
         // when & then
@@ -223,6 +224,7 @@ class VolumeServiceAdapterTest {
         request.setName("!invalid-name");
         request.setSize(10);
 
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeSize(10)).thenReturn(true);
         when(volumeUtil.validateVolumeName("!invalid-name")).thenReturn(false);
 
@@ -246,7 +248,7 @@ class VolumeServiceAdapterTest {
         String keystoneToken = "test-keystone-token";
         String volumeId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
-        when(authModule.issueProjectScopeToken(projectId, userId)).thenReturn(keystoneToken);
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeId(volumeId)).thenReturn(true);
         when(volumeModule.deleteVolume(eq(keystoneToken), eq(projectId), eq(volumeId)))
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
@@ -270,6 +272,7 @@ class VolumeServiceAdapterTest {
         String keystoneToken = "test-keystone-token";
         String invalidVolumeId = "invalid-id";
 
+        when(sessionModule.getKeystoneScopedToken(userId, projectId)).thenReturn(keystoneToken);
         when(volumeUtil.validateVolumeId(invalidVolumeId)).thenReturn(false);
 
         // when & then

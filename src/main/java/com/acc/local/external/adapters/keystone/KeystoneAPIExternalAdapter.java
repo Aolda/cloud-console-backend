@@ -74,6 +74,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	}
 
 	@Override
+	public KeystoneToken getScopedTokenByPassword(String projectId, KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
+		ResponseEntity<JsonNode> tokenResponse = authenticateKeystoneByPasswordWithScope(projectId, loginRequest);
+		return KeystoneAPIUtils.extractKeystoneToken(tokenResponse);
+	}
+
+	@Override
 	public KeystoneToken getAdminToken(KeystonePasswordLoginRequest loginRequest) throws AccBaseException {
 		KeystoneToken unscopedToken = getUnscopedToken(loginRequest);
 		// log.info("unscopedToken: {}", unscopedToken);
@@ -687,6 +693,31 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED);
 			}
 
+			return tokenResponse;
+		} catch (WebClientResponseException e) {
+			HttpStatusCode status = e.getStatusCode();
+			if (status == HttpStatus.UNAUTHORIZED) {
+				throw new KeystoneException(AuthErrorCode.UNAUTHORIZED, e);
+			} else if (status == HttpStatus.FORBIDDEN) {
+				throw new KeystoneException(AuthErrorCode.FORBIDDEN_ACCESS, e);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				throw new KeystoneException(AuthErrorCode.INVALID_REQUEST_PARAMETER, e);
+			}
+			throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED, e);
+		}
+	}
+
+	private ResponseEntity<JsonNode> authenticateKeystoneByPasswordWithScope(
+			String projectId,
+			KeystonePasswordLoginRequest loginRequest
+	) {
+		try {
+			Map<String, Object> tokenRequest =
+					KeystoneAPIUtils.createProjectScopePasswordAuthRequest(projectId, loginRequest);
+			ResponseEntity<JsonNode> tokenResponse = keystoneAuthAPIModule.issueScopedToken(tokenRequest);
+			if (tokenResponse == null) {
+				throw new KeystoneException(AuthErrorCode.KEYSTONE_TOKEN_EXTRACTION_FAILED);
+			}
 			return tokenResponse;
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();

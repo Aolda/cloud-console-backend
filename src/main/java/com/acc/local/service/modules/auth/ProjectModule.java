@@ -328,7 +328,14 @@ public class ProjectModule {
 	}
 
 	@Transactional
+	@Deprecated
 	public KeystoneProject updateProject(String projectId, UpdateProjectRequest updatedProjectRequest, String requesterId) {
+		String keystoneToken = authModule.getUnscopedTokenByUserId(requesterId);
+		return updateProjectWithToken(projectId, updatedProjectRequest, keystoneToken);
+	}
+
+	@Transactional
+	public KeystoneProject updateProjectWithToken(String projectId, UpdateProjectRequest updatedProjectRequest, String keystoneToken) {
 		UpdateKeystoneProjectRequest updateRequest = UpdateKeystoneProjectRequest.builder()
 				.name(updatedProjectRequest.name())
 				.isDomain(updatedProjectRequest.isDomain())
@@ -338,14 +345,18 @@ public class ProjectModule {
 				.tags(updatedProjectRequest.tags())
 				.build();
 
-		String keystoneToken = authModule.getUnscopedTokenByUserId(requesterId);
 		return keystoneAPIExternalPort.updateProject(projectId, keystoneToken, updateRequest);
 	}
 
 	@Transactional
+	@Deprecated
 	public void deleteProject(String projectId, String requesterId) {
 		String keystoneToken = authModule.getUnscopedTokenByUserId(requesterId);
+		deleteProjectWithToken(projectId, keystoneToken);
+	}
 
+	@Transactional
+	public void deleteProjectWithToken(String projectId, String keystoneToken) {
 		keystoneAPIExternalPort.deleteProject(projectId, keystoneToken);
 	}
 
