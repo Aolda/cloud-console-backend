@@ -17,7 +17,7 @@ public interface AuthServicePort {
     LoginTokens refreshToken(String refreshToken);
     SignupResponse signup(SignupRequest request, String verificationToken);
 
-	LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId);
+	LoginedUserProfileResponse getUserLoginedProfile(String userId);
 
 	void logout(String userId);
 }

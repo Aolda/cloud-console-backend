@@ -6,10 +6,8 @@ import com.acc.local.domain.model.auth.User;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.domain.model.auth.UserToken;
 import com.acc.local.dto.auth.*;
-import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.UserPermissionResponse;
 import com.acc.local.service.modules.auth.AuthModule;
-import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.auth.UserModule;
 import com.acc.local.service.ports.AuthServicePort;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,6 @@ public class AuthServiceAdapter implements AuthServicePort {
 
     private final AuthModule authModule;
     private final UserModule userModule;
-    private final ProjectModule projectModule;
 
     // keycloak 로그인 이후 redirect URL 엔드포인트에서 사용될 메서드
     @Override
@@ -119,7 +116,7 @@ public class AuthServiceAdapter implements AuthServicePort {
     }
 
     @Override
-    public LoginedUserProfileResponse getUserLoginedProfile(String userId, String projectId) {
+    public LoginedUserProfileResponse getUserLoginedProfile(String userId) {
         String adminToken = authModule.issueSystemAdminToken("ROOT_getUserLoginedProfile");
 
         try {
@@ -127,17 +124,9 @@ public class AuthServiceAdapter implements AuthServicePort {
             //TODO: 추후 정합성 맞추는 Flow 필요시 진행
             User user = userModule.getUserById(userId, adminToken);
 
-            // projectId가 존재하면 프로젝트 정보 조회
-            ProjectServiceDto projectServiceDto = null;
-            if (projectId != null && !projectId.isBlank()) {
-                String scopedToken = authModule.issueProjectScopeToken(projectId, userId);
-                projectServiceDto = projectModule.getProjectDetail(projectId, scopedToken);
-            }
-
             return LoginedUserProfileResponse.builder()
                 .userName(user.getUsername())
                 .univ(UnivDepartBriefDto.from(user))
-                .project(projectServiceDto)
                 .build();
         } finally {
             authModule.invalidateSystemAdminToken(adminToken);
