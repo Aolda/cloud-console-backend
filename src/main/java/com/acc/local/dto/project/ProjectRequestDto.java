@@ -42,6 +42,7 @@ public record ProjectRequestDto(
 				.projectOwnerId(requestUserId)
 				.projectDescription(getProjectDescriptionMessage(projectRequestId, approvedUserId))
 				.projectName(projectName)
+				.projectType(projectType)
 				.quota(ProjectQuotaRequest.from(projectBrief))
 				.build();
     }

@@ -23,12 +23,17 @@ public record GetProjectResponse(
     List<ProjectParticipantDto> participants
 ) {
     public static GetProjectResponse from(ProjectServiceDto project) {
+        ProjectRequestType projectType = project.projectType();
+        if (projectType == null) {
+            projectType = ProjectRequestType.ETC;
+        }
+
         return GetProjectResponse.builder()
             .projectId(project.projectId())
             .projectName(project.projectName())
             .description(project.description())
             .isActive(project.isActive())
-            .projectType(project.projectType())
+            .projectType(projectType)
             .ownerKeystoneId(project.ownerKeystoneId())
             .createdAt(project.createdAt())
             .status(project.status())
