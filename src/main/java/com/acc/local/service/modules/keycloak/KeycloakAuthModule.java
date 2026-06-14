@@ -10,6 +10,7 @@ import com.acc.global.security.session.SessionConstants;
 import com.acc.local.domain.enums.UnivAccountType;
 import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.KeystoneTokens;
+import com.acc.local.domain.model.session.ProjectScopedToken;
 import com.acc.local.domain.model.session.SessionData;
 import com.acc.local.domain.model.session.UserInfo;
 import com.acc.local.dto.auth.KeycloakIdTokenClaims;
@@ -22,11 +23,14 @@ import com.acc.local.external.ports.KeycloakOidcExternalPort;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.repository.ports.SessionRepositoryPort;
 import com.acc.local.service.modules.auth.AjouUnivModule;
+import com.acc.local.service.modules.auth.KeystoneTokenModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +64,7 @@ public class KeycloakAuthModule {
     // 내부 모듈 의존
     private final KeycloakUserModule keycloakUserModule;
     private final AjouUnivModule ajouUnivModule;
+    private final KeystoneTokenModule keystoneTokenModule;
 
     // Token util
     private final KeycloakIdTokenParser keycloakIdTokenParser;
@@ -149,12 +154,13 @@ public class KeycloakAuthModule {
     }
 
     /**
-     * Keycloak 로그아웃 처리: Keycloak refresh_token 폐기 → Redis 세션 삭제.
+     * Keycloak 로그아웃 처리: Keycloak refresh_token/Keystone token 폐기 → Redis 세션 삭제.
      *
      * [처리 순서]
      *   1. sessionId로 Redis에서 SessionData 조회
      *   2. SessionData.keycloakTokens.refreshToken → Keycloak Token Revocation API 호출
-     *   3. Redis에서 세션 삭제
+     *   3. SessionData.keystoneTokens → Keystone Token Revocation API 호출
+     *   4. Redis에서 세션 삭제
      *
      * [Keycloak 폐기 실패 처리]
      *   Keycloak 서버가 일시 불가해도 로컬 세션은 반드시 삭제.
@@ -177,7 +183,30 @@ public class KeycloakAuthModule {
             log.warn("Keycloak 토큰 폐기 실패 (세션 삭제는 진행) - sessionId: {}", sessionId, e);
         }
 
+        revokeKeystoneTokens(sessionData.getKeystoneTokens());
+
         sessionRepositoryPort.deleteById(sessionId);
         log.info("Keycloak 로그아웃 완료 - sessionId: {}", sessionId);
+    }
+
+    private void revokeKeystoneTokens(KeystoneTokens keystoneTokens) {
+        if (keystoneTokens == null) {
+            return;
+        }
+
+        Set<String> tokens = new LinkedHashSet<>();
+        tokens.add(keystoneTokens.getUnscopedToken());
+        tokens.add(keystoneTokens.getScopedToken());
+        if (keystoneTokens.getScopedTokens() != null) {
+            for (ProjectScopedToken scopedToken : keystoneTokens.getScopedTokens()) {
+                if (scopedToken != null) {
+                    tokens.add(scopedToken.getToken());
+                }
+            }
+        }
+
+        for (String token : tokens) {
+            keystoneTokenModule.revokeTokenQuietly(token);
+        }
     }
 }
