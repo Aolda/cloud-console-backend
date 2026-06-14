@@ -61,6 +61,11 @@ public class KeycloakIdTokenParser {
             String email = getRequiredKeycloakClaim(payload, "email");
             String preferredUsername = getOptionalClaim(payload, "preferred_username",
                     email.isBlank() ? "" : email.split("@")[0]);
+            String name          = getOptionalClaim(payload, "name", null);
+            String givenName     = getOptionalClaim(payload, "given_name",
+                    getOptionalClaim(payload, "ajou_firstName", null));
+            String familyName    = getOptionalClaim(payload, "family_name",
+                    getOptionalClaim(payload, "ajou_lastName", null));
             String ajouMajor     = getRequiredKeycloakClaim(payload, "ajou_major");
             String ajouStatus    = getRequiredKeycloakClaim(payload, "ajou_status");
             String ajouGrade     = getRequiredKeycloakClaim(payload, "ajou_grade");
@@ -69,11 +74,11 @@ public class KeycloakIdTokenParser {
             String authIdpType   = getRequiredKeycloakClaim(payload, "auth_idp_type");
             List<String> groups  = getOptionalArrayClaim(payload, "groups");
 
-            log.info("Keycloak ID Token claims - sub={}, email={}, ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}', phoneNumber='{}', authIdpType='{}', groups={}",
-                    sub, email, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
+            log.info("Keycloak ID Token claims - sub={}, email={}, name='{}', ajouMajor='{}', ajouStatus='{}', ajouGrade='{}', ajouStudentId='{}', phoneNumber='{}', authIdpType='{}', groups={}",
+                    sub, email, name, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
 
             return new KeycloakIdTokenClaims(sub, email, preferredUsername,
-                    ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
+                    name, givenName, familyName, ajouMajor, ajouStatus, ajouGrade, ajouStudentId, phoneNumber, authIdpType, groups);
         } catch (KeycloakException e) {
             throw e;
         } catch (Exception e) {
