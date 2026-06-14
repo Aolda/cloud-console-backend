@@ -2,9 +2,6 @@ package com.acc.global.config;
 
 import com.acc.global.logging.GlobalAccessLoggingFilter;
 import com.acc.global.logging.RequestCachingFilter;
-import com.acc.global.security.oauth.OAuth2CustomUserService;
-import com.acc.global.security.oauth.handler.OAuthFailureHandler;
-import com.acc.global.security.oauth.handler.OAuthSuccessHandler;
 import com.acc.global.security.session.SessionAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,10 +29,6 @@ public class SecurityConfig {
     private final SessionAuthenticationFilter sessionAuthenticationFilter;
     private final RequestCachingFilter requestCachingFilter;
     private final GlobalAccessLoggingFilter globalAccessLoggingFilter;
-    //OAuth
-    private final OAuth2CustomUserService oAuth2CustomUserService;
-    private final OAuthSuccessHandler oAuthSuccessHandler;
-    private final OAuthFailureHandler oAuthFailureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,23 +44,10 @@ public class SecurityConfig {
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
 
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
-                                .userService(oAuth2CustomUserService))
-                        .successHandler(oAuthSuccessHandler)
-                        .failureHandler(oAuthFailureHandler)
-                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/test",
                                 "/api/v1/google/**",
-                                "/api/v1/auth/token",
-                                "/api/v1/auth/login/general",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/signup",
-                                "/api/v1/auth/login/refresh",
-                                "/oauth2/**",
-                                "/login/oauth2/code/**",
                                 "/api/v1/images/**",
                                 "/api/v1/projects/*/images",
                                 "/api/v1/snapshots/**",
