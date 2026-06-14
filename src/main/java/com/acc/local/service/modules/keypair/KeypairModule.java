@@ -20,6 +20,7 @@ import com.acc.local.repository.ports.ProjectRepositoryPort;
 import com.acc.local.repository.ports.UserRepositoryPort;
 import com.acc.local.repository.ports.ProjectParticipantRepositoryPort;
 import com.acc.local.service.modules.auth.AuthModule;
+import com.acc.local.service.modules.auth.KeystoneTokenModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ public class KeypairModule {
     private final ProjectRepositoryPort projectRepositoryPort;
     private final KeypairExternalPort keypairExternalPort;
     private final AuthModule authModule;
+    private final KeystoneTokenModule keystoneTokenModule;
     private final UserRepositoryPort userRepositoryPort;
 //    private final ProjectParticipantRepositoryPort projectParticipantRepositoryPort;
 
@@ -121,6 +123,8 @@ public class KeypairModule {
                         ex.getErrorCode().getMessage(), ex);
                 throw ex;  // Transaction Rollback
             }
+        } finally {
+            keystoneTokenModule.revokeTokenQuietly(ownerToken);
         }
     }
 }
