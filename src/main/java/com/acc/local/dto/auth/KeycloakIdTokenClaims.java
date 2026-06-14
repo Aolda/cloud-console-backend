@@ -14,8 +14,9 @@ import java.util.List;
  *   - auth_idp_type     : User Attribute → Token Claim Name "auth_idp_type"     (String, google/gitlab)
  *   - groups            : Group Membership → Token Claim Name "groups", Full group path ON
  *   - email, preferred_username은 표준 클레임으로 openid scope에 기본 포함
- *   - name, given_name, family_name은 표준 profile scope에 포함
+ *   - given_name, family_name은 표준 profile scope에 포함
  *   - ajou_firstName, ajou_lastName은 표준 이름 클레임이 없을 때 표시 이름 fallback으로 사용
+ *   - name은 Keycloak full name mapper가 생성한 값으로, 성/이름 조합이 없을 때만 fallback으로 사용
  */
 public record KeycloakIdTokenClaims(
         String subject,           // sub                → keycloakUserId (Keycloak 내부 UUID)
@@ -33,9 +34,6 @@ public record KeycloakIdTokenClaims(
         List<String> groups       // groups             → Keycloak 그룹 전체 경로 목록 (e.g. ["/Ajou_Univ/Aolda_Admin"])
 ) {
     public String displayName() {
-        if (name != null && !name.isBlank()) {
-            return name;
-        }
         if (familyName != null && !familyName.isBlank() && givenName != null && !givenName.isBlank()) {
             return familyName + givenName;
         }
@@ -44,6 +42,9 @@ public record KeycloakIdTokenClaims(
         }
         if (familyName != null && !familyName.isBlank()) {
             return familyName;
+        }
+        if (name != null && !name.isBlank()) {
+            return name;
         }
         return preferredUsername;
     }

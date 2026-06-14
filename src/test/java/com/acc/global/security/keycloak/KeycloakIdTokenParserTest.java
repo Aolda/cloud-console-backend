@@ -17,14 +17,14 @@ class KeycloakIdTokenParserTest {
     private final KeycloakIdTokenParser parser = new KeycloakIdTokenParser(objectMapper);
 
     @Test
-    void displayNameUsesKeycloakFullName() throws Exception {
+    void displayNameUsesFamilyAndGivenNameBeforeKeycloakFullName() throws Exception {
         Map<String, Object> payload = basePayload();
         payload.put("name", "현제 이");
         String idToken = token(payload);
 
         KeycloakIdTokenClaims claims = parser.extractClaims(idToken);
 
-        assertEquals("현제 이", claims.displayName());
+        assertEquals("이현제", claims.displayName());
     }
 
     @Test
