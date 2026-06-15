@@ -9,10 +9,7 @@ import com.acc.local.dto.auth.*;
 import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.external.dto.keystone.CreateKeystoneUserRequest;
 import com.acc.local.repository.ports.UserRepositoryPort;
-import com.acc.local.repository.ports.OAuthVerificationTokenRepositoryPort;
 import com.acc.global.properties.OpenstackProperties;
-import com.acc.local.entity.OAuthVerificationTokenEntity;
-import com.acc.local.domain.model.auth.OAuthVerificationToken;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.acc.global.security.jwt.JwtUtils;
@@ -56,7 +53,6 @@ public class AuthModule {
     private final RefreshTokenRepositoryPort refreshTokenRepositoryPort;
     private final KeystoneAPIExternalPort keystoneAPIExternalPort;
     private final UserRepositoryPort userRepositoryPort;
-    private final OAuthVerificationTokenRepositoryPort oAuthVerificationTokenRepositoryPort;
 
     public String getProjectIdFromToken(String token) {
         JsonNode tokenInfo = keystoneWebClient.get()
@@ -497,59 +493,6 @@ public class AuthModule {
             log.error("회원가입 중 예상치 못한 에러 발생 - Email: {}", request.email(), e);
             throw new AuthServiceException(AuthErrorCode.SIGN_UP_ERROR);
         }
-    }
-
-    /**
-     * OAuth 인증 검증 토큰 생성 및 저장
-     * @param email 사용자 이메일
-     * @return 생성된 JWT 검증 토큰
-     */
-    @Transactional
-    public String generateOAuthVerificationToken(String email) {
-        String verificationToken = jwtUtils.generateOAuthVerificationToken(email);
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(15);
-
-        OAuthVerificationToken oAuthVerificationToken = OAuthVerificationToken.builder()
-                .email(email)
-                .verificationToken(verificationToken)
-                .expiresAt(expiresAt)
-                .build();
-
-        oAuthVerificationTokenRepositoryPort.save(oAuthVerificationToken.toEntity());
-        return verificationToken;
-    }
-
-    /**
-     * OAuth 검증 토큰 유효성 확인 및 사용 처리
-     * @param email 사용자 이메일
-     * @param verificationToken 검증 토큰
-     * @throws AuthServiceException 토큰이 유효하지 않거나 이미 사용된 경우
-     */
-    @Transactional
-    public void verifyAndUseOAuthToken(String email, String verificationToken) {
-        // 1. JWT 토큰 자체 검증
-        if (!jwtUtils.validateOAuthVerificationToken(verificationToken)) {
-            throw new AuthServiceException(AuthErrorCode.INVALID_TOKEN, "유효하지 않은 OAuth 검증 토큰입니다.");
-        }
-
-        // 2. JWT에서 이메일 추출 및 요청 이메일과 비교
-        String tokenEmail = jwtUtils.extractEmailFromOAuthToken(verificationToken);
-        if (!email.equals(tokenEmail)) {
-            throw new AuthServiceException(AuthErrorCode.INVALID_TOKEN, "토큰의 이메일과 요청 이메일이 일치하지 않습니다.");
-        }
-
-        // 3. DB에서 토큰 조회 (가장 최신 것)
-        OAuthVerificationTokenEntity tokenEntity = oAuthVerificationTokenRepositoryPort
-                .findFirstByEmailAndUsedFalseOrderByCreatedAtDesc(email)
-                .orElseThrow(() -> new AuthServiceException(AuthErrorCode.INVALID_TOKEN, "사용 가능한 OAuth 검증 토큰을 찾을 수 없습니다."));
-
-        // 4. 토큰 유효성 확인 (만료 여부)
-        if (!tokenEntity.isValid()) {
-            throw new AuthServiceException(AuthErrorCode.TOKEN_EXPIRED, "OAuth 검증 토큰이 만료되었습니다.");
-        }
-
-        // 5. 토큰 삭제 (일회성 토큰이므로 하드 딜리트)
-        oAuthVerificationTokenRepositoryPort.delete(tokenEntity);
     }
 
     private void validateUserIsDeleted(String userId){

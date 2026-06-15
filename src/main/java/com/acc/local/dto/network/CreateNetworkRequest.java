@@ -30,11 +30,10 @@ public class CreateNetworkRequest {
     @Schema(description = "MTU 값 \n\n " +
             "- 범위: 68 ~ 65535",
             example = "1450",
-            defaultValue = "1450",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Min(value = 68)
     @Max(value = 65535)
-    Integer mtu = 1450;
+    Integer mtu;
 
     @Schema(description = "서브넷 목록 \n\n " +
             "- nullable",
