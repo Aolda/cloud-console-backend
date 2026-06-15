@@ -75,7 +75,7 @@ class AdminProjectServiceAdapterTest {
                 .pagination(RepositoryPagination.builder()
                         .isFirst(true)
                         .isLast(false)
-                        .nextMarker("Mg==")
+                        .nextMarker("request-id")
                         .prevMarker(null)
                         .build())
                 .projectRequests(List.of(request))
@@ -92,7 +92,7 @@ class AdminProjectServiceAdapterTest {
         assertThat(response.getContents()).hasSize(1);
         assertThat(response.getFirst()).isTrue();
         assertThat(response.getLast()).isFalse();
-        assertThat(response.getNextMarker()).isEqualTo("Mg==");
+        assertThat(response.getNextMarker()).isEqualTo("request-id");
         assertThat(response.getPrevMarker()).isNull();
     }
 

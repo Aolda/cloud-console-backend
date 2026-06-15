@@ -1,11 +1,9 @@
 package com.acc.local.repository.ports;
 
-import com.acc.global.common.PageResponse;
+import com.acc.global.common.PageRequest;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
-import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.entity.ProjectRequestEntity;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +11,7 @@ public interface ProjectRequestRepositoryPort {
 
 	List<ProjectRequestEntity> findAllByKeyword(String keyword, String requestUserId);
 
-	List<ProjectRequestEntity> findAllByKeyword(String keyword, int offset, int size);
+	List<ProjectRequestEntity> findAllByKeyword(String keyword, String marker, PageRequest.Direction direction, int size);
 
 	List<ProjectRequestEntity> findByRequesterId(String requesterId, int offset, int size);
 
@@ -25,5 +23,11 @@ public interface ProjectRequestRepositoryPort {
 
 	List<ProjectRequestEntity> findAllByIds(List<String> projectRequestIds);
 
-	List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(String searchKeyword, String requestUserId, int offset, int size);
+	List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(
+		String searchKeyword,
+		String requestUserId,
+		String marker,
+		PageRequest.Direction direction,
+		int size
+	);
 }

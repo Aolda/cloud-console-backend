@@ -92,50 +92,42 @@ public class ProjectModule {
 
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
-		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
-		int offset = resolveProjectRequestOffset(normalized);
-		int size = normalized.getLimit();
+		PageRequest normalized = normalizeProjectRequestPage(pageRequest);
+		int fetchSize = normalized.getLimit() + 1;
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(
 			searchKeyword,
-			offset, size
+			normalized.getMarker(), normalized.getDirection(), fetchSize
 		);
-		boolean hasNext = hasNextProjectRequests(searchKeyword, offset, size, savedProjectRequestList.size());
 
 		return ProjectRequestListServiceDto.from(
 			savedProjectRequestList.stream().map(ProjectRequestDto::from).toList(),
-			normalized,
-			offset,
-			hasNext
+			normalized
 		);
 	}
 
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest, String requestUserId) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
-		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
-		int offset = resolveProjectRequestOffset(normalized);
-		int size = normalized.getLimit();
+		PageRequest normalized = normalizeProjectRequestPage(pageRequest);
+		int fetchSize = normalized.getLimit() + 1;
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeywordAndRequestUserId(
 			searchKeyword, requestUserId,
-			offset, size
+			normalized.getMarker(), normalized.getDirection(), fetchSize
 		);
-		boolean hasNext = hasNextProjectRequests(searchKeyword, requestUserId, offset, size, savedProjectRequestList.size());
 
 		return ProjectRequestListServiceDto.from(
 			savedProjectRequestList.stream().map(ProjectRequestDto::from).toList(),
-			normalized,
-			offset,
-			hasNext
+			normalized
 		);
 	}
 
-	private int resolveProjectRequestOffset(PageRequest pageRequest) {
-		int markerOffset = PaginationUtils.decodeOffsetMarker(pageRequest.getMarker());
-		if (PaginationUtils.isPrevious(pageRequest) && pageRequest.getMarker() != null) {
-			return Math.max(markerOffset - pageRequest.getLimit(), 0);
+	private PageRequest normalizeProjectRequestPage(PageRequest pageRequest) {
+		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+		if (normalized.getMarker() == null) {
+			normalized.setDirection(PageRequest.Direction.next);
 		}
-		return markerOffset;
+		return normalized;
 	}
 
 	public ProjectRequestDto getProjectRequest(String projectRequestId) {
@@ -158,22 +150,6 @@ public class ProjectModule {
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword, requestUserId);
 
 		return savedProjectRequestList.stream().map(ProjectRequestDto::from).toList();
-	}
-
-	private boolean hasNextProjectRequests(String keyword, int offset, int size, int currentSize) {
-		if (currentSize < size) {
-			return false;
-		}
-		return !projectRequestRepositoryPort.findAllByKeyword(keyword, offset + currentSize, 1).isEmpty();
-	}
-
-	private boolean hasNextProjectRequests(String keyword, String requestUserId, int offset, int size, int currentSize) {
-		if (currentSize < size) {
-			return false;
-		}
-		return !projectRequestRepositoryPort
-			.findAllByKeywordAndRequestUserId(keyword, requestUserId, offset + currentSize, 1)
-			.isEmpty();
 	}
 
 	public void updateStatus(String projectRequestId, ProjectRequestStatus decision, String rejectReason) {

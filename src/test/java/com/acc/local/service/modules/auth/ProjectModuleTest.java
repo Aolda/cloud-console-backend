@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import com.acc.global.common.PageRequest;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.entity.ProjectRequestEntity;
 import com.acc.local.external.modules.keystone.KeystoneUserAPIModule;
@@ -60,67 +61,83 @@ class ProjectModuleTest {
     private ProjectModule projectModule;
 
     @Test
-    @DisplayName("프로젝트 요청 목록은 다음 데이터가 있을 때 nextMarker와 last=false를 반환한다.")
+    @DisplayName("프로젝트 요청 목록은 다음 데이터가 있을 때 현재 페이지 마지막 ID를 nextMarker로 반환한다.")
     void givenFullPageAndNextData_whenGetProjectRequestList_thenReturnNextMarker() {
         PageRequest pageRequest = new PageRequest();
         pageRequest.setLimit(2);
-        List<ProjectRequestEntity> firstPage = List.of(entity("request-1"), entity("request-2"));
+        List<ProjectRequestEntity> fetchedPage = List.of(
+                entity("request-1"),
+                entity("request-2"),
+                entity("request-3")
+        );
 
-        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 0, 2)).willReturn(firstPage);
-        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 2, 1)).willReturn(List.of(entity("request-3")));
+        given(projectRequestRepositoryPort.findAllByKeyword("issue30", null, PageRequest.Direction.next, 3))
+                .willReturn(fetchedPage);
 
         ProjectRequestListServiceDto result = projectModule.getProjectRequestList("issue30", pageRequest);
 
         assertThat(result.projectRequests()).hasSize(2);
+        assertThat(result.projectRequests()).extracting(ProjectRequestDto::projectRequestId)
+                .containsExactly("request-1", "request-2");
         assertThat(result.pagination().isFirst()).isTrue();
         assertThat(result.pagination().isLast()).isFalse();
-        assertThat(result.pagination().nextMarker()).isEqualTo("Mg==");
+        assertThat(result.pagination().nextMarker()).isEqualTo("request-2");
         assertThat(result.pagination().prevMarker()).isNull();
-        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 0, 2);
-        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 2, 1);
+        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", null, PageRequest.Direction.next, 3);
     }
 
     @Test
-    @DisplayName("프로젝트 요청 목록은 marker offset부터 조회하고 direction=prev용 이전 페이지 marker를 반환한다.")
+    @DisplayName("프로젝트 요청 목록은 marker ID 이후부터 조회하고 현재 페이지 첫 ID를 prevMarker로 반환한다.")
     void givenMarker_whenGetProjectRequestListForUser_thenReadFromOffset() {
         PageRequest pageRequest = new PageRequest();
-        pageRequest.setMarker("Mg==");
+        pageRequest.setMarker("request-2");
         pageRequest.setLimit(2);
 
-        given(projectRequestRepositoryPort.findAllByKeywordAndRequestUserId("issue30", "owner-id", 2, 2))
+        given(projectRequestRepositoryPort.findAllByKeywordAndRequestUserId(
+                "issue30", "owner-id", "request-2", PageRequest.Direction.next, 3))
                 .willReturn(List.of(entity("request-3")));
 
         ProjectRequestListServiceDto result = projectModule.getProjectRequestList("issue30", pageRequest, "owner-id");
 
         assertThat(result.projectRequests()).hasSize(1);
+        assertThat(result.projectRequests()).extracting(ProjectRequestDto::projectRequestId)
+                .containsExactly("request-3");
         assertThat(result.pagination().isFirst()).isFalse();
         assertThat(result.pagination().isLast()).isTrue();
         assertThat(result.pagination().nextMarker()).isNull();
-        assertThat(result.pagination().prevMarker()).isEqualTo("Mg==");
-        verify(projectRequestRepositoryPort).findAllByKeywordAndRequestUserId("issue30", "owner-id", 2, 2);
+        assertThat(result.pagination().prevMarker()).isEqualTo("request-3");
+        verify(projectRequestRepositoryPort).findAllByKeywordAndRequestUserId(
+                "issue30", "owner-id", "request-2", PageRequest.Direction.next, 3);
     }
 
     @Test
-    @DisplayName("프로젝트 요청 목록은 direction=prev이면 marker 이전 페이지 offset부터 조회한다.")
+    @DisplayName("프로젝트 요청 목록은 direction=prev이면 marker 이전 ID 목록을 정방향으로 반환한다.")
     void givenPrevDirection_whenGetProjectRequestList_thenReadPreviousPageOffset() {
         PageRequest pageRequest = new PageRequest();
-        pageRequest.setMarker("NA==");
+        pageRequest.setMarker("request-5");
         pageRequest.setLimit(2);
         pageRequest.setDirection(PageRequest.Direction.prev);
-        List<ProjectRequestEntity> previousPage = List.of(entity("request-3"), entity("request-4"));
+        List<ProjectRequestEntity> previousPage = List.of(
+                entity("request-4"),
+                entity("request-3"),
+                entity("request-2")
+        );
 
-        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 2, 2)).willReturn(previousPage);
-        given(projectRequestRepositoryPort.findAllByKeyword("issue30", 4, 1)).willReturn(List.of(entity("request-5")));
+        given(projectRequestRepositoryPort.findAllByKeyword(
+                "issue30", "request-5", PageRequest.Direction.prev, 3))
+                .willReturn(previousPage);
 
         ProjectRequestListServiceDto result = projectModule.getProjectRequestList("issue30", pageRequest);
 
         assertThat(result.projectRequests()).hasSize(2);
+        assertThat(result.projectRequests()).extracting(ProjectRequestDto::projectRequestId)
+                .containsExactly("request-3", "request-4");
         assertThat(result.pagination().isFirst()).isFalse();
         assertThat(result.pagination().isLast()).isFalse();
-        assertThat(result.pagination().nextMarker()).isEqualTo("NA==");
-        assertThat(result.pagination().prevMarker()).isEqualTo("Mg==");
-        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 2, 2);
-        verify(projectRequestRepositoryPort).findAllByKeyword("issue30", 4, 1);
+        assertThat(result.pagination().nextMarker()).isEqualTo("request-4");
+        assertThat(result.pagination().prevMarker()).isEqualTo("request-3");
+        verify(projectRequestRepositoryPort).findAllByKeyword(
+                "issue30", "request-5", PageRequest.Direction.prev, 3);
     }
 
     private ProjectRequestEntity entity(String id) {
