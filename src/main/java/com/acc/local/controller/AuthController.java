@@ -19,11 +19,11 @@ public class AuthController implements AuthDocs {
     private final AuthServicePort authServicePort;
 
     @Override
-    public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication, String projectId) {
+    public ResponseEntity<LoginedUserProfileResponse> getLoginUserInformation(Authentication authentication) {
         SessionPrincipal principal = (SessionPrincipal) authentication.getPrincipal();
         String userId = principal.getKeystoneUserId();
 
-        LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId, projectId);
+        LoginedUserProfileResponse loginedUserProfileResponse = authServicePort.getUserLoginedProfile(userId);
         return ResponseEntity.ok(loginedUserProfileResponse);
     }
 }
