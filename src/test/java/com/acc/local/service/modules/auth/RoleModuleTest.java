@@ -128,4 +128,63 @@ class RoleModuleTest {
 
         verify(keystoneAPIExternalPort).listRoles(eq(adminToken), any(), anyInt(), eq(searchName));
     }
+
+    @Test
+    @DisplayName("역할 목록은 PageRequest가 null이어도 기본 페이지 값으로 조회한다.")
+    void givenNullPageRequest_whenAdminListRoles_thenUseDefaultPageRequest() {
+        String adminToken = "system-admin-token";
+        Role role = Role.builder()
+                .id("r1")
+                .name("admin-role")
+                .description("관리자용 역할")
+                .domainId("default")
+                .build();
+        RoleListResponse roleListResponse = RoleListResponse.builder()
+                .roles(List.of(role))
+                .nextMarker(null)
+                .prevMarker(null)
+                .build();
+
+        when(keystoneAPIExternalPort.listRoles(eq(adminToken), isNull(), eq(10), isNull()))
+                .thenReturn(roleListResponse);
+
+        PageResponse<ListRolesResponse> response = roleModule.adminListRoles(null, null, adminToken);
+
+        assertEquals(1, response.getContents().size());
+        assertTrue(response.getFirst());
+        assertTrue(response.getLast());
+        assertNull(response.getNextMarker());
+        verify(keystoneAPIExternalPort).listRoles(eq(adminToken), isNull(), eq(10), isNull());
+    }
+
+    @Test
+    @DisplayName("역할 목록은 Keystone이 동일 marker를 반복하면 마지막 페이지로 처리한다.")
+    void givenRepeatedMarker_whenAdminListRoles_thenStopPagination() {
+        PageRequest page = new PageRequest();
+        page.setMarker("r1");
+        page.setLimit(1);
+        String adminToken = "system-admin-token";
+        Role role = Role.builder()
+                .id("r1")
+                .name("admin-role")
+                .description("관리자용 역할")
+                .domainId("default")
+                .build();
+        RoleListResponse roleListResponse = RoleListResponse.builder()
+                .roles(List.of(role))
+                .nextMarker("r1")
+                .prevMarker(null)
+                .build();
+
+        when(keystoneAPIExternalPort.listRoles(eq(adminToken), eq("r1"), eq(1), isNull()))
+                .thenReturn(roleListResponse);
+
+        PageResponse<ListRolesResponse> response = roleModule.adminListRoles(page, null, adminToken);
+
+        assertTrue(response.getContents().isEmpty());
+        assertFalse(response.getFirst());
+        assertTrue(response.getLast());
+        assertNull(response.getNextMarker());
+        verify(keystoneAPIExternalPort).listRoles(eq(adminToken), eq("r1"), eq(1), isNull());
+    }
 }

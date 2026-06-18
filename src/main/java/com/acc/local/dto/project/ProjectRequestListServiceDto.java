@@ -1,11 +1,10 @@
 package com.acc.local.dto.project;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.acc.global.common.PageRequest;
-import com.acc.local.entity.ProjectRequestEntity;
 
 import lombok.Builder;
 
@@ -14,18 +13,44 @@ public record ProjectRequestListServiceDto(
 	RepositoryPagination pagination,
 	List<ProjectRequestDto> projectRequests
 ) {
-	public static ProjectRequestListServiceDto from(List<ProjectRequestDto> savedProjectRequestList, PageRequest pageRequest, boolean isLast, String prevMarker) {
+	public static ProjectRequestListServiceDto from(
+		List<ProjectRequestDto> fetchedProjectRequestList,
+		PageRequest pageRequest
+	) {
+		int limit = pageRequest.getLimit();
+		boolean isPrevious = pageRequest.getDirection() == PageRequest.Direction.prev && pageRequest.getMarker() != null;
+		boolean hasMore = fetchedProjectRequestList.size() > limit;
+		List<ProjectRequestDto> projectRequestList = new ArrayList<>(
+			hasMore ? fetchedProjectRequestList.subList(0, limit) : fetchedProjectRequestList
+		);
 
-		int currentOffset = (pageRequest == null) ? 0 : Integer.parseInt(new String(
-			Base64.getDecoder().decode(pageRequest.getMarker()),
-			StandardCharsets.UTF_8
-		));
-		String nextMarker = Base64.getEncoder().encodeToString(String.valueOf(
-			currentOffset + ((pageRequest == null) ? 0 : pageRequest.getLimit())
-		).getBytes());
+		if (isPrevious) {
+			Collections.reverse(projectRequestList);
+		}
+
+		if (projectRequestList.isEmpty()) {
+			RepositoryPagination emptyPagination = RepositoryPagination.builder()
+				.isFirst(pageRequest.getMarker() == null || isPrevious)
+				.isLast(!isPrevious)
+				.nextMarker(null)
+				.prevMarker(null)
+				.build();
+
+			return ProjectRequestListServiceDto.builder()
+				.pagination(emptyPagination)
+				.projectRequests(projectRequestList)
+				.build();
+		}
+
+		String firstProjectRequestId = projectRequestList.getFirst().projectRequestId();
+		String lastProjectRequestId = projectRequestList.getLast().projectRequestId();
+		boolean isFirst = isPrevious ? !hasMore : pageRequest.getMarker() == null;
+		boolean isLast = isPrevious ? false : !hasMore;
+		String nextMarker = isLast ? null : lastProjectRequestId;
+		String prevMarker = isFirst ? null : firstProjectRequestId;
 
 		RepositoryPagination projectRequestPaginationInfo = RepositoryPagination.builder()
-			.isFirst(pageRequest == null || pageRequest.getMarker() == null)
+			.isFirst(isFirst)
 			.isLast(isLast)
 			.nextMarker(nextMarker)
 			.prevMarker(prevMarker)
@@ -33,7 +58,7 @@ public record ProjectRequestListServiceDto(
 
 		return ProjectRequestListServiceDto.builder()
 			.pagination(projectRequestPaginationInfo)
-			.projectRequests(savedProjectRequestList)
+			.projectRequests(projectRequestList)
 			.build();
 	}
 }

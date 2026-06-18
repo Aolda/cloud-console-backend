@@ -27,7 +27,41 @@ public interface ProjectRequestJpaRepository extends JpaRepository<ProjectReques
 
 	Page<ProjectRequestEntity> findByProjectNameContaining(String keyword, Pageable pageable);
 
+	List<ProjectRequestEntity> findByProjectNameContainingOrderByProjectRequestIdAsc(String keyword, Pageable pageable);
+
+	List<ProjectRequestEntity> findByProjectNameContainingAndProjectRequestIdGreaterThanOrderByProjectRequestIdAsc(
+		String keyword,
+		String projectRequestId,
+		Pageable pageable
+	);
+
+	List<ProjectRequestEntity> findByProjectNameContainingAndProjectRequestIdLessThanOrderByProjectRequestIdDesc(
+		String keyword,
+		String projectRequestId,
+		Pageable pageable
+	);
+
 	Page<ProjectRequestEntity> findByRequestUserIdAndProjectNameContaining(String requestUserId, String keyword, Pageable pageable);
+
+	List<ProjectRequestEntity> findByRequestUserIdAndProjectNameContainingOrderByProjectRequestIdAsc(
+		String requestUserId,
+		String keyword,
+		Pageable pageable
+	);
+
+	List<ProjectRequestEntity> findByRequestUserIdAndProjectNameContainingAndProjectRequestIdGreaterThanOrderByProjectRequestIdAsc(
+		String requestUserId,
+		String keyword,
+		String projectRequestId,
+		Pageable pageable
+	);
+
+	List<ProjectRequestEntity> findByRequestUserIdAndProjectNameContainingAndProjectRequestIdLessThanOrderByProjectRequestIdDesc(
+		String requestUserId,
+		String keyword,
+		String projectRequestId,
+		Pageable pageable
+	);
 
 	@Transactional
 	@Modifying

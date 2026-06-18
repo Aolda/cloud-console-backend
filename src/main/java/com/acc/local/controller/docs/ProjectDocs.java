@@ -2,10 +2,12 @@ package com.acc.local.controller.docs;
 
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -517,7 +519,7 @@ public interface ProjectDocs {
 	ResponseEntity<PageResponse<ProjectRequestResponse>> getProjectRequests(
 		@Parameter(hidden = true) Authentication authentication,
 		@Parameter(description = "검색 키워드; 현재는 프로젝트 제목만 지원") @RequestParam(required = false) String keyword,
-		@Parameter(description = "페이지 정보", required = false) @RequestParam(required = false) PageRequest pageable
+		@ParameterObject @ModelAttribute PageRequest pageable
 	);
 
 	@Operation(

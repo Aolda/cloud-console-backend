@@ -1,8 +1,7 @@
 package com.acc.local.repository.adapters;
 
-import com.acc.global.common.PageResponse;
+import com.acc.global.common.PageRequest.Direction;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
-import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.entity.ProjectRequestEntity;
 import com.acc.local.repository.jpa.ProjectRequestJpaRepository;
 import com.acc.local.repository.ports.ProjectRequestRepositoryPort;
@@ -27,6 +26,10 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 		return PageRequest.of(pageNumber, size);
 	}
 
+	private Pageable createCursorPageable(int size) {
+		return PageRequest.of(0, Math.max(size, 1));
+	}
+
 
 	@Override
 	public List<ProjectRequestEntity> findAllByKeyword(String keyword, String requestUserId) {
@@ -34,13 +37,46 @@ public class ProjectRequestRepositoryAdapter implements ProjectRequestRepository
 	}
 
 	@Override
-	public List<ProjectRequestEntity> findAllByKeyword(String keyword, int offset, int size) {
-		return projectRequestJpaRepository.findByProjectNameContaining(keyword, createPageable(offset, size)).getContent();
+	public List<ProjectRequestEntity> findAllByKeyword(String keyword, String marker, Direction direction, int size) {
+		Pageable pageable = createCursorPageable(size);
+		if (direction == Direction.prev && marker != null) {
+			return projectRequestJpaRepository
+				.findByProjectNameContainingAndProjectRequestIdLessThanOrderByProjectRequestIdDesc(
+					keyword, marker, pageable
+				);
+		}
+		if (marker != null) {
+			return projectRequestJpaRepository
+				.findByProjectNameContainingAndProjectRequestIdGreaterThanOrderByProjectRequestIdAsc(
+					keyword, marker, pageable
+				);
+		}
+		return projectRequestJpaRepository.findByProjectNameContainingOrderByProjectRequestIdAsc(keyword, pageable);
 	}
 
 	@Override
-	public List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(String searchKeyword, String requestUserId, int offset, int size) {
-		return projectRequestJpaRepository.findByRequestUserIdAndProjectNameContaining(requestUserId, searchKeyword, createPageable(offset, size)).getContent();
+	public List<ProjectRequestEntity> findAllByKeywordAndRequestUserId(
+		String searchKeyword,
+		String requestUserId,
+		String marker,
+		Direction direction,
+		int size
+	) {
+		Pageable pageable = createCursorPageable(size);
+		if (direction == Direction.prev && marker != null) {
+			return projectRequestJpaRepository
+				.findByRequestUserIdAndProjectNameContainingAndProjectRequestIdLessThanOrderByProjectRequestIdDesc(
+					requestUserId, searchKeyword, marker, pageable
+				);
+		}
+		if (marker != null) {
+			return projectRequestJpaRepository
+				.findByRequestUserIdAndProjectNameContainingAndProjectRequestIdGreaterThanOrderByProjectRequestIdAsc(
+					requestUserId, searchKeyword, marker, pageable
+				);
+		}
+		return projectRequestJpaRepository
+			.findByRequestUserIdAndProjectNameContainingOrderByProjectRequestIdAsc(requestUserId, searchKeyword, pageable);
 	}
 
 	@Override

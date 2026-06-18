@@ -1,8 +1,6 @@
 package com.acc.local.service.modules.auth;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.auth.KeystoneException;
@@ -94,48 +93,42 @@ public class ProjectModule {
 
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
-
-		String marker = "";
-		int offset = 0;
-		int size = 10;
-		if (pageRequest != null) {
-			pageRequest.getMarker();
-			offset = getOffsetFromMarker(marker);
-			size = pageRequest.getLimit();
-		}
+		PageRequest normalized = normalizeProjectRequestPage(pageRequest);
+		int fetchSize = normalized.getLimit() + 1;
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(
 			searchKeyword,
-			offset, size
+			normalized.getMarker(), normalized.getDirection(), fetchSize
 		);
 
 		return ProjectRequestListServiceDto.from(
 			savedProjectRequestList.stream().map(ProjectRequestDto::from).toList(),
-			pageRequest, false, null
+			normalized
 		);
 	}
 
 	public ProjectRequestListServiceDto getProjectRequestList(String keyword, PageRequest pageRequest, String requestUserId) {
 		String searchKeyword = (keyword == null) ? "" : keyword;
-
-		String marker = "";
-		int offset = 0;
-		int size = 10;
-		if (pageRequest != null) {
-			pageRequest.getMarker();
-			offset = getOffsetFromMarker(marker);
-			size = pageRequest.getLimit();
-		}
+		PageRequest normalized = normalizeProjectRequestPage(pageRequest);
+		int fetchSize = normalized.getLimit() + 1;
 
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeywordAndRequestUserId(
 			searchKeyword, requestUserId,
-			offset, size
+			normalized.getMarker(), normalized.getDirection(), fetchSize
 		);
 
 		return ProjectRequestListServiceDto.from(
 			savedProjectRequestList.stream().map(ProjectRequestDto::from).toList(),
-			pageRequest, false, null
+			normalized
 		);
+	}
+
+	private PageRequest normalizeProjectRequestPage(PageRequest pageRequest) {
+		PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+		if (normalized.getMarker() == null) {
+			normalized.setDirection(PageRequest.Direction.next);
+		}
+		return normalized;
 	}
 
 	public ProjectRequestDto getProjectRequest(String projectRequestId) {
@@ -158,15 +151,6 @@ public class ProjectModule {
 		List<ProjectRequestEntity> savedProjectRequestList = projectRequestRepositoryPort.findAllByKeyword(searchKeyword, requestUserId);
 
 		return savedProjectRequestList.stream().map(ProjectRequestDto::from).toList();
-	}
-
-	private static int getOffsetFromMarker(String marker) {
-		try {
-			Base64.Decoder decoder = Base64.getDecoder();
-			return Integer.parseInt(new String(decoder.decode(marker), StandardCharsets.UTF_8));
-		} catch (Exception e) {
-			return 0;
-		}
 	}
 
 	public void updateStatus(String projectRequestId, ProjectRequestStatus decision, String rejectReason) {

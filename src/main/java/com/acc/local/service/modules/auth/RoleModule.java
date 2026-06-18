@@ -2,6 +2,7 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.model.auth.Role;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -62,17 +64,28 @@ public class RoleModule {
      */
     @Transactional
     public PageResponse<ListRolesResponse> adminListRoles(PageRequest page, String name, String adminToken) {
+        PageRequest normalized = PaginationUtils.normalize(page);
 
         // 1. Keystone에서 역할 목록 조회 (RoleListResponse 모델 반환)
         RoleListResponse roleListResponse = keystoneAPIExternalPort.listRoles(
                 adminToken,
-                page.getMarker(),
-                page.getLimit(),
+                normalized.getMarker(),
+                normalized.getLimit(),
                 name
         );
 
+        List<Role> roles = roleListResponse.getRoles();
+        if (normalized.getMarker() != null && !roles.isEmpty()
+                && Objects.equals(normalized.getMarker(), roles.get(0).getId())) {
+            roles = roles.stream().skip(1).toList();
+        }
+        String nextMarker = roleListResponse.getNextMarker();
+        if (PaginationUtils.isFetchAll(normalized) || Objects.equals(normalized.getMarker(), nextMarker)) {
+            nextMarker = null;
+        }
+
         // 2. Role 모델 리스트를 DTO 리스트로 변환
-        List<ListRolesResponse> roleList = roleListResponse.getRoles().stream()
+        List<ListRolesResponse> roleList = roles.stream()
                 .map(role -> ListRolesResponse.from(
                         role.getId(),
                         role.getName(),
@@ -84,10 +97,10 @@ public class RoleModule {
         // 3. 페이지 응답 구성
         return PageResponse.<ListRolesResponse>builder()
                 .contents(roleList)
-                .first(page.getMarker() == null || page.getMarker().isEmpty())
-                .last(roleListResponse.getNextMarker() == null)
+                .first(normalized.getMarker() == null)
+                .last(nextMarker == null)
                 .size(roleList.size())
-                .nextMarker(roleListResponse.getNextMarker())
+                .nextMarker(nextMarker)
                 .prevMarker(roleListResponse.getPrevMarker())
                 .build();
     }

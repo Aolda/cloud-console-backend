@@ -6,9 +6,11 @@ import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.local.dto.project.*;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,7 +48,7 @@ public interface AdminProjectDocs {
 	ResponseEntity<PageResponse<ProjectResponse>> getProjects(
 		@Parameter(hidden = true) Authentication authentication,
 		@Parameter(description = "검색어; 프로젝트 제목만 검색가능", required = false) @RequestParam(required = false) String keyword,
-		@Parameter(description = "페이징 정보", required = false) @RequestParam(required = false) PageRequest page
+		@ParameterObject @ModelAttribute PageRequest page
 	);
 
     @Operation(
@@ -102,7 +104,7 @@ public interface AdminProjectDocs {
 	ResponseEntity<PageResponse<ProjectRequestResponse>> getProjectRequests(
 		@Parameter(hidden = true) Authentication authentication,
 		@Parameter(description = "검색 키워드; 현재는 프로젝트 제목만 지원") @RequestParam(required = false) String keyword,
-		@Parameter(description = "페이지 정보", required = false) @RequestParam(required = false) PageRequest pageable
+		@ParameterObject @ModelAttribute PageRequest pageable
 	);
 
 	// 5. [관리자] 신규 프로젝트 생성요청 승인/거절

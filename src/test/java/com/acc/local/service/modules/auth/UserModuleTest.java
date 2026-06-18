@@ -331,6 +331,47 @@ class UserModuleTest {
         verify(userRepositoryPort).findUserDBsByUserIds(anyList());
     }
 
+    @Test
+    @DisplayName("관리자 사용자 목록은 PageRequest가 null이어도 기본 페이지 값으로 조회한다.")
+    void whenListUsersWithNullPage_thenUseDefaultPageRequest() {
+        UserKeystoneDto u1 = UserKeystoneDto.builder()
+                .id("u1")
+                .name("user1@ajou.ac.kr")
+                .enabled(true)
+                .build();
+        UserListResponse keystoneResponse = UserListResponse.builder()
+                .userKeystoneDtos(List.of(u1))
+                .nextMarker(null)
+                .prevMarker(null)
+                .build();
+        UserDbExtraEntity dbExtra = UserDbExtraEntity.builder()
+                .userId("u1")
+                .userName("홍길동")
+                .userPhoneNumber("01011111111")
+                .isAdmin(false)
+                .isDeleted(false)
+                .build();
+        UserIdentityEntity identity = UserIdentityEntity.builder()
+                .id(new UserIdentityId("u1", 0))
+                .department("컴퓨터공학과")
+                .studentId("2021001")
+                .userEmail("user1@ajou.ac.kr")
+                .build();
+
+        when(keystoneAPIExternalPort.listUsers(eq("admin-token"), isNull(), eq(10)))
+                .thenReturn(keystoneResponse);
+        when(userRepositoryPort.findUserDBsByUserIds(List.of("u1")))
+                .thenReturn(List.of(new UserDBDto(identity, dbExtra)));
+
+        PageResponse<User> result = userModule.adminListUsers(null, "admin-token");
+
+        assertEquals(1, result.getContents().size());
+        assertTrue(result.getFirst());
+        assertTrue(result.getLast());
+        assertNull(result.getNextMarker());
+        verify(keystoneAPIExternalPort).listUsers(eq("admin-token"), isNull(), eq(10));
+    }
+
 
     // ----------------------------------------------------
     // 사용자 삭제

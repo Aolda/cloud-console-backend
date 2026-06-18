@@ -1,9 +1,13 @@
 package com.acc.local.external.adapters.keystone;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.local.domain.enums.project.ProjectRole;
@@ -21,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.AccBaseException;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.JwtAuthenticationException;
@@ -324,26 +329,18 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String token) {
 		try {
-			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
-			if (keyword != null) {
-				keystoneListProjectRequest = Collections.singletonMap("name", keyword);
-			}
-			if (pageRequest != null) {
-				keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+			if (pageRequest == null) {
+				return getAllProjectPages(
 					keyword,
-					pageRequest.getMarker(), pageRequest.getLimit()
+					request -> keystoneProjectAPIModule.getProjects(token, request)
 				);
 			}
-
-			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjects(
-				token,
-				keystoneListProjectRequest
+			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+			return getProjectsByDirection(
+				keyword,
+				normalized,
+				request -> keystoneProjectAPIModule.getProjects(token, request)
 			);
-
-			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
-			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
-
-			return ProjectListDto.from(keystoneProjects, projectsPagination);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -362,22 +359,18 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	public ProjectListDto getUserProjectsByProjectName(String keyword, PageRequest pageRequest, String requestUserId, String token) {
 
 		try {
-			Map<String, String> keystoneListProjectRequest = Collections.emptyMap();
-			if (pageRequest != null) KeystoneAPIUtils.createKeystoneListProjectRequest(
+			if (pageRequest == null) {
+				return getAllProjectPages(
+					keyword,
+					request -> keystoneProjectAPIModule.getProjectsUser(token, requestUserId, request)
+				);
+			}
+			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
+			return getProjectsByDirection(
 				keyword,
-				pageRequest.getMarker(), pageRequest.getLimit()
+				normalized,
+				request -> keystoneProjectAPIModule.getProjectsUser(token, requestUserId, request)
 			);
-
-			ResponseEntity<JsonNode> projectResponse = keystoneProjectAPIModule.getProjectsUser(
-				token,
-				requestUserId,
-				keystoneListProjectRequest
-			);
-
-			List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
-			OpenstackPagination projectsPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, null, false);
-
-			return ProjectListDto.from(keystoneProjects, projectsPagination);
 		} catch (WebClientResponseException e) {
 			HttpStatusCode status = e.getStatusCode();
 			if (status == HttpStatus.UNAUTHORIZED) {
@@ -390,6 +383,153 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			e.printStackTrace();
 			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, e);
 		}
+	}
+
+	private ProjectListDto getAllProjectPages(
+		String keyword,
+		Function<Map<String, String>, ResponseEntity<JsonNode>> projectFetcher
+	) {
+		List<KeystoneProject> allProjects = new ArrayList<>();
+		Set<String> visitedMarkers = new HashSet<>();
+		String marker = null;
+
+		while (true) {
+			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+				keyword,
+				marker,
+				null
+			);
+
+			ResponseEntity<JsonNode> projectResponse = projectFetcher.apply(keystoneListProjectRequest);
+			allProjects.addAll(KeystoneAPIUtils.convertProjectResponse(projectResponse));
+
+			PageRequest cursorRequest = new PageRequest();
+			cursorRequest.setMarker(marker);
+			OpenstackPagination pagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, cursorRequest);
+			String nextMarker = pagination == null ? null : pagination.nextMarker();
+			if (nextMarker == null || !visitedMarkers.add(nextMarker)) {
+				break;
+			}
+			marker = nextMarker;
+		}
+
+		return ProjectListDto.from(
+			allProjects,
+			buildProjectPagination(allProjects, true, true)
+		);
+	}
+
+	private ProjectListDto getProjectsByDirection(
+		String keyword,
+		PageRequest pageRequest,
+		Function<Map<String, String>, ResponseEntity<JsonNode>> projectFetcher
+	) {
+		if (PaginationUtils.isPrevious(pageRequest) && pageRequest.getMarker() != null) {
+			return getPreviousProjectPage(keyword, pageRequest, projectFetcher);
+		}
+		return getForwardProjectPage(keyword, pageRequest, projectFetcher);
+	}
+
+	private ProjectListDto getForwardProjectPage(
+		String keyword,
+		PageRequest pageRequest,
+		Function<Map<String, String>, ResponseEntity<JsonNode>> projectFetcher
+	) {
+		Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+			keyword,
+			pageRequest.getMarker(),
+			pageRequest.getLimit()
+		);
+
+		ResponseEntity<JsonNode> projectResponse = projectFetcher.apply(keystoneListProjectRequest);
+		List<KeystoneProject> keystoneProjects = KeystoneAPIUtils.convertProjectResponse(projectResponse);
+		OpenstackPagination parsedPagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, pageRequest);
+
+		return ProjectListDto.from(
+			keystoneProjects,
+			buildForwardProjectPagination(keystoneProjects, parsedPagination, pageRequest)
+		);
+	}
+
+	private ProjectListDto getPreviousProjectPage(
+		String keyword,
+		PageRequest pageRequest,
+		Function<Map<String, String>, ResponseEntity<JsonNode>> projectFetcher
+	) {
+		PageRequest cursorRequest = new PageRequest();
+		cursorRequest.setDirection(PageRequest.Direction.next);
+		cursorRequest.setLimit(pageRequest.getLimit());
+
+		String cursorMarker = null;
+		ProjectListDto previousPage = null;
+		boolean previousPageHasPrevious = false;
+		Set<String> visitedMarkers = new HashSet<>();
+
+		while (true) {
+			cursorRequest.setMarker(cursorMarker);
+			ProjectListDto currentPage = getForwardProjectPage(keyword, cursorRequest, projectFetcher);
+
+			if (Objects.equals(firstProjectId(currentPage.projectList()), pageRequest.getMarker())) {
+				if (previousPage == null) {
+					return ProjectListDto.from(
+						Collections.emptyList(),
+						buildProjectPagination(Collections.emptyList(), true, false)
+					);
+				}
+				return ProjectListDto.from(
+					previousPage.projectList(),
+					buildProjectPagination(previousPage.projectList(), !previousPageHasPrevious, false)
+				);
+			}
+
+			String nextMarker = currentPage.pageInfo() == null ? null : currentPage.pageInfo().nextMarker();
+			if (nextMarker == null || !visitedMarkers.add(nextMarker)) {
+				return getForwardProjectPage(keyword, pageRequest, projectFetcher);
+			}
+
+			previousPage = currentPage;
+			previousPageHasPrevious = cursorMarker != null;
+			cursorMarker = nextMarker;
+		}
+	}
+
+	private OpenstackPagination buildForwardProjectPagination(
+		List<KeystoneProject> projects,
+		OpenstackPagination parsedPagination,
+		PageRequest pageRequest
+	) {
+		String nextMarker = parsedPagination == null ? null : parsedPagination.nextMarker();
+		String prevMarker = pageRequest.getMarker() == null ? null : firstProjectId(projects);
+
+		return OpenstackPagination.builder()
+			.isFirst(pageRequest.getMarker() == null)
+			.isLast(nextMarker == null)
+			.nextMarker(nextMarker)
+			.prevMarker(prevMarker)
+			.build();
+	}
+
+	private OpenstackPagination buildProjectPagination(List<KeystoneProject> projects, boolean isFirst, boolean isLast) {
+		return OpenstackPagination.builder()
+			.isFirst(isFirst)
+			.isLast(isLast)
+			.nextMarker(isLast ? null : lastProjectId(projects))
+			.prevMarker(isFirst ? null : firstProjectId(projects))
+			.build();
+	}
+
+	private String firstProjectId(List<KeystoneProject> projects) {
+		if (projects == null || projects.isEmpty()) {
+			return null;
+		}
+		return projects.getFirst().getId();
+	}
+
+	private String lastProjectId(List<KeystoneProject> projects) {
+		if (projects == null || projects.isEmpty()) {
+			return null;
+		}
+		return projects.getLast().getId();
 	}
 
 	@Override

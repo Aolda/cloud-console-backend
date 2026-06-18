@@ -2,6 +2,7 @@ package com.acc.local.service.modules.auth;
 
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.common.PaginationUtils;
 import com.acc.global.exception.auth.AuthErrorCode;
 import com.acc.global.exception.auth.AuthServiceException;
 import com.acc.global.exception.notice.NoticeErrorCode;
@@ -78,10 +79,11 @@ public class NoticeModule {
      */
     @Transactional
     public PageResponse<ListNoticesResponse> adminListNotices(PageRequest pageRequest, NoticeFilterRequest filter) {
+        PageRequest normalized = PaginationUtils.normalize(pageRequest);
         return noticeRepositoryPort.findAllNotices(
-                pageRequest.getMarker(),
-                pageRequest.getDirection().name().equals("prev") ? "prev" : "next",
-                pageRequest.getLimit(),
+                normalized.getMarker(),
+                normalized.getDirection().name().equals("prev") ? "prev" : "next",
+                normalized.getLimit(),
                 filter
         );
     }
