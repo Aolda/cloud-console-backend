@@ -1,15 +1,22 @@
 package com.acc.local.service.modules.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 import com.acc.global.common.PageRequest;
+import com.acc.global.exception.project.ProjectErrorCode;
+import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.dto.project.CreateProjectRequestRequest;
+import com.acc.local.dto.project.CreateProjectRequestResponse;
 import com.acc.local.dto.project.ProjectCreateDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
@@ -70,6 +77,42 @@ class ProjectModuleTest {
 
     @InjectMocks
     private ProjectModule projectModule;
+
+    @Test
+    @DisplayName("프로젝트 요청 생성 시 영어 소문자, 숫자, 하이픈으로 구성된 프로젝트명은 저장한다.")
+    void givenValidProjectName_whenCreateProjectRequest_thenSaveRequest() {
+        CreateProjectRequestRequest request = new CreateProjectRequestRequest(
+                "valid-project-123",
+                ProjectRequestType.ETC,
+                "description"
+        );
+        given(projectRequestRepositoryPort.findAllByKeyword("valid-project-123", "owner-id"))
+                .willReturn(List.of());
+        given(projectRequestRepositoryPort.save(any(ProjectRequestEntity.class)))
+                .willAnswer(invocation -> persistedEntity(invocation.getArgument(0)));
+
+        CreateProjectRequestResponse response = projectModule.createProjectRequest(request, "owner-id");
+
+        assertThat(response.projectName()).isEqualTo("valid-project-123");
+        ArgumentCaptor<ProjectRequestEntity> requestCaptor = ArgumentCaptor.forClass(ProjectRequestEntity.class);
+        then(projectRequestRepositoryPort).should().save(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().getProjectName()).isEqualTo("valid-project-123");
+    }
+
+    @Test
+    @DisplayName("프로젝트 요청 생성 시 허용되지 않는 프로젝트명은 저장 전에 거부한다.")
+    void givenInvalidProjectName_whenCreateProjectRequest_thenThrowBeforeSave() {
+        CreateProjectRequestRequest request = new CreateProjectRequestRequest(
+                "Invalid_Project",
+                ProjectRequestType.ETC,
+                "description"
+        );
+
+        assertThatThrownBy(() -> projectModule.createProjectRequest(request, "owner-id"))
+                .isInstanceOfSatisfying(ProjectServiceException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ProjectErrorCode.INVALID_PROJECT_NAME));
+        then(projectRequestRepositoryPort).shouldHaveNoInteractions();
+    }
 
     @Test
     @DisplayName("프로젝트 요청 목록은 다음 데이터가 있을 때 현재 페이지 마지막 ID를 nextMarker로 반환한다.")
@@ -188,6 +231,29 @@ class ProjectModuleTest {
         assertThat(projectCaptor.getValue().getProjectType()).isEqualTo(ProjectRequestType.MAJOR_LECTURE);
     }
 
+    @Test
+    @DisplayName("프로젝트 생성 시 허용되지 않는 프로젝트명은 Keystone 호출 전에 거부한다.")
+    void givenInvalidProjectName_whenCreateProject_thenThrowBeforeExternalCall() {
+        ProjectCreateDto request = ProjectCreateDto.builder()
+                .projectName("Invalid_Project")
+                .projectDescription("description")
+                .projectType(ProjectRequestType.MAJOR_LECTURE)
+                .projectOwnerId("owner-user-id")
+                .quota(ProjectQuotaRequest.builder()
+                        .vCpu(4)
+                        .vRam(8192)
+                        .storage(100)
+                        .instance(2)
+                        .build())
+                .build();
+
+        assertThatThrownBy(() -> projectModule.createProject("admin-token", request, "admin-user-id"))
+                .isInstanceOfSatisfying(ProjectServiceException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ProjectErrorCode.INVALID_PROJECT_NAME));
+        then(keystoneAPIExternalPort).should(never()).createProject(anyString(), any(CreateKeystoneProjectRequest.class));
+        then(projectRepositoryPort).shouldHaveNoInteractions();
+    }
+
     private ProjectRequestEntity entity(String id) {
         return ProjectRequestEntity.builder()
                 .projectRequestId(id)
@@ -196,6 +262,19 @@ class ProjectModuleTest {
                 .projectType(ProjectRequestType.ETC)
                 .status(ProjectRequestStatus.PENDING)
                 .projectDescription("description")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private ProjectRequestEntity persistedEntity(ProjectRequestEntity entity) {
+        return ProjectRequestEntity.builder()
+                .projectRequestId(entity.getProjectRequestId())
+                .requestUserId(entity.getRequestUserId())
+                .projectName(entity.getProjectName())
+                .projectType(entity.getProjectType())
+                .status(entity.getStatus())
+                .projectDescription(entity.getProjectDescription())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

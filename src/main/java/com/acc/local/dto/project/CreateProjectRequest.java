@@ -6,7 +6,7 @@ import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CreateProjectRequest(
-        @Schema(description = "프로젝트 이름", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "프로젝트 이름 (영어 소문자, 숫자, '-'만 허용)", requiredMode = Schema.RequiredMode.REQUIRED)
         String projectName,
 
         @Schema(description = "프로젝트 설명", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
