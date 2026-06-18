@@ -19,7 +19,6 @@ public record ProjectResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	@Deprecated ProjectGlobalQuotaDto projectBrief,
 	ProjectGlobalQuotaDto quota,
 	List<ProjectParticipantDto> participants,
 	String rejectReason
@@ -60,7 +59,6 @@ public record ProjectResponse(
 			.createdBy(owner == null ? null : ProjectOwnerDto.from(owner))
 			.createdAt(createdAt)
 			.status(projectServiceDto.status())
-			.projectBrief(quota)
 			.quota(quota)
 			.participants(participants)
 			.build();
@@ -74,7 +72,6 @@ public record ProjectResponse(
 			.createdBy(ProjectOwnerDto.from(projectRequestUser))
 			.createdAt(projectRequestDto.createdAt().toString())
 			.status(projectRequestDto.status())
-			.projectBrief(ProjectGlobalQuotaDto.getDefault())
 			.quota(ProjectGlobalQuotaDto.getDefault())
 			.rejectReason(projectRequestDto.rejectReason())
 			.participants(List.of(
