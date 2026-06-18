@@ -1,5 +1,6 @@
 package com.acc.local.external.adapters.keystone;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -328,6 +329,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	@Override
 	public ProjectListDto getProjectsByProjectName(String keyword, PageRequest pageRequest, String token) {
 		try {
+			if (pageRequest == null) {
+				return getAllProjectPages(
+					keyword,
+					request -> keystoneProjectAPIModule.getProjects(token, request)
+				);
+			}
 			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
 			return getProjectsByDirection(
 				keyword,
@@ -352,6 +359,12 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 	public ProjectListDto getUserProjectsByProjectName(String keyword, PageRequest pageRequest, String requestUserId, String token) {
 
 		try {
+			if (pageRequest == null) {
+				return getAllProjectPages(
+					keyword,
+					request -> keystoneProjectAPIModule.getProjectsUser(token, requestUserId, request)
+				);
+			}
 			PageRequest normalized = PaginationUtils.normalize(pageRequest, false);
 			return getProjectsByDirection(
 				keyword,
@@ -370,6 +383,40 @@ public class KeystoneAPIExternalAdapter implements KeystoneAPIExternalPort {
 			e.printStackTrace();
 			throw new KeystoneException(AuthErrorCode.KEYSTONE_PROJECT_RETRIEVAL_FAILED, e);
 		}
+	}
+
+	private ProjectListDto getAllProjectPages(
+		String keyword,
+		Function<Map<String, String>, ResponseEntity<JsonNode>> projectFetcher
+	) {
+		List<KeystoneProject> allProjects = new ArrayList<>();
+		Set<String> visitedMarkers = new HashSet<>();
+		String marker = null;
+
+		while (true) {
+			Map<String, String> keystoneListProjectRequest = KeystoneAPIUtils.createKeystoneListProjectRequest(
+				keyword,
+				marker,
+				null
+			);
+
+			ResponseEntity<JsonNode> projectResponse = projectFetcher.apply(keystoneListProjectRequest);
+			allProjects.addAll(KeystoneAPIUtils.convertProjectResponse(projectResponse));
+
+			PageRequest cursorRequest = new PageRequest();
+			cursorRequest.setMarker(marker);
+			OpenstackPagination pagination = KeystoneAPIUtils.getPaginateInfo(projectResponse, cursorRequest);
+			String nextMarker = pagination == null ? null : pagination.nextMarker();
+			if (nextMarker == null || !visitedMarkers.add(nextMarker)) {
+				break;
+			}
+			marker = nextMarker;
+		}
+
+		return ProjectListDto.from(
+			allProjects,
+			buildProjectPagination(allProjects, true, true)
+		);
 	}
 
 	private ProjectListDto getProjectsByDirection(

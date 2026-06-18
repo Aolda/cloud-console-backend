@@ -453,6 +453,51 @@ class KeystoneAPIExternalAdapterTest {
 	}
 
 	@Test
+	@DisplayName("사용자 프로젝트 전체 조회 시 기본 limit을 보내지 않고 모든 페이지를 수집한다")
+	void givenNullPageRequest_whenGetUserProjectsByProjectName_thenFetchAllProjectsWithoutLimit() throws JsonProcessingException {
+		String token = "test-token";
+		String userId = "user-id";
+		JsonNode firstPageBody = objectMapper.readTree(
+			"{\"projects\":[" +
+				"{\"id\":\"project-1\",\"name\":\"issue30-1\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}," +
+				"{\"id\":\"project-2\",\"name\":\"issue30-2\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/users/user-id/projects?name=issue30\"," +
+				"\"next\":\"http://keystone/v3/users/user-id/projects?marker=project-2\"," +
+				"\"previous\":null}}"
+		);
+		JsonNode secondPageBody = objectMapper.readTree(
+			"{\"projects\":[" +
+				"{\"id\":\"project-3\",\"name\":\"issue30-3\",\"description\":\"\",\"is_domain\":false,\"enabled\":true,\"parent_id\":\"\"}]," +
+				"\"links\":{\"self\":\"http://keystone/v3/users/user-id/projects?marker=project-2\"," +
+				"\"next\":null," +
+				"\"previous\":null}}"
+		);
+		ResponseEntity<JsonNode> firstPageResponse = new ResponseEntity<>(firstPageBody, HttpStatus.OK);
+		ResponseEntity<JsonNode> secondPageResponse = new ResponseEntity<>(secondPageBody, HttpStatus.OK);
+		when(keystoneProjectAPIModule.getProjectsUser(eq(token), eq(userId), anyMap()))
+			.thenReturn(firstPageResponse, secondPageResponse);
+
+		ProjectListDto result = keystoneAPIExternalAdapter.getUserProjectsByProjectName("issue30", null, userId, token);
+
+		assertEquals(3, result.projectList().size());
+		assertEquals("project-1", result.projectList().get(0).getId());
+		assertEquals("project-3", result.projectList().get(2).getId());
+		assertTrue(result.pageInfo().isFirst());
+		assertTrue(result.pageInfo().isLast());
+		assertNull(result.pageInfo().nextMarker());
+		assertNull(result.pageInfo().prevMarker());
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(keystoneProjectAPIModule, times(2)).getProjectsUser(eq(token), eq(userId), captor.capture());
+		assertEquals("issue30", captor.getAllValues().get(0).get("name"));
+		assertFalse(captor.getAllValues().get(0).containsKey("limit"));
+		assertFalse(captor.getAllValues().get(0).containsKey("marker"));
+		assertEquals("issue30", captor.getAllValues().get(1).get("name"));
+		assertEquals("project-2", captor.getAllValues().get(1).get("marker"));
+		assertFalse(captor.getAllValues().get(1).containsKey("limit"));
+	}
+
+	@Test
 	@DisplayName("관리자 프로젝트 목록은 direction=prev이면 현재 페이지 첫 marker 이전 페이지를 반환한다")
 	void givenPrevDirection_whenGetProjectsByProjectName_thenReturnPreviousProjectPage() throws JsonProcessingException {
 		String token = "test-token";
