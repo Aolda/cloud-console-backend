@@ -42,7 +42,8 @@ keycloak_user_id도, 이메일 일치도 없는 완전히 새로운 사용자입
 
 - `sub` → keycloakUserId. Branch 1~3 분기 기준 및 세션 저장에 사용됩니다.
 - `email` → 계정 연결(Branch 2) 조회 기준입니다. 없으면 빈 문자열로 처리합니다.
-- `preferred_username` → 신규 가입 시 userName 초기값입니다.
+- `name` / `given_name` / `family_name` → ACC 표시 이름(userName) 초기값입니다. `name`이 없으면 `family_name + given_name`을 사용합니다. 표준 이름 클레임이 없으면 `ajou_lastName + ajou_firstName`을 fallback으로 사용합니다.
+- `preferred_username` → 표시 이름 클레임이 없을 때의 fallback 값입니다.
 - `ajou_major` → 학적 검증 및 department 저장에 사용됩니다. `univ_depart_info` 테이블에 매핑이 없으면 ajou_major 값 자체를 department로 저장합니다(신설학과 대응).
 - `ajou_status` → 재학 상태 코드입니다. `SS0001(학생(학부))` 형태로 오며 괄호 이하는 파싱 시 제거됩니다. UNDERGRADUATE 여부 검증에 사용됩니다.
 - `ajou_grade` → 학년입니다. 정수 파싱에 실패하면 -1로 저장됩니다.

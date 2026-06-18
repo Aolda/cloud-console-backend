@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface NeutronNetworkExternalPort {
-    String callCreateGeneralNetwork(String keystoneToken, String name, String description, int mtu);
+    String callCreateGeneralNetwork(String keystoneToken, String name, String description, Integer mtu);
     PageResponse<ViewNetworksResponse> callListNetworks(String keystoneToken, String projectId, String marker, String direction, int limit);
     void callDeleteNetwork(String keystoneToken, String networkId);
     Map<String, String> getNetworkNameAndId(String keystoneToken, String networkId);

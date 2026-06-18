@@ -4,6 +4,7 @@ import com.acc.global.exception.session.SessionErrorCode;
 import com.acc.global.exception.session.SessionException;
 import com.acc.local.domain.model.session.KeycloakTokens;
 import com.acc.local.domain.model.session.KeystoneTokens;
+import com.acc.local.domain.model.session.ProjectScopedToken;
 import com.acc.local.domain.model.session.SessionData;
 import com.acc.local.dto.auth.KeystoneToken;
 import com.acc.local.external.dto.keycloak.KeycloakTokenResponse;
@@ -15,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 세션 기반 인증에서 토큰을 조회/갱신하는 모듈.
@@ -101,6 +104,7 @@ public class SessionModule {
 
     /**
      * 세션에서 Keystone scoped token을 발급한다 (캐시 없음, 매번 발급).
+     * 발급된 토큰은 로그아웃 시 폐기할 수 있도록 세션에 추적한다.
      *
      * [대체 대상] AuthModule.issueProjectScopeToken(String projectId, String userId)
      *   - 기존: userId → unscopedToken → getScopedToken(projectId, unscopedToken)
@@ -113,6 +117,7 @@ public class SessionModule {
     public String getKeystoneScopedToken(String sessionId, String projectId) {
         String unscopedToken = getKeystoneUnscopedToken(sessionId);
         KeystoneToken scopedToken = keystoneAPIExternalPort.getScopedToken(projectId, unscopedToken);
+        trackScopedToken(sessionId, projectId, unscopedToken, scopedToken);
         return scopedToken.token();
     }
 
@@ -142,7 +147,8 @@ public class SessionModule {
         KeystoneToken newToken = keystoneTokenModule.issueUnscopedTokenByUserCredentials(keystoneUserId);
 
         // 세션의 keystoneTokens 갱신
-        KeystoneTokens updatedKeystoneTokens = KeystoneTokens.builder()
+        KeystoneTokens currentTokens = sessionData.getKeystoneTokens();
+        KeystoneTokens updatedKeystoneTokens = (currentTokens == null ? KeystoneTokens.builder() : currentTokens.toBuilder())
                 .unscopedToken(newToken.token())
                 .expiresAt(newToken.expiresAt())
                 .build();
@@ -173,6 +179,31 @@ public class SessionModule {
 
         log.info("Keycloak access token 갱신 완료 - sessionId: {}", sessionId);
         return tokenResponse.accessToken();
+    }
+
+    private void trackScopedToken(String sessionId, String projectId, String unscopedToken, KeystoneToken scopedToken) {
+        SessionData sessionData = getSessionOrThrow(sessionId);
+        KeystoneTokens currentTokens = sessionData.getKeystoneTokens();
+        List<ProjectScopedToken> scopedTokens = new ArrayList<>();
+        if (currentTokens != null && currentTokens.getScopedTokens() != null) {
+            scopedTokens.addAll(currentTokens.getScopedTokens());
+        }
+        scopedTokens.add(ProjectScopedToken.builder()
+                .projectId(projectId)
+                .token(scopedToken.token())
+                .expiresAt(scopedToken.expiresAt())
+                .build());
+
+        KeystoneTokens updatedTokens = (currentTokens == null ? KeystoneTokens.builder() : currentTokens.toBuilder())
+                .unscopedToken(currentTokens != null && currentTokens.getUnscopedToken() != null
+                        ? currentTokens.getUnscopedToken()
+                        : unscopedToken)
+                .scopedToken(scopedToken.token())
+                .scopedTokens(scopedTokens)
+                .expiresAt(currentTokens != null ? currentTokens.getExpiresAt() : scopedToken.expiresAt())
+                .build();
+
+        sessionRepositoryPort.updateField(sessionId, "keystoneTokens", updatedTokens);
     }
 
     /**

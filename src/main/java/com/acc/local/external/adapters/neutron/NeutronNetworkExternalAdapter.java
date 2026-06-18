@@ -33,7 +33,7 @@ public class NeutronNetworkExternalAdapter implements NeutronNetworkExternalPort
     private final NeutronSubnetsAPIModule subnetsAPIModule;
 
     @Override
-    public String callCreateGeneralNetwork(String keystoneToken, String name, String description, int mtu) {
+    public String callCreateGeneralNetwork(String keystoneToken, String name, String description, Integer mtu) {
         try {
             ResponseEntity<NeutronNetworkResponse> response = networksAPIModule.createNeutronNetwork(keystoneToken,
                     CreateNetworkRequest.builder().

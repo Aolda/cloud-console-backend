@@ -21,6 +21,7 @@ import com.acc.global.exception.auth.KeystoneException;
 import com.acc.global.exception.project.ProjectErrorCode;
 import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
+import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
 import com.acc.local.dto.project.quota.ProjectComputeQuotaDto;
@@ -273,7 +274,7 @@ public class ProjectModule {
 			.quotaVRamMB((long)request.quota().vRam())
 			.quotaStorageGB((long)request.quota().storage())
 			.quotaInstanceCount((long)request.quota().instance())
-			// .projectType()
+			.projectType(request.projectType() == null ? ProjectRequestType.ETC : request.projectType())
 			.build();
 		projectRepositoryPort.save(aoldaProject);
 

@@ -63,13 +63,18 @@ public class KeycloakUserModule {
 
         if (linkedUser.isPresent()) {
             UserDbExtraEntity entity = linkedUser.get();
+            String displayName = claims.displayName();
 
-            // 그룹 변경으로 admin 상태가 달라졌으면 DB 동기화
-            if (isAdminByGroup != Boolean.TRUE.equals(entity.getIsAdmin())) {
-                log.info("Keycloak 그룹 변경 감지 - admin 상태 동기화: keystoneUserId={}, isAdmin={}→{}",
-                        entity.getUserId(), entity.getIsAdmin(), isAdminByGroup);
+            // Keycloak의 권한/프로필 변경사항을 ACC DB에 동기화
+            if (isAdminByGroup != Boolean.TRUE.equals(entity.getIsAdmin())
+                    || !displayName.equals(entity.getUserName())) {
+                log.info("Keycloak 사용자 정보 변경 감지 - DB 동기화: keystoneUserId={}, isAdmin={}→{}, userName={}→{}",
+                        entity.getUserId(), entity.getIsAdmin(), isAdminByGroup, entity.getUserName(), displayName);
                 entity = userRepositoryPort.saveUserDetail(
-                        entity.toBuilder().isAdmin(isAdminByGroup).build()
+                        entity.toBuilder()
+                                .isAdmin(isAdminByGroup)
+                                .userName(displayName)
+                                .build()
                 );
             }
 
@@ -110,7 +115,7 @@ public class KeycloakUserModule {
         // user_detail 저장 (Keycloak 그룹 기반 admin 여부 반영)
         UserDbExtraEntity userDbExtraEntity = UserDbExtraEntity.builder()
                 .userId(keystoneUserId)
-                .userName(claims.preferredUsername())
+                .userName(claims.displayName())
                 .userPhoneNumber(claims.phoneNumber())
                 .isAdmin(isAdminByGroup)
                 .keycloakUserId(claims.subject())
@@ -131,7 +136,7 @@ public class KeycloakUserModule {
         log.info("신규 Keycloak 사용자 등록 완료 - keystoneUserId={}, keycloakUserId={}",
                 keystoneUserId, claims.subject());
 
-        return new KeycloakUserResult(keystoneUserId, keystoneUsername, newPassword, claims.preferredUsername());
+        return new KeycloakUserResult(keystoneUserId, keystoneUsername, newPassword, claims.displayName());
     }
 
     /**
