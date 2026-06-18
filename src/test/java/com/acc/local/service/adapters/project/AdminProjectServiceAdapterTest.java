@@ -178,7 +178,7 @@ class AdminProjectServiceAdapterTest {
                 .projectType(ProjectRequestType.CAPSTONE_DESIGN)
                 .status(ProjectRequestStatus.PENDING)
                 .createdAt(LocalDateTime.now())
-                .projectBrief(ProjectGlobalQuotaDto.getDefault())
+                .quota(ProjectGlobalQuotaDto.getDefault())
                 .build();
     }
 
