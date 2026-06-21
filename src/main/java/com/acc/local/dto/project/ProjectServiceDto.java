@@ -13,7 +13,7 @@ import com.acc.local.external.dto.keystone.KeystoneProject;
 
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record ProjectServiceDto(
 	String projectId,
 	String projectName,

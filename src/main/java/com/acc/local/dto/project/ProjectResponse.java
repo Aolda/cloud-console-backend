@@ -81,6 +81,7 @@ public record ProjectResponse(
 				ProjectParticipantDto.builder()
 					.userId(projectRequestUser.id())
 					.userName(projectRequestUser.name())
+					.userEmail(projectRequestUser.email())
 					.role(ProjectRole.PROJECT_ADMIN)
 					.build()
 			))

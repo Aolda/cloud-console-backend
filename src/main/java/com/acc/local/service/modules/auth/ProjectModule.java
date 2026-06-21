@@ -2,12 +2,14 @@ package com.acc.local.service.modules.auth;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.acc.local.dto.project.*;
 import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.external.dto.keystone.UpdateKeystoneProjectRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -306,10 +308,14 @@ public class ProjectModule {
 		ProjectComputeQuotaDto projectComputeQuotaDetail = getProjectComputeQuotaDetail(projectId, scopedToken);
 		ProjectStorageQuotaDto projectStorageQuotaDetail = getProjectStorageQuotaDetail(projectId, scopedToken);
 
-		return ProjectServiceDto.from(
+		ProjectServiceDto projectServiceDto = ProjectServiceDto.from(
 			databaseProject, openstackProject,
 			projectComputeQuotaDetail, projectStorageQuotaDetail
 		);
+
+		return projectServiceDto.toBuilder()
+			.participants(getProjectParticipantList(projectId))
+			.build();
 	}
 
 	@Transactional
@@ -417,8 +423,25 @@ public class ProjectModule {
 	// ============ Participant ============
 	public List<ProjectParticipantDto> getProjectParticipantList(String projectId) {
 		List<ProjectParticipantEntity> projectParticipants = projectParticipantRepositoryPort.findByProjectId(projectId);
+		if (projectParticipants.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		List<String> participantUserIds = projectParticipants.stream()
+			.map(participant -> participant.getUserDetail().getUserId())
+			.toList();
+		Map<String, String> emailByUserId = userRepositoryPort.findUserDBsByUserIds(participantUserIds).stream()
+			.collect(Collectors.toMap(
+				UserDBDto::getUserId,
+				user -> user.userIdentity().getUserEmail(),
+				(existing, ignored) -> existing
+			));
+
 		return projectParticipants.stream()
-			.map(ProjectParticipantDto::from)
+			.map(participant -> ProjectParticipantDto.from(
+				participant,
+				emailByUserId.get(participant.getUserDetail().getUserId())
+			))
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 

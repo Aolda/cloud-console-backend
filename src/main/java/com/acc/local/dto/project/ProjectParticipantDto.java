@@ -14,10 +14,14 @@ public record ProjectParticipantDto(
 	ProjectRole role
 ) {
 	public static ProjectParticipantDto from(ProjectParticipantEntity dbProjectParticipant) {
+		return from(dbProjectParticipant, null);
+	}
+
+	public static ProjectParticipantDto from(ProjectParticipantEntity dbProjectParticipant, String userEmail) {
 		return ProjectParticipantDto.builder()
 			.userId(dbProjectParticipant.getUserDetail().getUserId())
 			.userName(dbProjectParticipant.getUserDetail().getUserName())
-			// .userEmail(dbProjectParticipant.getUserDetail().getUserEmail()) // TODO: User 도메인과 협의필요
+			.userEmail(userEmail)
 			.userPhoneNumber(dbProjectParticipant.getUserDetail().getUserPhoneNumber())
 			.role(dbProjectParticipant.getRole())
 			.build();

@@ -8,21 +8,29 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
 
 import com.acc.global.common.PageRequest;
+import com.acc.local.domain.enums.auth.AuthType;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
+import com.acc.local.domain.enums.project.ProjectRole;
+import com.acc.local.dto.project.ProjectParticipantDto;
 import com.acc.local.dto.project.ProjectCreateDto;
 import com.acc.local.dto.project.ProjectRequestDto;
 import com.acc.local.dto.project.ProjectRequestListServiceDto;
 import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 import com.acc.local.entity.ProjectEntity;
+import com.acc.local.entity.ProjectParticipantEntity;
 import com.acc.local.entity.ProjectRequestEntity;
 import com.acc.local.entity.UserDbExtraEntity;
+import com.acc.local.entity.UserIdentityEntity;
+import com.acc.local.entity.id.ProjectParticipantId;
+import com.acc.local.entity.id.UserIdentityId;
 import com.acc.local.external.dto.keystone.CreateKeystoneProjectRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.external.modules.keystone.KeystoneUserAPIModule;
 import com.acc.local.external.ports.KeystoneAPIExternalPort;
 import com.acc.local.external.ports.VolumeQuotaExternalPort;
 import com.acc.local.external.ports.compute.ComputeQuotaExternalPort;
+import com.acc.local.repository.dto.UserDBDto;
 import com.acc.local.repository.ports.ProjectParticipantRepositoryPort;
 import com.acc.local.repository.ports.ProjectRepositoryPort;
 import com.acc.local.repository.ports.ProjectRequestRepositoryPort;
@@ -186,6 +194,67 @@ class ProjectModuleTest {
         ArgumentCaptor<ProjectEntity> projectCaptor = ArgumentCaptor.forClass(ProjectEntity.class);
         then(projectRepositoryPort).should().save(projectCaptor.capture());
         assertThat(projectCaptor.getValue().getProjectType()).isEqualTo(ProjectRequestType.MAJOR_LECTURE);
+    }
+
+    @Test
+    @DisplayName("프로젝트 참여자 목록 조회 시 사용자 인증정보의 이메일을 응답에 포함한다.")
+    void givenParticipantIdentities_whenGetProjectParticipantList_thenReturnUserEmail() {
+        UserDbExtraEntity user = UserDbExtraEntity.builder()
+                .userId("user-id")
+                .userName("user-name")
+                .userPhoneNumber("010-0000-0000")
+                .isAdmin(false)
+                .build();
+        UserIdentityEntity identity = UserIdentityEntity.builder()
+                .id(new UserIdentityId("user-id", AuthType.GOOGLE.getCode()))
+                .userEmail("user@ajou.ac.kr")
+                .department("department")
+                .studentId("2026001")
+                .createdAt(LocalDateTime.now())
+                .build();
+        ProjectParticipantEntity participant = ProjectParticipantEntity.builder()
+                .projectParticipantId(new ProjectParticipantId("project-id", "user-id"))
+                .userDetail(user)
+                .role(ProjectRole.PROJECT_ADMIN)
+                .build();
+
+        given(projectParticipantRepositoryPort.findByProjectId("project-id"))
+                .willReturn(List.of(participant));
+        given(userRepositoryPort.findUserDBsByUserIds(List.of("user-id")))
+                .willReturn(List.of(new UserDBDto(identity, user)));
+
+        List<ProjectParticipantDto> result = projectModule.getProjectParticipantList("project-id");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).userId()).isEqualTo("user-id");
+        assertThat(result.get(0).userEmail()).isEqualTo("user@ajou.ac.kr");
+        assertThat(result.get(0).role()).isEqualTo(ProjectRole.PROJECT_ADMIN);
+    }
+
+    @Test
+    @DisplayName("프로젝트 참여자 인증정보가 없으면 이메일은 null로 유지한다.")
+    void givenNoParticipantIdentity_whenGetProjectParticipantList_thenReturnNullEmail() {
+        UserDbExtraEntity user = UserDbExtraEntity.builder()
+                .userId("user-id")
+                .userName("user-name")
+                .userPhoneNumber("010-0000-0000")
+                .isAdmin(false)
+                .build();
+        ProjectParticipantEntity participant = ProjectParticipantEntity.builder()
+                .projectParticipantId(new ProjectParticipantId("project-id", "user-id"))
+                .userDetail(user)
+                .role(ProjectRole.PROJECT_ADMIN)
+                .build();
+
+        given(projectParticipantRepositoryPort.findByProjectId("project-id"))
+                .willReturn(List.of(participant));
+        given(userRepositoryPort.findUserDBsByUserIds(List.of("user-id")))
+                .willReturn(List.of());
+
+        List<ProjectParticipantDto> result = projectModule.getProjectParticipantList("project-id");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).userEmail()).isNull();
     }
 
     private ProjectRequestEntity entity(String id) {
