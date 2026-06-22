@@ -38,7 +38,49 @@ public interface AdminProjectDocs {
 		description = "전체 프로젝트 목록을 조회합니다."
 	)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "프로젝트 목록 조회 성공", content = @Content()),
+		@ApiResponse(
+			responseCode = "200",
+			description = "프로젝트 목록 조회 성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = PageResponse.class),
+				examples = {
+					@ExampleObject(
+						name = "관리자 프로젝트 목록 조회",
+						value = """
+							{
+							  "contents": [
+							    {
+							      "projectId": "0cc61cc8ed964714a06a42afa92c1dc6",
+							      "projectName": "admin",
+							      "projectType": "PROJECT_REQUEST_TYPE/ETC",
+							      "createdBy": null,
+							      "createdAt": "1900-01-01T00:00",
+							      "status": "APPROVED",
+							      "quota": {
+							        "instance": { "available": 10, "used": 2 },
+							        "core": { "available": 20, "used": 2 },
+							        "ram": { "available": 51200, "used": 1024 },
+							        "volume": {
+							          "count": { "available": 10, "used": 2 },
+							          "size": { "available": 1000, "used": 30 }
+							        }
+							      },
+							      "participants": [],
+							      "rejectReason": null
+							    }
+							  ],
+							  "first": true,
+							  "last": false,
+							  "size": 1,
+							  "nextMarker": "0cc61cc8ed964714a06a42afa92c1dc6",
+							  "prevMarker": null
+							}
+							"""
+					)
+				}
+			)
+		),
 		@ApiResponse(responseCode = "400", description = "잘못된 요청 - 요청 파라미터 오류", content = @Content()),
 		@ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 토큰", content = @Content()),
 		@ApiResponse(responseCode = "403", description = "권한 없음 - API 접근 권한이 없음", content = @Content()),
@@ -94,7 +136,50 @@ public interface AdminProjectDocs {
 		description = "모든 프로젝트 생성요청 목록을 조회합니다."
 	)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "생성요청 목록 조회 성공", content = @Content()),
+		@ApiResponse(
+			responseCode = "200",
+			description = "생성요청 목록 조회 성공",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = PageResponse.class),
+				examples = {
+					@ExampleObject(
+						name = "관리자 프로젝트 생성요청 목록 조회",
+						value = """
+							{
+							  "contents": [
+							    {
+							      "projectRequestId": "ad1af0b6-0ac7-4005-95b9-9b0a325f00a9",
+							      "projectName": "캡스톤 프로젝트 요청",
+							      "projectType": "PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN",
+							      "createdBy": {
+							        "userId": "f52f7447cba1476da8fa281bf6fff220",
+							        "userName": "Waccounttest_1"
+							      },
+							      "createdAt": "2025-11-24T02:04:36.473286",
+							      "status": "PENDING",
+							      "quota": {
+							        "instance": { "available": 10, "used": 0 },
+							        "core": { "available": 8, "used": 0 },
+							        "ram": { "available": 32768, "used": 0 },
+							        "volume": {
+							          "count": { "available": 10, "used": 0 },
+							          "size": { "available": 1024, "used": 0 }
+							        }
+							      }
+							    }
+							  ],
+							  "first": true,
+							  "last": false,
+							  "size": 1,
+							  "nextMarker": "ad1af0b6-0ac7-4005-95b9-9b0a325f00a9",
+							  "prevMarker": null
+							}
+							"""
+					)
+				}
+			)
+		),
 		@ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content()),
 		@ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 토큰", content = @Content()),
 		@ApiResponse(responseCode = "403", description = "권한 없음 - API 접근 권한이 없음", content = @Content()),

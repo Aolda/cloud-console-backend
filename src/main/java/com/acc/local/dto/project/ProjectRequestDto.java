@@ -21,7 +21,7 @@ public record ProjectRequestDto(
 	LocalDateTime createdAt,
 	ProjectRequestStatus status,
 	String rejectReason,
-	ProjectGlobalQuotaDto projectBrief
+	ProjectGlobalQuotaDto quota
 ) {
 	public static ProjectRequestDto from(ProjectRequestEntity projectRequestEntity) {
 		return ProjectRequestDto.builder()
@@ -33,17 +33,18 @@ public record ProjectRequestDto(
 			.createdAt(projectRequestEntity.getCreatedAt())
 			.status(projectRequestEntity.getStatus())
 			.rejectReason(projectRequestEntity.getRejectReason())
-			.projectBrief(ProjectGlobalQuotaDto.getDefault())
+			.quota(ProjectGlobalQuotaDto.getDefault())
 			.build();
 	}
 
     public ProjectCreateDto toProjectCreateDto(String approvedUserId) {
+		ProjectGlobalQuotaDto requestQuota = quota == null ? ProjectGlobalQuotaDto.getDefault() : quota;
 		return ProjectCreateDto.builder()
 				.projectOwnerId(requestUserId)
 				.projectDescription(getProjectDescriptionMessage(projectRequestId, approvedUserId))
 				.projectName(projectName)
 				.projectType(projectType)
-				.quota(ProjectQuotaRequest.from(projectBrief))
+				.quota(ProjectQuotaRequest.from(requestQuota))
 				.build();
     }
 
