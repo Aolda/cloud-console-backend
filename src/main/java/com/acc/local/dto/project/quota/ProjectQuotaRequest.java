@@ -20,12 +20,12 @@ public record ProjectQuotaRequest(
 	@Schema(description = "인스턴스 최대 개수", requiredMode = Schema.RequiredMode.REQUIRED, example = "10")
 	int instance
 ) {
-    public static ProjectQuotaRequest from(ProjectGlobalQuotaDto projectBrief) {
+    public static ProjectQuotaRequest from(ProjectGlobalQuotaDto quota) {
         return ProjectQuotaRequest.builder()
-				.vCpu(projectBrief.core().available())
-				.vRam(projectBrief.ram().available())
-				.storage(projectBrief.volume().size().available())
-				.instance(projectBrief.instance().available())
+				.vCpu(quota.core().available())
+				.vRam(quota.ram().available())
+				.storage(quota.volume().size().available())
+				.instance(quota.instance().available())
 				.build();
     }
 }

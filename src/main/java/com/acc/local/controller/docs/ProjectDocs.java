@@ -44,8 +44,7 @@ public interface ProjectDocs {
 		summary = "프로젝트 목록 조회",
 		description = "로그인된 사용자가 접근권한을 가지고 있는 프로젝트들에 대한 목록을 조회합니다. \n"
 			+ "- keyword는 현재 프로젝트 제목만 입력 가능하며, 구현문제로 현재는 정확히 일치하는 경우에 대해서면 응답됩니다 \n"
-			+ "- 요청에 따라 필드명에 대한 응답명세가 통일되었습니다. FE 측에서 반영 부탁드립니다. \n"
-			+ "- 'projectBrief' 필드가 'quota' 필드로 변경될 예정입니다. 현 버전에서는 두 필드 모두 항상 같은 값을 담은 상태로 응답되나, 'quota'로 변경완료 시 말씀주시면 완전변경 하도록 하겠습니다"
+			+ "- 프로젝트 쿼터 정보는 quota 필드로 응답됩니다."
 	)
 	@ApiResponses(value = {
 		@ApiResponse(
@@ -56,228 +55,59 @@ public interface ProjectDocs {
 				examples = {
 					@ExampleObject(
 						name = "프로젝트 목록 조회",
-						value = "[\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"0cc61cc8ed964714a06a42afa92c1dc6\",\n"
-							+ "    \"projectName\": \"admin\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"1900-01-01T00:00\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"quota\": {\n"
-							+ "        \"instance\": {\n"
-							+ "          \"available\": 10,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"core\": {\n"
-							+ "          \"available\": 20,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"ram\": {\n"
-							+ "          \"available\": 51200,\n"
-							+ "          \"used\": 1024\n"
-							+ "        },\n"
-							+ "        \"volume\": {\n"
-							+ "          \"count\": {\n"
-							+ "            \"available\": 10,\n"
-							+ "            \"used\": 2\n"
-							+ "          },\n"
-							+ "          \"size\": {\n"
-							+ "            \"available\": 1000,\n"
-							+ "            \"used\": 30\n"
-							+ "          }\n"
-							+ "        }\n"
-							+ "      },"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"547b772d43684321991cbde58f06a264\",\n"
-							+ "    \"projectName\": \"ACCSwaggerProjectCreateTest\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"2025-11-26T17:59:53.229554\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"95282c49df5d47f68bb79bf4ad63a69b\",\n"
-							+ "    \"projectName\": \"AccTestProject\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"2025-11-26T17:59:53.232417\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"quota\": {\n"
-							+ "        \"instance\": {\n"
-							+ "          \"available\": 10,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"core\": {\n"
-							+ "          \"available\": 20,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"ram\": {\n"
-							+ "          \"available\": 51200,\n"
-							+ "          \"used\": 1024\n"
-							+ "        },\n"
-							+ "        \"volume\": {\n"
-							+ "          \"count\": {\n"
-							+ "            \"available\": 10,\n"
-							+ "            \"used\": 2\n"
-							+ "          },\n"
-							+ "          \"size\": {\n"
-							+ "            \"available\": 1000,\n"
-							+ "            \"used\": 30\n"
-							+ "          }\n"
-							+ "        }\n"
-							+ "      },"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": null,\n"
-							+ "    \"projectName\": \"abcabcasefes\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN\",\n"
-							+ "    \"createdBy\": {\n"
-							+ "      \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "      \"userName\": \"Acc_test_Admin1\"\n"
-							+ "    },\n"
-							+ "    \"createdAt\": \"2025-11-24T02:00:31.440323\",\n"
-							+ "    \"status\": \"PENDING\",\n"
-							+ "    \"quota\": {\n"
-							+ "        \"instance\": {\n"
-							+ "          \"available\": 10,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"core\": {\n"
-							+ "          \"available\": 20,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"ram\": {\n"
-							+ "          \"available\": 51200,\n"
-							+ "          \"used\": 1024\n"
-							+ "        },\n"
-							+ "        \"volume\": {\n"
-							+ "          \"count\": {\n"
-							+ "            \"available\": 10,\n"
-							+ "            \"used\": 2\n"
-							+ "          },\n"
-							+ "          \"size\": {\n"
-							+ "            \"available\": 1000,\n"
-							+ "            \"used\": 30\n"
-							+ "          }\n"
-							+ "        }\n"
-							+ "      },"
-							+ "    \"participants\": [\n"
-							+ "      {\n"
-							+ "        \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "        \"userName\": \"Acc_test_Admin1\",\n"
-							+ "        \"userEmail\": \"admin@ajou.ac.kr\",\n"
-							+ "        \"userPhoneNumber\": null,\n"
-							+ "        \"role\": \"PROJECT_ADMIN\"\n"
-							+ "      }\n"
-							+ "    ],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": null,\n"
-							+ "    \"projectName\": \"가나다라마바사\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/MAJOR_LECTURE\",\n"
-							+ "    \"createdBy\": {\n"
-							+ "      \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "      \"userName\": \"Acc_test_Admin1\"\n"
-							+ "    },\n"
-							+ "    \"createdAt\": \"2025-11-25T02:14:58.849064\",\n"
-							+ "    \"status\": \"PENDING\",\n"
-							+ "    \"quota\": {\n"
-							+ "        \"instance\": {\n"
-							+ "          \"available\": 10,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"core\": {\n"
-							+ "          \"available\": 20,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"ram\": {\n"
-							+ "          \"available\": 51200,\n"
-							+ "          \"used\": 1024\n"
-							+ "        },\n"
-							+ "        \"volume\": {\n"
-							+ "          \"count\": {\n"
-							+ "            \"available\": 10,\n"
-							+ "            \"used\": 2\n"
-							+ "          },\n"
-							+ "          \"size\": {\n"
-							+ "            \"available\": 1000,\n"
-							+ "            \"used\": 30\n"
-							+ "          }\n"
-							+ "        }\n"
-							+ "      },"
-							+ "    \"participants\": [\n"
-							+ "      {\n"
-							+ "        \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "        \"userName\": \"Acc_test_Admin1\",\n"
-							+ "        \"userEmail\": \"admin@ajou.ac.kr\",\n"
-							+ "        \"userPhoneNumber\": null,\n"
-							+ "        \"role\": \"PROJECT_ADMIN\"\n"
-							+ "      }\n"
-							+ "    ],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  }\n"
-							+ "]"
-					),
-					@ExampleObject(
-						name = "프로젝트 상세정보 조회",
-						value = "{\n"
-							+ "  \"projectId\": \"a2b65bb6cbe14cf89b7b120480c92acf\",\n"
-							+ "  \"projectName\": \"AVC1awfwef24234\",\n"
-							+ "  \"description\": \"AVC124234\",\n"
-							+ "  \"isActive\": true,\n"
-							+ "  \"projectType\": null,\n"
-							+ "  \"ownerKeystoneId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "  \"createdAt\": \"2025-11-25T02:06:04.158384\",\n"
-							+ "  \"status\": \"APPROVED\",\n"
-							+ "  \"quota\": {\n"
-							+ "      \"instance\": {\n"
-							+ "        \"available\": 10,\n"
-							+ "        \"used\": 2\n"
-							+ "      },\n"
-							+ "      \"core\": {\n"
-							+ "        \"available\": 20,\n"
-							+ "        \"used\": 2\n"
-							+ "      },\n"
-							+ "      \"ram\": {\n"
-							+ "        \"available\": 51200,\n"
-							+ "        \"used\": 1024\n"
-							+ "      },\n"
-							+ "      \"volume\": {\n"
-							+ "        \"count\": {\n"
-							+ "          \"available\": 10,\n"
-							+ "          \"used\": 2\n"
-							+ "        },\n"
-							+ "        \"size\": {\n"
-							+ "          \"available\": 1000,\n"
-							+ "          \"used\": 30\n"
-							+ "        }\n"
-							+ "      }\n"
-							+ "    },"
-							+ "  \"participants\": [\n"
-							+ "    {\n"
-							+ "      \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "      \"userName\": \"${SUPER_ADMIN_USER_NAME}\",\n"
-							+ "      \"userEmail\": \"admin@ajou.ac.kr\",\n"
-							+ "      \"userPhoneNumber\": \"010-0000-0000\",\n"
-							+ "      \"role\": \"PROJECT_ADMIN\"\n"
-							+ "    }\n"
-							+ "  ]\n"
-							+ "}"
+						value = """
+							[
+							  {
+							    "projectId": "0cc61cc8ed964714a06a42afa92c1dc6",
+							    "projectName": "admin",
+							    "projectType": "PROJECT_REQUEST_TYPE/ETC",
+							    "createdBy": null,
+							    "createdAt": "1900-01-01T00:00",
+							    "status": "APPROVED",
+							    "quota": {
+							      "instance": { "available": 10, "used": 2 },
+							      "core": { "available": 20, "used": 2 },
+							      "ram": { "available": 51200, "used": 1024 },
+							      "volume": {
+							        "count": { "available": 10, "used": 2 },
+							        "size": { "available": 1000, "used": 30 }
+							      }
+							    },
+							    "participants": [],
+							    "rejectReason": null
+							  },
+							  {
+							    "projectId": null,
+							    "projectName": "캡스톤 프로젝트 요청",
+							    "projectType": "PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN",
+							    "createdBy": {
+							      "userId": "de15e36af072460da2e39a74be3595b6",
+							      "userName": "Acc_test_Admin1"
+							    },
+							    "createdAt": "2025-11-24T02:00:31.440323",
+							    "status": "PENDING",
+							    "quota": {
+							      "instance": { "available": 10, "used": 0 },
+							      "core": { "available": 8, "used": 0 },
+							      "ram": { "available": 32768, "used": 0 },
+							      "volume": {
+							        "count": { "available": 10, "used": 0 },
+							        "size": { "available": 1024, "used": 0 }
+							      }
+							    },
+							    "participants": [
+							      {
+							        "userId": "de15e36af072460da2e39a74be3595b6",
+							        "userName": "Acc_test_Admin1",
+							        "userEmail": "admin@ajou.ac.kr",
+							        "userPhoneNumber": null,
+							        "role": "PROJECT_ADMIN"
+							      }
+							    ],
+							    "rejectReason": null
+							  }
+							]
+							"""
 					)
 				},
 				schema = @Schema(oneOf = {ProjectResponse.class, List.class})
@@ -325,118 +155,67 @@ public interface ProjectDocs {
 							+ "      \"userPhoneNumber\": \"010-0000-0000\",\n"
 							+ "      \"role\": \"PROJECT_ADMIN\"\n"
 							+ "    }\n"
-							+ "  ]\n"
-							+ "}"
-					),
+								+ "  ]\n"
+								+ "}"
+						),
 					@ExampleObject(
 						name = "프로젝트 목록 조회",
-						value = "[\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"0cc61cc8ed964714a06a42afa92c1dc6\",\n"
-							+ "    \"projectName\": \"admin\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"1900-01-01T00:00\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"547b772d43684321991cbde58f06a264\",\n"
-							+ "    \"projectName\": \"ACCSwaggerProjectCreateTest\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"2025-11-26T17:59:53.229554\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": \"95282c49df5d47f68bb79bf4ad63a69b\",\n"
-							+ "    \"projectName\": \"AccTestProject\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/ETC\",\n"
-							+ "    \"createdBy\": null,\n"
-							+ "    \"createdAt\": \"2025-11-26T17:59:53.232417\",\n"
-							+ "    \"status\": \"APPROVED\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": null,\n"
-							+ "    \"projectName\": \"abcabcasefes\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN\",\n"
-							+ "    \"createdBy\": {\n"
-							+ "      \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "      \"userName\": \"Acc_test_Admin1\"\n"
-							+ "    },\n"
-							+ "    \"createdAt\": \"2025-11-24T02:00:31.440323\",\n"
-							+ "    \"status\": \"PENDING\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [\n"
-							+ "      {\n"
-							+ "        \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "        \"userName\": \"Acc_test_Admin1\",\n"
-							+ "        \"userEmail\": \"admin@ajou.ac.kr\",\n"
-							+ "        \"userPhoneNumber\": null,\n"
-							+ "        \"role\": \"PROJECT_ADMIN\"\n"
-							+ "      }\n"
-							+ "    ],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  },\n"
-							+ "  {\n"
-							+ "    \"projectId\": null,\n"
-							+ "    \"projectName\": \"가나다라마바사\",\n"
-							+ "    \"projectType\": \"PROJECT_REQUEST_TYPE/MAJOR_LECTURE\",\n"
-							+ "    \"createdBy\": {\n"
-							+ "      \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "      \"userName\": \"Acc_test_Admin1\"\n"
-							+ "    },\n"
-							+ "    \"createdAt\": \"2025-11-25T02:14:58.849064\",\n"
-							+ "    \"status\": \"PENDING\",\n"
-							+ "    \"projectBrief\": {\n"
-							+ "      \"vCpu\": 8,\n"
-							+ "      \"vRam\": 32,\n"
-							+ "      \"instance\": 10,\n"
-							+ "      \"storage\": 1000\n"
-							+ "    },\n"
-							+ "    \"participants\": [\n"
-							+ "      {\n"
-							+ "        \"userId\": \"de15e36af072460da2e39a74be3595b6\",\n"
-							+ "        \"userName\": \"Acc_test_Admin1\",\n"
-							+ "        \"userEmail\": \"admin@ajou.ac.kr\",\n"
-							+ "        \"userPhoneNumber\": null,\n"
-							+ "        \"role\": \"PROJECT_ADMIN\"\n"
-							+ "      }\n"
-							+ "    ],\n"
-							+ "    \"rejectReason\": null\n"
-							+ "  }\n"
-							+ "]"
+						value = """
+							[
+							  {
+							    "projectId": "0cc61cc8ed964714a06a42afa92c1dc6",
+							    "projectName": "admin",
+							    "projectType": "PROJECT_REQUEST_TYPE/ETC",
+							    "createdBy": null,
+							    "createdAt": "1900-01-01T00:00",
+							    "status": "APPROVED",
+							    "quota": {
+							      "instance": { "available": 10, "used": 2 },
+							      "core": { "available": 20, "used": 2 },
+							      "ram": { "available": 51200, "used": 1024 },
+							      "volume": {
+							        "count": { "available": 10, "used": 2 },
+							        "size": { "available": 1000, "used": 30 }
+							      }
+							    },
+							    "participants": [],
+							    "rejectReason": null
+							  },
+							  {
+							    "projectId": null,
+							    "projectName": "캡스톤 프로젝트 요청",
+							    "projectType": "PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN",
+							    "createdBy": {
+							      "userId": "de15e36af072460da2e39a74be3595b6",
+							      "userName": "Acc_test_Admin1"
+							    },
+							    "createdAt": "2025-11-24T02:00:31.440323",
+							    "status": "PENDING",
+							    "quota": {
+							      "instance": { "available": 10, "used": 0 },
+							      "core": { "available": 8, "used": 0 },
+							      "ram": { "available": 32768, "used": 0 },
+							      "volume": {
+							        "count": { "available": 10, "used": 0 },
+							        "size": { "available": 1024, "used": 0 }
+							      }
+							    },
+							    "participants": [
+							      {
+							        "userId": "de15e36af072460da2e39a74be3595b6",
+							        "userName": "Acc_test_Admin1",
+							        "userEmail": "admin@ajou.ac.kr",
+							        "userPhoneNumber": null,
+							        "role": "PROJECT_ADMIN"
+							      }
+							    ],
+							    "rejectReason": null
+							  }
+							]
+							"""
 					)
 				},
-				schema = @Schema(oneOf = {ProjectResponse.class, List.class})
+				schema = @Schema(oneOf = {GetProjectResponse.class, ProjectResponse.class, List.class})
 			)
 		),
 		@ApiResponse(responseCode = "400", description = "잘못된 요청 - 요청 파라미터 오류", content = @Content()),
@@ -463,48 +242,37 @@ public interface ProjectDocs {
 				examples = {
 					@ExampleObject(
 						name = "프로젝트 생성요청 목록 조회",
-						value = "{\n"
-							+ "  \"contents\": [\n"
-							+ "    {\n"
-							+ "      \"projectRequestId\": \"ad1af0b6-0ac7-4005-95b9-9b0a325f00a9\",\n"
-							+ "      \"projectName\": \"abcabcasefes\",\n"
-							+ "      \"projectType\": \"PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN\",\n"
-							+ "      \"createdBy\": {\n"
-							+ "        \"userId\": \"f52f7447cba1476da8fa281bf6fff220\",\n"
-							+ "        \"userName\": \"Waccounttest_1\"\n"
-							+ "      },\n"
-							+ "      \"createdAt\": \"2025-11-24T02:04:36.473286\",\n"
-							+ "      \"status\": \"APPROVED\",\n"
-							+ "      \"projectBrief\": {\n"
-							+ "        \"vCpu\": 8,\n"
-							+ "        \"vRam\": 32,\n"
-							+ "        \"instance\": 10,\n"
-							+ "        \"storage\": 1000\n"
-							+ "      }\n"
-							+ "    },\n"
-							+ "    {\n"
-							+ "      \"projectRequestId\": \"bb02de58-1376-4e6d-b676-6b088f4c41f5\",\n"
-							+ "      \"projectName\": \"abcabcasefes\",\n"
-							+ "      \"projectType\": \"PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN\",\n"
-							+ "      \"createdBy\": {\n"
-							+ "        \"userId\": \"f52f7447cba1476da8fa281bf6fff220\",\n"
-							+ "        \"userName\": \"Waccounttest_1\"\n"
-							+ "      },\n"
-							+ "      \"createdAt\": \"2025-11-24T02:00:31.440323\",\n"
-							+ "      \"status\": \"PENDING\",\n"
-							+ "      \"projectBrief\": {\n"
-							+ "        \"vCpu\": 8,\n"
-							+ "        \"vRam\": 32,\n"
-							+ "        \"instance\": 10,\n"
-							+ "        \"storage\": 1000\n"
-							+ "      }\n"
-							+ "    }\n"
-							+ "  ],\n"
-							+ "  \"first\": true,\n"
-							+ "  \"last\": false,\n"
-							+ "  \"size\": 2,\n"
-							+ "  \"nextMarker\": \"MA==\"\n"
-							+ "}"
+						value = """
+							{
+							  "contents": [
+							    {
+							      "projectRequestId": "ad1af0b6-0ac7-4005-95b9-9b0a325f00a9",
+							      "projectName": "캡스톤 프로젝트 요청",
+							      "projectType": "PROJECT_REQUEST_TYPE/CAPSTONE_DESIGN",
+							      "createdBy": {
+							        "userId": "f52f7447cba1476da8fa281bf6fff220",
+							        "userName": "Waccounttest_1"
+							      },
+							      "createdAt": "2025-11-24T02:04:36.473286",
+							      "status": "PENDING",
+							      "quota": {
+							        "instance": { "available": 10, "used": 0 },
+							        "core": { "available": 8, "used": 0 },
+							        "ram": { "available": 32768, "used": 0 },
+							        "volume": {
+							          "count": { "available": 10, "used": 0 },
+							          "size": { "available": 1024, "used": 0 }
+							        }
+							      }
+							    }
+							  ],
+							  "first": true,
+							  "last": false,
+							  "size": 1,
+							  "nextMarker": "ad1af0b6-0ac7-4005-95b9-9b0a325f00a9",
+							  "prevMarker": null
+							}
+							"""
 					)
 				},
 				schema = @Schema(oneOf = {ProjectRequestResponse.class, PageResponse.class})

@@ -15,9 +15,12 @@ public record ProjectRequestResponse(
 	ProjectOwnerDto createdBy,
 	String createdAt,
 	ProjectRequestStatus status,
-	ProjectGlobalQuotaDto projectBrief
+	ProjectGlobalQuotaDto quota
 ) {
 	public static ProjectRequestResponse from(ProjectRequestDto projectRequest, UserKeystoneDto createdBy) {
+		ProjectGlobalQuotaDto quota = projectRequest.quota() == null
+			? ProjectGlobalQuotaDto.getDefault()
+			: projectRequest.quota();
 		return ProjectRequestResponse.builder()
 			.projectRequestId(projectRequest.projectRequestId())
 			.projectName(projectRequest.projectName())
@@ -25,7 +28,7 @@ public record ProjectRequestResponse(
 			.createdBy(ProjectOwnerDto.from(createdBy))
 			.createdAt(projectRequest.createdAt().toString())
 			.status(projectRequest.status())
-			.projectBrief(ProjectGlobalQuotaDto.getDefault())
+			.quota(quota)
 			.build();
 	}
 }
