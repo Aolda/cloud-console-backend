@@ -58,4 +58,23 @@ class ProjectResponseTest {
 		assertThat(json.has("projectBrief")).isFalse();
 		assertThat(json.has("quota")).isTrue();
 	}
+
+	@Test
+	void fromProjectRequestDtoIncludesParticipantPhoneNumber() {
+		ProjectRequestDto projectRequest = ProjectRequestDto.builder()
+			.projectName("pending-project")
+			.projectType(ProjectRequestType.CAPSTONE_DESIGN)
+			.createdAt(LocalDateTime.of(2026, 6, 18, 10, 0))
+			.status(ProjectRequestStatus.PENDING)
+			.build();
+		UserKeystoneDto requester = UserKeystoneDto.builder()
+			.id("requester-id")
+			.name("requester")
+			.build();
+
+		ProjectResponse response = ProjectResponse.from(projectRequest, requester, "010-1234-5678");
+
+		assertThat(response.participants()).hasSize(1);
+		assertThat(response.participants().get(0).userPhoneNumber()).isEqualTo("010-1234-5678");
+	}
 }
