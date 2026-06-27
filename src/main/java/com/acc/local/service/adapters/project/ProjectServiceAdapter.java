@@ -15,6 +15,7 @@ import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRole;
 import com.acc.local.dto.auth.UserKeystoneDto;
+import com.acc.local.entity.UserDbExtraEntity;
 import com.acc.local.dto.project.CreateProjectRequestRequest;
 import com.acc.local.dto.project.CreateProjectRequestResponse;
 import com.acc.local.dto.project.GetProjectResponse;
@@ -75,10 +76,11 @@ public class ProjectServiceAdapter implements ProjectServicePort {
 			}
 
 			UserKeystoneDto userDetail = authModule.getUserDetail(requestUserId, requestUserId);
+			UserDbExtraEntity userDbDetail = userModule.adminGetUserDetailDB(requestUserId);
 			projectModule.getAllProjectRequestList(keyword, requestUserId).stream()
 				.filter(v -> v.status() != ProjectRequestStatus.APPROVED)
 				.forEach(
-					v -> projectResponseList.add(ProjectResponse.from(v, userDetail))
+					v -> projectResponseList.add(ProjectResponse.from(v, userDetail, userDbDetail.getUserPhoneNumber()))
 				);
 
 			return projectResponseList;

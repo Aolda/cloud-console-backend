@@ -66,6 +66,14 @@ public record ProjectResponse(
 
 	// 프로젝트 요청
 	public static ProjectResponse from(ProjectRequestDto projectRequestDto, UserKeystoneDto projectRequestUser) {
+		return from(projectRequestDto, projectRequestUser, null);
+	}
+
+	public static ProjectResponse from(
+		ProjectRequestDto projectRequestDto,
+		UserKeystoneDto projectRequestUser,
+		String userPhoneNumber
+	) {
 		return ProjectResponse.builder()
 			.projectName(projectRequestDto.projectName())
 			.projectType(projectRequestDto.projectType())
@@ -78,6 +86,7 @@ public record ProjectResponse(
 				ProjectParticipantDto.builder()
 					.userId(projectRequestUser.id())
 					.userName(projectRequestUser.name())
+					.userPhoneNumber(userPhoneNumber)
 					.role(ProjectRole.PROJECT_ADMIN)
 					.build()
 			))
