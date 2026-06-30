@@ -66,6 +66,7 @@ public class ProjectModule {
 
 	// ============ Project Request ============
 	public CreateProjectRequestResponse createProjectRequest(CreateProjectRequestRequest request, String requestUserId) {
+		ProjectNameValidator.validate(request.projectName());
 		checkIdenticalProjectRequestExist(request, requestUserId);
 
 		ProjectRequestEntity newRequest = ProjectRequestEntity.builder()
@@ -261,6 +262,8 @@ public class ProjectModule {
 	}
 
 	public KeystoneProject createProject(String adminToken, ProjectCreateDto request, String commandUserId) {
+		ProjectNameValidator.validate(request.projectName());
+
 		CreateKeystoneProjectRequest project = CreateKeystoneProjectRequest.builder()
 			.projectName(request.projectName())
 			.projectDescription(request.projectDescription())

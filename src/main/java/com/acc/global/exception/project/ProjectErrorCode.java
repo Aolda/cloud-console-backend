@@ -12,6 +12,7 @@ public enum ProjectErrorCode implements ErrorCode {
 
     // 400 Bad Request
     INVALID_REQUEST_PARAMETER(400, "ACC-PROJECT-INVALID-REQUEST-PARAM", "필수 요청 파라미터가 누락되었거나 유효하지 않습니다."),
+    INVALID_PROJECT_NAME(400, "ACC-PROJECT-INVALID-PROJECT-NAME", "프로젝트명은 영어 소문자, 숫자, '-'만 사용할 수 있습니다."),
     INVALID_PROJECT_STATUS(400, "ACC-PROJECT-INVALID-PROJECT-STATUS", "잘못된 프로젝트 상태 값입니다."),
     INVALID_PROJECT_REQUEST_TYPE(400, "ACC-PROJECT-INVALID-PROJECT-REQUEST-TYPE", "올바르지 않은 프로젝트 요청타입 입니다."),
     INVALID_PROJECT_REQUEST_STATUS(400, "ACC-PROJECT-INVALID-PROJECT-REQUEST-STATUS", "올바르지 않은 프로젝트 요청상태 입니다."),

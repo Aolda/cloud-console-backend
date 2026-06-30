@@ -18,6 +18,7 @@ import com.acc.local.dto.project.quota.QuotaInformation;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.KeystoneTokenModule;
+import com.acc.local.service.modules.auth.ProjectNameValidator;
 import com.acc.local.service.modules.auth.ProjectModule;
 import com.acc.local.service.modules.network.NeutronModule;
 import com.acc.local.service.modules.outbox.ProjectCreatedEvent;
@@ -51,6 +52,7 @@ public class AdminProjectServiceAdapter implements AdminProjectServicePort {
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest createProjectRequest, String sessionId) {
 		String userId = sessionModule.getKeystoneUserId(sessionId);
+		ProjectNameValidator.validate(createProjectRequest.projectName());
 		// TODO: userId를 통해, 요청을 보낸 사람이 Root인지 권한 확인
 		String adminToken = authModule.issueSystemAdminTokenWithAdminProjectScope(userId);
 

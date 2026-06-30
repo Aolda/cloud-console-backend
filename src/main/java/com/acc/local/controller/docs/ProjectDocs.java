@@ -305,7 +305,7 @@ public interface ProjectDocs {
 						name = "프로젝트 생성요청 등록 성공",
 						value = "{ \n"
 							+ "  \"projectRequestId\": \"f01213b2-6900-4086-b3fa-a1bbdd36765c\",\n"
-							+ "  \"projectName\": \"가나다라마바사\",\n"
+							+ "  \"projectName\": \"capstone-project\",\n"
 							+ "  \"projectType\": \"PROJECT_REQUEST_TYPE/MAJOR_LECTURE\",\n"
 							+ "  \"createdAt\": \"2025-11-25T02:14:58.849064\",\n"
 							+ "  \"status\": \"PENDING\",\n"

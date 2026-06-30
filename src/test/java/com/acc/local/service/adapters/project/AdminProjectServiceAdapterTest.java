@@ -4,7 +4,10 @@ import com.acc.local.domain.enums.project.ProjectRequestStatus;
 import com.acc.local.domain.enums.project.ProjectRequestType;
 import com.acc.global.common.PageRequest;
 import com.acc.global.common.PageResponse;
+import com.acc.global.exception.project.ProjectErrorCode;
+import com.acc.global.exception.project.ProjectServiceException;
 import com.acc.local.dto.auth.UserKeystoneDto;
+import com.acc.local.dto.project.CreateProjectRequest;
 import com.acc.local.dto.project.ProjectCreateDto;
 import com.acc.local.dto.project.DecideProjectRequestResponse;
 import com.acc.local.dto.project.ProjectListServiceDto;
@@ -14,6 +17,7 @@ import com.acc.local.dto.project.ProjectRequestResponse;
 import com.acc.local.dto.project.RepositoryPagination;
 import com.acc.local.dto.project.ProjectServiceDto;
 import com.acc.local.dto.project.quota.ProjectGlobalQuotaDto;
+import com.acc.local.dto.project.quota.ProjectQuotaRequest;
 import com.acc.local.external.dto.keystone.KeystoneProject;
 import com.acc.local.service.modules.auth.AuthModule;
 import com.acc.local.service.modules.auth.KeystoneTokenModule;
@@ -32,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,6 +69,33 @@ class AdminProjectServiceAdapterTest {
 
     @InjectMocks
     private AdminProjectServiceAdapter adminProjectServiceAdapter;
+
+    @Test
+    @DisplayName("관리자 프로젝트 직접 생성 시 허용되지 않는 프로젝트명은 관리자 토큰 발급 전에 거부한다.")
+    void givenInvalidProjectName_whenCreateProject_thenThrowBeforeAdminTokenIssue() {
+        String sessionId = "session-id";
+        String adminUserId = "admin-user-id";
+        CreateProjectRequest request = new CreateProjectRequest(
+                "Invalid_Project",
+                "description",
+                ProjectRequestType.ETC,
+                ProjectQuotaRequest.builder()
+                        .vCpu(1)
+                        .vRam(1024)
+                        .storage(10)
+                        .instance(1)
+                        .build(),
+                "owner-user-id"
+        );
+
+        given(sessionModule.getKeystoneUserId(sessionId)).willReturn(adminUserId);
+
+        assertThatThrownBy(() -> adminProjectServiceAdapter.createProject(request, sessionId))
+                .isInstanceOfSatisfying(ProjectServiceException.class, exception ->
+                        assertThat(exception.getErrorCode()).isEqualTo(ProjectErrorCode.INVALID_PROJECT_NAME));
+        then(authModule).should(never()).issueSystemAdminTokenWithAdminProjectScope(anyString());
+        then(projectModule).shouldHaveNoInteractions();
+    }
 
     @Test
     @DisplayName("관리자 프로젝트 요청 목록은 모듈 pagination 정보를 API 응답으로 보존한다.")
